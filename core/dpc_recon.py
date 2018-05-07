@@ -11,8 +11,10 @@ def test_api(param:Param, update_fcn=None):
             update_fcn(i+1)
 
 try:
-    import dpc_recon # import recon code
+    #import dpc_recon # import recon code
     #recon_api = your function
+    from .ptycho.recon_ptycho import recon 
+    recon_api = recon
 except ImportError as ex:
     print('[!] Unable to import dpc recon packages')
     print('[!] (import error: {})'.format(ex))
