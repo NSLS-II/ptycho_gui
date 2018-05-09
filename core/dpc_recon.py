@@ -34,10 +34,10 @@ class DPCReconWorker(QtCore.QThread):
     def run(self):
         print('DPC thread started')
         try: 
-            self.param.gpus = [0] # GPU #1, for test purpose
-            #with open('.dpc_param.pkl', 'wb') as output:
-            #   pickle.dump(self.param, output, pickle.HIGHEST_PROTOCOL) # dump param into disk and let children read it back
-            #   print("pickle dumped")
+            #self.param.gpus = [0] # GPU #1, for test purpose
+            with open('.dpc_param.pkl', 'wb') as output:
+               pickle.dump(self.param, output, pickle.HIGHEST_PROTOCOL) # dump param into disk and let children read it back
+               print("pickle dumped")
 
             # working version
             mpirun_command = ["mpirun", "-n", str(len(self.param.gpus)), "python", "./core/ptycho/recon_ptycho_gui.py"]
