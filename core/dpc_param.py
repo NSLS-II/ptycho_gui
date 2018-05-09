@@ -10,13 +10,16 @@ class Param(object):
         #
         # [RUN]
         #
-        self.scan_num = '34784'        # scan number
+        self.scan_num = '34784'      # scan number
         self.sign = 't1'             # saving file name
         self.n_iterations = 50       # number of iterations
         self.p_flag = False          # True to load an exsiting probe
         self.distance = 0.           # ???
         self.mode_flag = False       # do multi-mode reconstruction
         self.gpu_flag = True         # whether to use GPU
+        self.gpus = None             # should be a list of gpu numbers, ex: [0, 2, 3]
+        self.prb_path = None         # path to existing probe array (.npy)
+        self.obj_path = None         # path to existing object array (.npy)
 
         #
         # [EXPERT]
@@ -42,9 +45,9 @@ class Param(object):
         self.bragg_delta = 15.458
 
         self.amp_max = 1.    # up/low limit of allowed object amplitude range
-        self.amp_min = 0.85  #
+        self.amp_min = 0.5   #
         self.pha_max = 0.01  # up/low limit of allowed object phase range
-        self.pha_min = -0.6  #
+        self.pha_min = -1.0  #
 
         # partial coherence parameter
         self.pc_flag = False
@@ -85,6 +88,8 @@ class Param(object):
         self.ms_pie_flag = False
         self.weak_obj_flag = False
         self.processes = 0
+
+
 
         #
         # [DEFAULT]
