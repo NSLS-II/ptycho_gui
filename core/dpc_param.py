@@ -6,11 +6,31 @@ class Param(object):
     """
     def __init__(self):
         # from recon_ptycho.py
+        # organized by grouping in GUI
+
+        #
+        # [Data]
+        #
+        self.scan_num = '34784'       # scan number
+        self.detectorkind = 'merlin1' # ['merlin1', 'merlin2', 'timepix1', 'timepix2']
+        self.frame_num = 0            # frame number to check
+
+        #
+        # [Experimental parameters]
+        #
+        self.xray_energy = 0.
+        self.detector_distance = 0.
+        self.x_arr_size = 0.
+        self.x_step_size = 0.
+        self.x_scan_range = 0.
+        self.y_arr_size = 0.
+        self.y_step_size = 0.
+        self.y_scan_range = 0.
+
 
         #
         # [RUN]
         #
-        self.scan_num = '34784'      # scan number
         self.sign = 't1'             # saving file name
         self.n_iterations = 50       # number of iterations
         self.p_flag = False          # True to load an exsiting probe

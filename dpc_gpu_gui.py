@@ -30,7 +30,7 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
         else:
             self.param = param
         self._dpc_gpu_thread = None
-        self.update_gui_from_param()
+        #self.update_gui_from_param()
 
     def update_param_from_gui(self):
         p = self.param
