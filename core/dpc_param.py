@@ -68,6 +68,7 @@ class Param(object):
         #
         # [Need to organize]
         #
+        self.gui = True
         self.init_obj_dpc_flag = False
         self.prb_center_flag = True
         self.mask_prb_flag = False
