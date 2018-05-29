@@ -7,8 +7,6 @@ from core.dpc_param import Param
 from core.dpc_recon import DPCReconWorker
 from core.dpc_qt_utils import DPCStream
 
-qt_connect = QtCore.QObject.connect
-qt_signal = QtCore.SIGNAL
 
 class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
     def __init__(self, parent=None, param:Param=None):
@@ -19,14 +17,14 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
         #
         # connect
         #
-        qt_connect(self.btn_load_probe , qt_signal('clicked()'), self.loadProbe)
-        qt_connect(self.btn_load_object, qt_signal('clicked()'), self.loadObject)
-        qt_connect(self.ck_mode_flag, qt_signal('clicked()'), self.updateModeFlg)
-        qt_connect(self.ck_multislice_flag, qt_signal('clicked()'), self.updateMultiSliceFlg)
-        qt_connect(self.ck_gpu_flag, qt_signal('clicked()'), self.updateGpuFlg)
+        QtCore.QObject.connect(self.btn_load_probe , QtCore.SIGNAL('clicked()'), self.loadProbe)
+        QtCore.QObject.connect(self.btn_load_object, QtCore.SIGNAL('clicked()'), self.loadObject)
+        QtCore.QObject.connect(self.ck_mode_flag, QtCore.SIGNAL('clicked()'), self.updateModeFlg)
+        QtCore.QObject.connect(self.ck_multislice_flag, QtCore.SIGNAL('clicked()'), self.updateMultiSliceFlg)
+        QtCore.QObject.connect(self.ck_gpu_flag, QtCore.SIGNAL('clicked()'), self.updateGpuFlg)
 
-        qt_connect(self.btn_recon_start, qt_signal('clicked()'), self.start)
-        qt_connect(self.btn_recon_stop , qt_signal('clicked()'), self.stop)
+        QtCore.QObject.connect(self.btn_recon_start, QtCore.SIGNAL('clicked()'), self.start)
+        QtCore.QObject.connect(self.btn_recon_stop , QtCore.SIGNAL('clicked()'), self.stop)
 
         self.btn_gpu_all = [self.btn_gpu_0, self.btn_gpu_1, self.btn_gpu_2, self.btn_gpu_3]
 
@@ -47,6 +45,7 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
     def update_param_from_gui(self):
         p = self.param
         p.scan_num = str(self.le_scan_num.text())
+        p.sign = str(self.le_sign.text())
         p.detectorkind = str(self.cb_detectorkind.currentText())
         p.frame_num = int(self.sp_fram_num.value())
 
@@ -93,6 +92,7 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
     def update_gui_from_param(self):
         p = self.param
         self.le_scan_num.setText(p.scan_num)
+        self.le_sign.setText(p.sign)
         self.cb_detectorkind.setCurrentIndex(p.get_detector_kind_index())
         self.sp_fram_num.setValue(int(p.frame_num))
 
