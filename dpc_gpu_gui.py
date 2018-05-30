@@ -41,6 +41,14 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
         self.updateModeFlg()
         self.updateMultiSliceFlg()
         self.updateGpuFlg()
+        self.resetButtons()
+
+
+    def resetButtons(self):
+        self.btn_recon_start.setEnabled(True)
+        self.btn_recon_stop.setEnabled(False)
+        self.recon_bar.setValue(0)
+        
 
     def update_param_from_gui(self):
         p = self.param
@@ -147,10 +155,25 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
 
             thread = self._dpc_gpu_thread = DPCReconWorker(self.param)
             thread.update_signal.connect(self.update_recon_step)
+            QtCore.QObject.connect(thread, QtCore.SIGNAL("finished()"), self.resetButtons)
             thread.start()
 
+            self.btn_recon_stop.setEnabled(True)
+            self.btn_recon_start.setEnabled(False)
+
+
     def stop(self):
-        pass
+        # force quitting if running, otherwise do nothing
+        if self._dpc_gpu_thread is not None and self._dpc_gpu_thread.isRunning():
+        #if self._dpc_gpu_thread is not None:
+            #self._dpc_gpu_thread.papa.break_signal = True
+            self._dpc_gpu_thread.kill() # first kill the mpi processes
+            self._dpc_gpu_thread.terminate()
+            self._dpc_gpu_thread.wait()
+            self._dpc_gpu_thread = None
+            self.resetButtons()
+            self.recon_bar.setValue(0)
+
 
     def update_recon_step(self, it):
         self.recon_bar.setValue(it)
