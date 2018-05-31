@@ -49,6 +49,8 @@ class Param(object):
         self.obj_dir = ''
         self.obj_path = None         # path to existing object array (.npy)
 
+        self.working_directory = os.getcwd() + "/"
+
         self.mode_flag = False       # do multi-mode reconstruction
         self.prb_mode_num = 5
         self.obj_mode_num = 1
@@ -132,6 +134,8 @@ class Param(object):
         self.obj_filename = filename
         self.obj_path = os.path.join(self.obj_dir, self.obj_filename)
 
+    def set_working_directory(self, path):
+        self.working_directory = path
 
     def get_alg_flg_index(self):
         return ['DM', 'ER', 'ML_G', 'ML_P'].index(self.alg_flag)

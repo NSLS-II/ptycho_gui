@@ -14,11 +14,12 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
         self.setupUi(self)
         QtGui.QApplication.setStyle('Plastique')
 
-        #
         # connect
-        #
         QtCore.QObject.connect(self.btn_load_probe , QtCore.SIGNAL('clicked()'), self.loadProbe)
         QtCore.QObject.connect(self.btn_load_object, QtCore.SIGNAL('clicked()'), self.loadObject)
+
+        QtCore.QObject.connect(self.btn_choose_cwd, QtCore.SIGNAL('clicked()'), self.setWorkingDirectory)
+
         QtCore.QObject.connect(self.ck_mode_flag, QtCore.SIGNAL('clicked()'), self.updateModeFlg)
         QtCore.QObject.connect(self.ck_multislice_flag, QtCore.SIGNAL('clicked()'), self.updateMultiSliceFlg)
         QtCore.QObject.connect(self.ck_gpu_flag, QtCore.SIGNAL('clicked()'), self.updateGpuFlg)
@@ -28,10 +29,7 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
 
         self.btn_gpu_all = [self.btn_gpu_0, self.btn_gpu_1, self.btn_gpu_2, self.btn_gpu_3]
 
-
-        #
         # init.
-        #
         if param is None:
             self.param = Param() # default
         else:
@@ -126,6 +124,8 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
         self.ck_init_obj_flag.setChecked(p.init_obj_flag)
         self.le_obj_path.setText(str(p.obj_filename or ''))
 
+        self.le_working_directory.setText(str(p.working_directory or ''))
+
         self.ck_mode_flag.setChecked(p.mode_flag)
         self.sp_prb_mode_num.setValue(int(p.prb_mode_num))
         self.sp_obj_mode_num.setValue(int(p.obj_mode_num))
@@ -178,6 +178,7 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
     def update_recon_step(self, it):
         self.recon_bar.setValue(it)
 
+
     def loadProbe(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open probe file', filter="(*.npy)")
         if filename is not None and len(filename) > 0:
@@ -186,6 +187,7 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
             self.param.set_prb_path(prb_dir, prb_filename)
             self.le_prb_path.setText(prb_filename)
             self.ck_init_prb_flag.setChecked(False)
+
 
     def loadObject(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open object file', filter="(*.npy)")
@@ -196,17 +198,28 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
             self.le_obj_path.setText(obj_filename)
             self.ck_init_obj_flag.setChecked(False)
 
+
+    def setWorkingDirectory(self):
+        dirname = QtGui.QFileDialog.getExistingDirectory(self, 'Choose working folder', directory=os.getcwd())
+        if dirname is not None and len(dirname) > 0:
+            dirname = dirname + "/"
+            self.param.set_working_directory(dirname)
+            self.le_working_directory.setText(dirname)
+
+
     def updateModeFlg(self):
         mode_flag = self.ck_mode_flag.isChecked()
         self.sp_prb_mode_num.setEnabled(mode_flag)
         self.sp_obj_mode_num.setEnabled(mode_flag)
         self.param.mode_flag = mode_flag
 
+
     def updateMultiSliceFlg(self):
         flag = self.ck_multislice_flag.isChecked()
         self.sp_slice_num.setEnabled(flag)
         self.sp_slice_spacing_m.setEnabled(flag)
         self.param.multislice_flag = flag
+
 
     def updateGpuFlg(self):
         flag = self.ck_gpu_flag.isChecked()

@@ -4,8 +4,8 @@ from core.dpc_param import Param
 #from .ptycho.recon_ptycho_gui import recon_gui
 #from mpi4py import MPI
 import sys, os
-import pickle     # test, dump param into disk
-import subprocess # test, call mpirun from shell
+import pickle     # dump param into disk
+import subprocess # call mpirun from shell
 
 
 class DPCReconWorker(QtCore.QThread):
