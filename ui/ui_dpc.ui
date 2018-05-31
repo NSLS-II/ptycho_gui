@@ -75,12 +75,12 @@
           </property>
           <item>
            <property name="text">
-            <string>Load from databroker</string>
+            <string>Load from h5</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>Load from h5</string>
+            <string>Load from databroker</string>
            </property>
           </item>
          </widget>
