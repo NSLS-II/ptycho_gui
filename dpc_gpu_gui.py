@@ -172,7 +172,6 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
             #self._dpc_gpu_thread.wait()
             self._dpc_gpu_thread = None
             self.resetButtons()
-            self.recon_bar.setValue(0)
 
 
     def update_recon_step(self, it):
@@ -200,7 +199,7 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
 
 
     def setWorkingDirectory(self):
-        dirname = QtGui.QFileDialog.getExistingDirectory(self, 'Choose working folder', directory=os.getcwd())
+        dirname = QtGui.QFileDialog.getExistingDirectory(self, 'Choose working folder', directory=os.path.expanduser("~"))
         if dirname is not None and len(dirname) > 0:
             dirname = dirname + "/"
             self.param.set_working_directory(dirname)
