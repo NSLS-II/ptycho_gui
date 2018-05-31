@@ -166,10 +166,10 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
         # force quitting if running, otherwise do nothing
         if self._dpc_gpu_thread is not None and self._dpc_gpu_thread.isRunning():
         #if self._dpc_gpu_thread is not None:
-            #self._dpc_gpu_thread.papa.break_signal = True
             self._dpc_gpu_thread.kill() # first kill the mpi processes
-            self._dpc_gpu_thread.terminate()
-            self._dpc_gpu_thread.wait()
+            self._dpc_gpu_thread.quit() # then quit QThread gracefully
+            #self._dpc_gpu_thread.terminate()
+            #self._dpc_gpu_thread.wait()
             self._dpc_gpu_thread = None
             self.resetButtons()
             self.recon_bar.setValue(0)
