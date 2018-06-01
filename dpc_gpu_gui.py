@@ -83,10 +83,14 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
         p.mode_flag = self.ck_mode_flag.isChecked()
         p.prb_mode_num = self.sp_prb_mode_num.value()
         p.obj_mode_num = self.sp_obj_mode_num.value()
+        if p.mode_flag:
+            p.sign = p.sign + "_mode"
 
         p.multislice_flag = self.ck_multislice_flag.isChecked()
         p.slice_num = int(self.sp_slice_num.value())
         p.slice_spacing_m = float(self.sp_slice_spacing_m.value() * 1e-6)
+        if p.multislice_flag:
+            p.sign = p.sign + "_ms"
 
         p.amp_min = float(self.sp_amp_min.value())
         p.amp_max = float(self.sp_amp_max.value())
@@ -278,8 +282,10 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
                     #self.cb_scan_type = ...
                     self.sp_num_points.setValue(nz)
             except OSError:
-                print("h5 not found.", file=sys.stderr)
+                print("[ERROR] h5 not found...", file=sys.stderr, end='')
                 self.resetExperimentalParameters()
+            finally:
+                print("done")
 
 
     def resetExperimentalParameters(self):
