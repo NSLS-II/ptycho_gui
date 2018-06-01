@@ -150,7 +150,7 @@
          </widget>
         </item>
         <item row="1" column="6">
-         <widget class="QPushButton" name="pushButton">
+         <widget class="QPushButton" name="btn_view_frame">
           <property name="maximumSize">
            <size>
             <width>150</width>
@@ -197,7 +197,11 @@
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QDoubleSpinBox" name="sp_xray_energy"/>
+          <widget class="QDoubleSpinBox" name="sp_xray_energy">
+           <property name="decimals">
+            <number>10</number>
+           </property>
+          </widget>
          </item>
          <item row="2" column="2">
           <widget class="QLabel" name="label_42">
@@ -228,7 +232,11 @@
           </widget>
          </item>
          <item row="3" column="1">
-          <widget class="QDoubleSpinBox" name="sp_x_scan_range"/>
+          <widget class="QDoubleSpinBox" name="sp_x_scan_range">
+           <property name="decimals">
+            <number>4</number>
+           </property>
+          </widget>
          </item>
          <item row="4" column="1">
           <widget class="QComboBox" name="cb_scan_type">
@@ -256,14 +264,19 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
-          <widget class="QDoubleSpinBox" name="sp_x_arr_size"/>
-         </item>
          <item row="3" column="3">
-          <widget class="QDoubleSpinBox" name="sp_y_scan_range"/>
+          <widget class="QDoubleSpinBox" name="sp_y_scan_range">
+           <property name="decimals">
+            <number>4</number>
+           </property>
+          </widget>
          </item>
          <item row="2" column="3">
-          <widget class="QDoubleSpinBox" name="sp_y_step_size"/>
+          <widget class="QDoubleSpinBox" name="sp_y_step_size">
+           <property name="decimals">
+            <number>4</number>
+           </property>
+          </widget>
          </item>
          <item row="3" column="2">
           <widget class="QLabel" name="label_44">
@@ -273,10 +286,11 @@
           </widget>
          </item>
          <item row="4" column="3">
-          <widget class="QSpinBox" name="sp_num_points"/>
-         </item>
-         <item row="1" column="3">
-          <widget class="QDoubleSpinBox" name="sp_y_arr_size"/>
+          <widget class="QSpinBox" name="sp_num_points">
+           <property name="maximum">
+            <number>1000000</number>
+           </property>
+          </widget>
          </item>
          <item row="1" column="0">
           <widget class="QLabel" name="label_39">
@@ -286,10 +300,18 @@
           </widget>
          </item>
          <item row="0" column="3">
-          <widget class="QDoubleSpinBox" name="sp_detector_distance"/>
+          <widget class="QDoubleSpinBox" name="sp_detector_distance">
+           <property name="decimals">
+            <number>4</number>
+           </property>
+          </widget>
          </item>
          <item row="2" column="1">
-          <widget class="QDoubleSpinBox" name="sp_x_step_size"/>
+          <widget class="QDoubleSpinBox" name="sp_x_step_size">
+           <property name="decimals">
+            <number>4</number>
+           </property>
+          </widget>
          </item>
          <item row="3" column="0">
           <widget class="QLabel" name="label_43">
@@ -302,6 +324,20 @@
           <widget class="QLabel" name="label_45">
            <property name="text">
             <string>Scan type: </string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QSpinBox" name="sp_x_arr_size">
+           <property name="maximum">
+            <number>1000000</number>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="3">
+          <widget class="QSpinBox" name="sp_y_arr_size">
+           <property name="maximum">
+            <number>1000000</number>
            </property>
           </widget>
          </item>

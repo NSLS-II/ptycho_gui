@@ -7,6 +7,8 @@ from core.dpc_param import Param
 from core.dpc_recon import DPCReconWorker
 from core.dpc_qt_utils import DPCStream
 
+import h5py
+
 
 class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
     def __init__(self, parent=None, param:Param=None):
@@ -21,6 +23,7 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
         QtCore.QObject.connect(self.ck_init_obj_flag, QtCore.SIGNAL('clicked()'), self.updateObjectFlg)
 
         QtCore.QObject.connect(self.btn_choose_cwd, QtCore.SIGNAL('clicked()'), self.setWorkingDirectory)
+        QtCore.QObject.connect(self.btn_view_frame, QtCore.SIGNAL('clicked()'), self.viewDataFrame)
 
         QtCore.QObject.connect(self.ck_mode_flag, QtCore.SIGNAL('clicked()'), self.updateModeFlg)
         QtCore.QObject.connect(self.ck_multislice_flag, QtCore.SIGNAL('clicked()'), self.updateMultiSliceFlg)
@@ -42,6 +45,7 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
         self.updateMultiSliceFlg()
         self.updateGpuFlg()
         self.resetButtons()
+        self.resetExperimentalParameters() # probably not necessary
 
 
     def resetButtons(self):
@@ -242,6 +246,53 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
         self.btn_gpu_1.setEnabled(flag)
         self.btn_gpu_2.setEnabled(flag)
         self.btn_gpu_3.setEnabled(flag)
+
+
+    def viewDataFrame(self):
+        '''
+        WARNING:
+        Currently this function only fetches experimental paramters from h5 and does nothing more.
+        But in the future we would like to add the visualization here.
+        '''
+        if self.cb_dataloader.currentText() == "Load from databroker":
+            # do nothing because databroker is not ready
+            print("\033[1;33mERROR\033[0m [ERROR] the databroker is currently unavailable in this version.", file=sys.stderr)
+            self.resetExperimentalParameters()
+
+        # load the parameters from the h5 in the working directory
+        if self.cb_dataloader.currentText() == "Load from h5":
+            working_dir = str(self.le_working_directory.text()) # self.param.working_directory
+            scan_num = str(self.le_scan_num.text())
+            try:
+                with h5py.File(working_dir+'/scan_'+scan_num+'.h5','r') as f:
+                    print("h5 loaded, parsing experimental parameters...", end='')
+                    self.sp_xray_energy.setValue(1.24/f['lambda_nm'].value)
+                    self.sp_detector_distance.setValue(f['z_m'].value)
+                    nz, nx, ny = f['diffamp'].shape
+                    self.sp_x_arr_size.setValue(nx)
+                    self.sp_y_arr_size.setValue(ny)
+                    self.sp_x_step_size.setValue(f['dr_x'].value)
+                    self.sp_y_step_size.setValue(f['dr_y'].value)
+                    self.sp_x_scan_range.setValue(f['x_range'].value)
+                    self.sp_y_scan_range.setValue(f['y_range'].value)
+                    #self.cb_scan_type = ...
+                    self.sp_num_points.setValue(nz)
+            except OSError:
+                print("h5 not found.", file=sys.stderr)
+                self.resetExperimentalParameters()
+
+
+    def resetExperimentalParameters(self):
+        self.sp_xray_energy.setValue(0)
+        self.sp_detector_distance.setValue(0)
+        self.sp_x_arr_size.setValue(0)
+        self.sp_y_arr_size.setValue(0)
+        self.sp_x_step_size.setValue(0)
+        self.sp_y_step_size.setValue(0)
+        self.sp_x_scan_range.setValue(0)
+        self.sp_y_scan_range.setValue(0)
+        #self.cb_scan_type = ...
+        self.sp_num_points.setValue(0)
 
 
     @QtCore.pyqtSlot(str)
