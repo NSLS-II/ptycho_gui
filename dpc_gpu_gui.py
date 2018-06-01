@@ -17,6 +17,8 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
         # connect
         QtCore.QObject.connect(self.btn_load_probe , QtCore.SIGNAL('clicked()'), self.loadProbe)
         QtCore.QObject.connect(self.btn_load_object, QtCore.SIGNAL('clicked()'), self.loadObject)
+        QtCore.QObject.connect(self.ck_init_prb_flag, QtCore.SIGNAL('clicked()'), self.updateProbeFlg)
+        QtCore.QObject.connect(self.ck_init_obj_flag, QtCore.SIGNAL('clicked()'), self.updateObjectFlg)
 
         QtCore.QObject.connect(self.btn_choose_cwd, QtCore.SIGNAL('clicked()'), self.setWorkingDirectory)
 
@@ -188,6 +190,13 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
             self.ck_init_prb_flag.setChecked(False)
 
 
+    def updateProbeFlg(self):
+        # called when "estimate from data" is clicked
+        self.param.set_prb_path('', '')
+        self.le_prb_path.setText('')
+        self.ck_init_prb_flag.setChecked(True)
+
+
     def loadObject(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open object file', filter="(*.npy)")
         if filename is not None and len(filename) > 0:
@@ -196,6 +205,13 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
             self.param.set_obj_path(obj_dir, obj_filename)
             self.le_obj_path.setText(obj_filename)
             self.ck_init_obj_flag.setChecked(False)
+
+
+    def updateObjectFlg(self):
+        # called when "random start" is clicked
+        self.param.set_obj_path('', '')
+        self.le_obj_path.setText('')
+        self.ck_init_obj_flag.setChecked(True)
 
 
     def setWorkingDirectory(self):

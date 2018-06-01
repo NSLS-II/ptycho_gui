@@ -31,39 +31,45 @@ class DPCReconWorker(QtCore.QThread):
 
         # working version
         mpirun_command = ["mpirun", "-n", str(len(param.gpus)), "python", "./core/ptycho/recon_ptycho_gui.py"]
-        with subprocess.Popen(mpirun_command,
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.STDOUT,
-                              env=dict(os.environ, mpi_warn_on_fork='0')) as run_ptycho:
-            self.process = run_ptycho # register the subprocess
+        try:
+            return_value = None
+            with subprocess.Popen(mpirun_command,
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.STDOUT,
+                                  env=dict(os.environ, mpi_warn_on_fork='0')) as run_ptycho:
+                self.process = run_ptycho # register the subprocess
 
-            while True:
-                output = run_ptycho.stdout.readline()
-                if output == b'' and run_ptycho.poll() is not None:
-                    break
+                while True:
+                    output = run_ptycho.stdout.readline()
+                    if output == b'' and run_ptycho.poll() is not None:
+                        break
 
-                #if signals is not None and signals[0]:
-                #    print("break signal received, exiting...")
-                #    with open("test_file", "w") as ttt:
-                #       ttt.write("yes")
-                #    break
+                    if output:
+                        output = output.decode('utf-8')
+                        print(output)
+                        output = output.split()
+                        if len(output) > 0 and output[0] == "[INFO]" and update_fcn is not None:
+                            update_fcn(int(output[2])+1)
 
-                if output:
-                    output = output.decode('utf-8')
-                    print(output)
-                    output = output.split()
-                    if output[0] == "[INFO]" and update_fcn is not None:
-                        update_fcn(int(output[2])+1)
-
-            # does GUI wanna know the return value = run_ptycho.poll()?
-
-        # clean up temp file
-        os.remove(param.working_directory + '.dpc_param.pkl')
+                # get the return value 
+                return_value = run_ptycho.poll()
+                if return_value != 0:
+                    raise Exception("MPI processes have nonzero return value and are thus aborted.\nSee the traceback above to debug.")
+        except Exception as ex:
+            print(ex)
+            raise ex
+        finally:
+            # clean up temp file
+            os.remove(param.working_directory + '.dpc_param.pkl')
 
     def run(self):
         print('DPC thread started')
         try:
             self.recon_api(self.param, self.update_signal.emit) #, self.signals)
+        except:
+            # whatever happened in the MPI processes will always (!) generate traceback,
+            # so do nothing here
+            pass
         finally:
             print('finally?')
 
