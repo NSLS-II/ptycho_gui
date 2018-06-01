@@ -30,7 +30,12 @@ class DPCReconWorker(QtCore.QThread):
             print("pickle dumped")
 
         # working version
-        mpirun_command = ["mpirun", "-n", str(len(param.gpus)), "python", "./core/ptycho/recon_ptycho_gui.py"]
+        if param.gpu_flag:
+            num_processes = str(len(param.gpus))
+        else:
+            num_processes = str(1)
+        mpirun_command = ["mpirun", "-n", num_processes, "python", "./core/ptycho/recon_ptycho_gui.py"]
+
         try:
             return_value = None
             with subprocess.Popen(mpirun_command,
@@ -54,7 +59,9 @@ class DPCReconWorker(QtCore.QThread):
                 # get the return value 
                 return_value = run_ptycho.poll()
                 if return_value != 0:
-                    raise Exception("MPI processes have nonzero return value and are thus aborted.\nSee the traceback above to debug.")
+                    message = "At least one MPI process returned a nonzero value, so the whole job is aborted.\n"
+                    message += "If you did not manually terminate it, consult the Traceback above to identify the problem."
+                    raise Exception(message)
         except Exception as ex:
             print(ex)
             raise ex

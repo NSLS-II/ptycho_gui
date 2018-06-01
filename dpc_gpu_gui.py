@@ -61,16 +61,16 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
         p.detectorkind = str(self.cb_detectorkind.currentText())
         p.frame_num = int(self.sp_fram_num.value())
 
-        p.xray_energy = float(self.sp_xray_energy.value())
-        p.detector_distance = float(self.sp_detector_distance.value())
-        p.x_arr_size = float(self.sp_x_arr_size.value())
-        p.x_step_size = float(self.sp_x_step_size.value())
-        p.x_scan_range = float(self.sp_x_scan_range.value())
-        p.y_arr_size = float(self.sp_y_arr_size.value())
-        p.y_step_size = float(self.sp_y_step_size.value())
-        p.y_scan_range = float(self.sp_y_scan_range.value())
-        p.scan_type = str(self.cb_scan_type.currentText())
-        p.num_points = int(self.sp_num_points.value())
+        p.xray_energy = float(self.sp_xray_energy.value()) # do we need this one?
+        p.z_m = float(self.sp_detector_distance.value())
+        #p.x_arr_size = float(self.sp_x_arr_size.value()) # can get from diffamp
+        p.dr_x = float(self.sp_x_step_size.value())
+        p.x_range = float(self.sp_x_scan_range.value())
+        #p.y_arr_size = float(self.sp_y_arr_size.value()) # can get from diffamp
+        p.dr_y = float(self.sp_y_step_size.value())
+        p.y_range = float(self.sp_y_scan_range.value())
+        p.scan_type = str(self.cb_scan_type.currentText()) # do we need this one?
+        #p.num_points = int(self.sp_num_points.value()) # can get from diffamp
 
         p.n_iterations = int(self.sp_n_iterations.value())
         p.alg_flag = str(self.cb_alg_flag.currentText())
@@ -91,6 +91,7 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
         p.slice_spacing_m = float(self.sp_slice_spacing_m.value() * 1e-6)
         if p.multislice_flag:
             p.sign = p.sign + "_ms"
+        p.distance = float(self.sp_distance.value())
 
         p.amp_min = float(self.sp_amp_min.value())
         p.amp_max = float(self.sp_amp_max.value())
@@ -103,6 +104,13 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
             if btn_gpu.isChecked():
                 gpus.append(id)
         p.gpus = gpus
+
+        p.angle_correction_flag = self.ck_angle_correction_flag.isChecked()
+        p.x_direction = float(self.sp_x_direction.value())
+        p.y_direction = float(self.sp_y_direction.value())
+
+        p.alpha = float(self.sp_alpha.value()*1.e-8)
+        p.beta = float(self.sp_beta.value())
 
 
     def update_gui_from_param(self):
@@ -143,6 +151,7 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
         self.ck_multislice_flag.setChecked(p.multislice_flag)
         self.sp_slice_num.setValue(int(p.slice_num))
         self.sp_slice_spacing_m.setValue(p.get_slice_spacing_m())
+        self.sp_distance.setValue(float(p.distance))
 
         self.sp_amp_max.setValue(float(p.amp_max))
         self.sp_amp_min.setValue(float(p.amp_min))
@@ -153,15 +162,22 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
         for btn_gpu, id in zip(self.btn_gpu_all, range(len(self.btn_gpu_all))):
             btn_gpu.setChecked(id in p.gpus)
 
+        self.ck_angle_correction_flag.setChecked(p.angle_correction_flag)
+        self.sp_x_direction.setValue(p.x_direction)
+        self.sp_y_direction.setValue(p.y_direction)
+
+        self.sp_alpha.setValue(p.alpha * 1e+8)
+        self.sp_beta.setValue(p.beta)
+
 
     def start(self):
         if self._dpc_gpu_thread is not None and self._dpc_gpu_thread.isFinished():
             self._dpc_gpu_thread = None
 
         if self._dpc_gpu_thread is None:
+            self.update_param_from_gui()
             self.recon_bar.setValue(0)
             self.recon_bar.setMaximum(self.param.n_iterations)
-            self.update_param_from_gui()
 
             thread = self._dpc_gpu_thread = DPCReconWorker(self.param)
             thread.update_signal.connect(self.update_recon_step)
@@ -260,7 +276,8 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
         '''
         if self.cb_dataloader.currentText() == "Load from databroker":
             # do nothing because databroker is not ready
-            print("\033[1;33mERROR\033[0m [ERROR] the databroker is currently unavailable in this version.", file=sys.stderr)
+            print("[ERROR] the databroker is currently unavailable in this version.", file=sys.stderr)
+            #print("\033[1;33m [ERROR] \033[0m the databroker is currently unavailable in this version.", file=sys.stderr)
             self.resetExperimentalParameters()
 
         # load the parameters from the h5 in the working directory

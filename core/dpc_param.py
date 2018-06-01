@@ -106,6 +106,8 @@ class Param(object):
 
         # scan direction and geomety correction handling
         self.cal_scan_pattern_flag = False
+        self.x_direction = -1.
+        self.y_direction = -1.
 
         self.ml_mode = 'Poisson'     # mode for ML
 
@@ -133,6 +135,9 @@ class Param(object):
         self.position_correction_flag = False
         self.position_correction_start = 50
         self.position_correction_step = 10
+
+        # angular correction parameter
+        self.angle_correction_flag = True
 
         self.start_update_probe = 0 # iteration number to start updating probe
         self.start_update_object = 0
