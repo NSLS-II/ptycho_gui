@@ -318,9 +318,10 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
         self.sp_num_points.setValue(0)
 
 
-    @QtCore.pyqtSlot(str)
-    def on_stdout_message(self, message):
+    @QtCore.pyqtSlot(str, QtGui.QColor)
+    def on_stdout_message(self, message, color):
         self.console_info.moveCursor(QtGui.QTextCursor.End)
+        self.console_info.setTextColor(color)
         self.console_info.insertPlainText(message)
 
 
@@ -331,12 +332,15 @@ def main():
     w.show()
     app.installEventFilter(w)
 
-    console_out = DPCStream()
-    console_out.message.connect(w.on_stdout_message)
+    console_stdout = DPCStream(color = "black")
+    console_stderr = DPCStream(color = "red")
+    console_stdout.message.connect(w.on_stdout_message)
+    console_stderr.message.connect(w.on_stdout_message)
 
-    sys.stdout = console_out
-    sys.stderr = console_out
+    sys.stdout = console_stdout
+    sys.stderr = console_stderr
     sys.exit(app.exec_())
+
 
 if __name__ == '__main__':
     main()
