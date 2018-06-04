@@ -23,7 +23,7 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
         QtCore.QObject.connect(self.ck_init_obj_flag, QtCore.SIGNAL('clicked()'), self.updateObjectFlg)
 
         QtCore.QObject.connect(self.btn_choose_cwd, QtCore.SIGNAL('clicked()'), self.setWorkingDirectory)
-        QtCore.QObject.connect(self.btn_view_frame, QtCore.SIGNAL('clicked()'), self.viewDataFrame)
+        QtCore.QObject.connect(self.btn_load_scan, QtCore.SIGNAL('clicked()'), self.loadExpParam)
 
         QtCore.QObject.connect(self.ck_mode_flag, QtCore.SIGNAL('clicked()'), self.updateModeFlg)
         QtCore.QObject.connect(self.ck_multislice_flag, QtCore.SIGNAL('clicked()'), self.updateMultiSliceFlg)
@@ -270,14 +270,19 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
 
     def viewDataFrame(self):
         '''
+        Correspond to "View & set" in DPC GUI
+        '''
+        pass
+
+
+    def loadExpParam(self): 
+        '''
         WARNING:
-        Currently this function only fetches experimental paramters from h5 and does nothing more.
-        But in the future we would like to add the visualization here.
+        Currently this function only supports h5.
         '''
         if self.cb_dataloader.currentText() == "Load from databroker":
             # do nothing because databroker is not ready
             print("[ERROR] the databroker is currently unavailable in this version.", file=sys.stderr)
-            #print("\033[1;33m [ERROR] \033[0m the databroker is currently unavailable in this version.", file=sys.stderr)
             self.resetExperimentalParameters()
 
         # load the parameters from the h5 in the working directory
@@ -286,6 +291,7 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
             scan_num = str(self.le_scan_num.text())
             try:
                 with h5py.File(working_dir+'/scan_'+scan_num+'.h5','r') as f:
+                    # this code is not robust enough as certain keys may not be present...
                     print("h5 loaded, parsing experimental parameters...", end='')
                     self.sp_xray_energy.setValue(1.24/f['lambda_nm'].value)
                     self.sp_detector_distance.setValue(f['z_m'].value)
@@ -298,11 +304,11 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
                     self.sp_y_scan_range.setValue(f['y_range'].value)
                     #self.cb_scan_type = ...
                     self.sp_num_points.setValue(nz)
+                    print("done")
             except OSError:
-                print("[ERROR] h5 not found...", file=sys.stderr, end='')
+                print("[ERROR] h5 not found. Resetting...", file=sys.stderr, end='')
                 self.resetExperimentalParameters()
-            finally:
-                print("done")
+                print("done", file=sys.stderr)
 
 
     def resetExperimentalParameters(self):
