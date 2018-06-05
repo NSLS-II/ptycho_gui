@@ -1293,7 +1293,11 @@
              </widget>
             </item>
             <item row="1" column="2">
-             <widget class="QSpinBox" name="sp_display_interval"/>
+             <widget class="QSpinBox" name="sp_display_interval">
+              <property name="minimum">
+               <number>1</number>
+              </property>
+             </widget>
             </item>
             <item row="1" column="4">
              <widget class="QSpinBox" name="sp_processes"/>

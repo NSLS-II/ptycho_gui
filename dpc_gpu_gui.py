@@ -8,6 +8,8 @@ from core.dpc_recon import DPCReconWorker
 from core.dpc_qt_utils import DPCStream
 
 import h5py
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
@@ -39,7 +41,10 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
             self.param = Param() # default
         else:
             self.param = param
+        self._prb = None
+        self._obj = None
         self._dpc_gpu_thread = None
+
         self.update_gui_from_param()
         self.updateModeFlg()
         self.updateMultiSliceFlg()
@@ -52,6 +57,15 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
         self.btn_recon_start.setEnabled(True)
         self.btn_recon_stop.setEnabled(False)
         self.recon_bar.setValue(0)
+        plt.ioff()
+        plt.close('all')
+        # close the mmap arrays
+        if self._prb is not None:
+            del self._prb
+            self._prb = None
+        if self._obj is not None:
+            del self._obj
+            self._obj = None
         
 
     def update_param_from_gui(self):
@@ -112,6 +126,8 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
         p.alpha = float(self.sp_alpha.value()*1.e-8)
         p.beta = float(self.sp_beta.value())
 
+        p.display_interval = int(self.sp_display_interval.value())
+
 
     def update_gui_from_param(self):
         p = self.param
@@ -169,6 +185,8 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
         self.sp_alpha.setValue(p.alpha * 1e+8)
         self.sp_beta.setValue(p.beta)
 
+        self.sp_display_interval.setValue(p.display_interval)
+
 
     def start(self):
         if self._dpc_gpu_thread is not None and self._dpc_gpu_thread.isFinished():
@@ -178,6 +196,14 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
             self.update_param_from_gui()
             self.recon_bar.setValue(0)
             self.recon_bar.setMaximum(self.param.n_iterations)
+
+            # TEST: get live update of probe and object
+            # the order of these two lines cannot be exchanged!
+            plt.ion() # non-blocking plotting
+            plt.figure()
+            if self.param.gpu_flag and self.param.display_interval<3:
+                print("[WARNING] The display interval is too small ({}). You might not see the actual live update."\
+                      .format(self.param.display_interval), file=sys.stderr)
 
             thread = self._dpc_gpu_thread = DPCReconWorker(self.param)
             thread.update_signal.connect(self.update_recon_step)
@@ -202,6 +228,29 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
 
     def update_recon_step(self, it):
         self.recon_bar.setValue(it)
+        # TEST: get live update of probe and object
+        it -= 1
+        if it == 0:
+            # the two npy are created by ptycho by this time
+            self._prb = np.lib.format.open_memmap(self.param.working_directory + '.mmap_prb.npy', mode = 'r')
+            self._obj = np.lib.format.open_memmap(self.param.working_directory + '.mmap_obj.npy', mode = 'r')
+        if it % self.param.display_interval == 1 or (it > 0 and self.param.display_interval == 1):
+            # look at the previous slice to mitigate synchronization problem? should have better solution...
+            plt.clf()
+            plt.subplot(221)
+            plt.imshow(np.flipud(np.abs(self._prb[it-1, 0]).T))
+            plt.colorbar()
+            plt.subplot(222)
+            plt.imshow(np.flipud(np.angle(self._prb[it-1, 0]).T))
+            plt.colorbar()
+            plt.subplot(223)
+            plt.imshow(np.flipud(np.abs(self._obj[it-1, 0]).T))
+            plt.colorbar()
+            plt.subplot(224)
+            plt.imshow(np.flipud(np.angle(self._obj[it-1, 0]).T))
+            plt.colorbar()
+            plt.suptitle('iteration #'+str(it-1))
+            plt.show()
 
 
     def loadProbe(self):

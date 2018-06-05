@@ -147,6 +147,7 @@ class Param(object):
         self.ms_pie_flag = False
         self.weak_obj_flag = False
         self.processes = 0
+        self.display_interval = 5 # plot every 5 steps
 
     def set_prb_path(self, dir, filename):
         self.prb_dir = dir

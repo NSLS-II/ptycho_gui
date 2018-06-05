@@ -582,6 +582,7 @@ class Ui_MainWindow(object):
         self.label_31.setObjectName(_fromUtf8("label_31"))
         self.gridLayout_8.addWidget(self.label_31, 1, 3, 1, 1)
         self.sp_display_interval = QtGui.QSpinBox(self.layoutWidget3)
+        self.sp_display_interval.setMinimum(1)
         self.sp_display_interval.setObjectName(_fromUtf8("sp_display_interval"))
         self.gridLayout_8.addWidget(self.sp_display_interval, 1, 2, 1, 1)
         self.sp_processes = QtGui.QSpinBox(self.layoutWidget3)
