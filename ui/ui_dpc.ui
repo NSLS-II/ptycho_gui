@@ -183,10 +183,10 @@
       <widget class="QGroupBox" name="groupBox_8">
        <property name="geometry">
         <rect>
-         <x>50</x>
+         <x>10</x>
          <y>110</y>
-         <width>641</width>
-         <height>191</height>
+         <width>711</width>
+         <height>201</height>
         </rect>
        </property>
        <property name="title">
@@ -200,7 +200,7 @@
          <rect>
           <x>19</x>
           <y>30</y>
-          <width>601</width>
+          <width>681</width>
           <height>165</height>
          </rect>
         </property>
@@ -364,10 +364,13 @@
        <property name="geometry">
         <rect>
          <x>18</x>
-         <y>310</y>
+         <y>320</y>
          <width>700</width>
          <height>351</height>
         </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true"/>
        </property>
        <property name="currentIndex">
         <number>0</number>
@@ -776,6 +779,11 @@
                    <height>16777215</height>
                   </size>
                  </property>
+                 <property name="styleSheet">
+                  <string notr="true">:checked {
+	background-color: rgba(255, 170, 0, 150);
+}</string>
+                 </property>
                  <property name="text">
                   <string>0</string>
                  </property>
@@ -794,6 +802,11 @@
                    <width>25</width>
                    <height>16777215</height>
                   </size>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">:checked {
+	background-color: rgba(255, 170, 0, 150);
+}</string>
                  </property>
                  <property name="text">
                   <string>1</string>
@@ -814,6 +827,11 @@
                    <height>16777215</height>
                   </size>
                  </property>
+                 <property name="styleSheet">
+                  <string notr="true">:checked {
+	background-color: rgba(255, 170, 0, 150);
+}</string>
+                 </property>
                  <property name="text">
                   <string>2</string>
                  </property>
@@ -821,7 +839,7 @@
                   <bool>true</bool>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -833,6 +851,11 @@
                    <height>16777215</height>
                   </size>
                  </property>
+                 <property name="styleSheet">
+                  <string notr="true">:checked {
+	background-color: rgba(255, 170, 0, 150);
+}</string>
+                 </property>
                  <property name="text">
                   <string>3</string>
                  </property>
@@ -840,7 +863,7 @@
                   <bool>true</bool>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -891,7 +914,7 @@
           <rect>
            <x>30</x>
            <y>150</y>
-           <width>625</width>
+           <width>632</width>
            <height>99</height>
           </rect>
          </property>
@@ -1055,7 +1078,7 @@
           <rect>
            <x>10</x>
            <y>10</y>
-           <width>341</width>
+           <width>342</width>
            <height>131</height>
           </rect>
          </property>
@@ -1190,7 +1213,7 @@
            <x>356</x>
            <y>13</y>
            <width>317</width>
-           <height>61</height>
+           <height>62</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_7">
@@ -1278,8 +1301,8 @@
           <rect>
            <x>30</x>
            <y>250</y>
-           <width>630</width>
-           <height>64</height>
+           <width>683</width>
+           <height>82</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_16">
@@ -1488,7 +1511,7 @@
        <property name="geometry">
         <rect>
          <x>18</x>
-         <y>770</y>
+         <y>780</y>
          <width>700</width>
          <height>25</height>
         </rect>
@@ -1501,7 +1524,7 @@
        <property name="geometry">
         <rect>
          <x>18</x>
-         <y>670</y>
+         <y>680</y>
          <width>700</width>
          <height>100</height>
         </rect>

@@ -1,4 +1,5 @@
-from PyQt4 import  QtCore
+#from PyQt4 import  QtCore
+from PyQt5 import QtCore
 from datetime import datetime
 from core.dpc_param import Param
 #from .ptycho.recon_ptycho_gui import recon_gui

@@ -1,6 +1,7 @@
 import sys
 import os
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QFileDialog
 
 from ui import ui_dpc
 from core.dpc_param import Param
@@ -9,30 +10,42 @@ from core.dpc_qt_utils import DPCStream
 
 import h5py
 import numpy as np
+from numpy.lib.format import open_memmap
 import matplotlib.pyplot as plt
 
 
-class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
+class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
     def __init__(self, parent=None, param:Param=None):
         super().__init__(parent)
         self.setupUi(self)
-        QtGui.QApplication.setStyle('Plastique')
+        QtWidgets.QApplication.setStyle('Plastique')
 
         # connect
-        QtCore.QObject.connect(self.btn_load_probe , QtCore.SIGNAL('clicked()'), self.loadProbe)
-        QtCore.QObject.connect(self.btn_load_object, QtCore.SIGNAL('clicked()'), self.loadObject)
-        QtCore.QObject.connect(self.ck_init_prb_flag, QtCore.SIGNAL('clicked()'), self.updateProbeFlg)
-        QtCore.QObject.connect(self.ck_init_obj_flag, QtCore.SIGNAL('clicked()'), self.updateObjectFlg)
+        # QtCore.QObject.connect(self.btn_load_probe , QtCore.SIGNAL('clicked()'), self.loadProbe)
+        # QtCore.QObject.connect(self.btn_load_object, QtCore.SIGNAL('clicked()'), self.loadObject)
+        # QtCore.QObject.connect(self.ck_init_prb_flag, QtCore.SIGNAL('clicked()'), self.updateProbeFlg)
+        # QtCore.QObject.connect(self.ck_init_obj_flag, QtCore.SIGNAL('clicked()'), self.updateObjectFlg)
+        self.btn_load_probe.clicked.connect(self.loadProbe)
+        self.btn_load_object.clicked.connect(self.loadObject)
+        self.ck_init_prb_flag.clicked.connect(self.updateProbeFlg)
+        self.ck_init_obj_flag.clicked.connect(self.updateObjectFlg)
 
-        QtCore.QObject.connect(self.btn_choose_cwd, QtCore.SIGNAL('clicked()'), self.setWorkingDirectory)
-        QtCore.QObject.connect(self.btn_load_scan, QtCore.SIGNAL('clicked()'), self.loadExpParam)
+        # QtCore.QObject.connect(self.btn_choose_cwd, QtCore.SIGNAL('clicked()'), self.setWorkingDirectory)
+        # QtCore.QObject.connect(self.btn_load_scan, QtCore.SIGNAL('clicked()'), self.loadExpParam)
+        self.btn_choose_cwd.clicked.connect(self.setWorkingDirectory)
+        self.btn_load_scan.clicked.connect(self.loadExpParam)
 
-        QtCore.QObject.connect(self.ck_mode_flag, QtCore.SIGNAL('clicked()'), self.updateModeFlg)
-        QtCore.QObject.connect(self.ck_multislice_flag, QtCore.SIGNAL('clicked()'), self.updateMultiSliceFlg)
-        QtCore.QObject.connect(self.ck_gpu_flag, QtCore.SIGNAL('clicked()'), self.updateGpuFlg)
+        # QtCore.QObject.connect(self.ck_mode_flag, QtCore.SIGNAL('clicked()'), self.updateModeFlg)
+        # QtCore.QObject.connect(self.ck_multislice_flag, QtCore.SIGNAL('clicked()'), self.updateMultiSliceFlg)
+        # QtCore.QObject.connect(self.ck_gpu_flag, QtCore.SIGNAL('clicked()'), self.updateGpuFlg)
+        self.ck_mode_flag.clicked.connect(self.updateModeFlg)
+        self.ck_multislice_flag.clicked.connect(self.updateMultiSliceFlg)
+        self.ck_gpu_flag.clicked.connect(self.updateGpuFlg)
 
-        QtCore.QObject.connect(self.btn_recon_start, QtCore.SIGNAL('clicked()'), self.start)
-        QtCore.QObject.connect(self.btn_recon_stop , QtCore.SIGNAL('clicked()'), self.stop)
+        # QtCore.QObject.connect(self.btn_recon_start, QtCore.SIGNAL('clicked()'), self.start)
+        # QtCore.QObject.connect(self.btn_recon_stop , QtCore.SIGNAL('clicked()'), self.stop)
+        self.btn_recon_start.clicked.connect(self.start)
+        self.btn_recon_stop.clicked.connect(self.stop)
 
         self.btn_gpu_all = [self.btn_gpu_0, self.btn_gpu_1, self.btn_gpu_2, self.btn_gpu_3]
 
@@ -51,6 +64,7 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
         self.updateGpuFlg()
         self.resetButtons()
         self.resetExperimentalParameters() # probably not necessary
+
 
 
     def resetButtons(self):
@@ -207,7 +221,7 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
 
             thread = self._dpc_gpu_thread = DPCReconWorker(self.param)
             thread.update_signal.connect(self.update_recon_step)
-            QtCore.QObject.connect(thread, QtCore.SIGNAL("finished()"), self.resetButtons)
+            # QtCore.QObject.connect(thread, QtCore.SIGNAL("finished()"), self.resetButtons)
             thread.start()
 
             self.btn_recon_stop.setEnabled(True)
@@ -232,8 +246,8 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
         it -= 1
         if it == 0:
             # the two npy are created by ptycho by this time
-            self._prb = np.lib.format.open_memmap(self.param.working_directory + '.mmap_prb.npy', mode = 'r')
-            self._obj = np.lib.format.open_memmap(self.param.working_directory + '.mmap_obj.npy', mode = 'r')
+            self._prb = open_memmap(self.param.working_directory + '.mmap_prb.npy', mode = 'r')
+            self._obj = open_memmap(self.param.working_directory + '.mmap_obj.npy', mode = 'r')
         if it % self.param.display_interval == 1 or (it > 0 and self.param.display_interval == 1):
             # look at the previous slice to mitigate synchronization problem? should have better solution...
             plt.clf()
@@ -254,7 +268,7 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
 
 
     def loadProbe(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open probe file', filter="(*.npy)")
+        filename, _ = QFileDialog.getOpenFileName(self, 'Open probe file', filter="(*.npy)")
         if filename is not None and len(filename) > 0:
             prb_filename = os.path.basename(filename)
             prb_dir = filename[:(len(filename)-len(prb_filename))]
@@ -271,7 +285,8 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
 
 
     def loadObject(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open object file', filter="(*.npy)")
+        print('loadObject')
+        filename, _ = QFileDialog.getOpenFileName(self, 'Open object file', filter="(*.npy)")
         if filename is not None and len(filename) > 0:
             obj_filename = os.path.basename(filename)
             obj_dir = filename[:(len(filename)-len(obj_filename))]
@@ -288,7 +303,7 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
 
 
     def setWorkingDirectory(self):
-        dirname = QtGui.QFileDialog.getExistingDirectory(self, 'Choose working folder', directory=os.path.expanduser("~"))
+        dirname = QFileDialog.getExistingDirectory(self, 'Choose working folder', directory=os.path.expanduser("~"))
         if dirname is not None and len(dirname) > 0:
             dirname = dirname + "/"
             self.param.set_working_directory(dirname)
@@ -381,7 +396,7 @@ class MainWindow(QtGui.QMainWindow, ui_dpc.Ui_MainWindow):
 
 
 def main():
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     w = MainWindow()
     w.show()

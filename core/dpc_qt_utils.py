@@ -1,4 +1,4 @@
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui
 
 class DPCStream(QtCore.QObject):
     message = QtCore.pyqtSignal(str, QtGui.QColor)
@@ -11,3 +11,4 @@ class DPCStream(QtCore.QObject):
 
     def flush(self):
         pass
+
