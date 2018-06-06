@@ -66,7 +66,6 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.resetExperimentalParameters() # probably not necessary
 
 
-
     def resetButtons(self):
         self.btn_recon_start.setEnabled(True)
         self.btn_recon_stop.setEnabled(False)
@@ -74,12 +73,15 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         plt.ioff()
         plt.close('all')
         # close the mmap arrays
+        # removing these arrays, can be changed later if needed
         if self._prb is not None:
             del self._prb
             self._prb = None
+            os.remove(self.param.working_directory + '.mmap_prb.npy')
         if self._obj is not None:
             del self._obj
             self._obj = None
+            os.remove(self.param.working_directory + '.mmap_obj.npy')
         
 
     def update_param_from_gui(self):
@@ -222,6 +224,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             thread = self._dpc_gpu_thread = DPCReconWorker(self.param)
             thread.update_signal.connect(self.update_recon_step)
             # QtCore.QObject.connect(thread, QtCore.SIGNAL("finished()"), self.resetButtons)
+            thread.finished.connect(self.resetButtons)
             thread.start()
 
             self.btn_recon_stop.setEnabled(True)
@@ -243,28 +246,36 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
     def update_recon_step(self, it):
         self.recon_bar.setValue(it)
         # TEST: get live update of probe and object
-        it -= 1
-        if it == 0:
-            # the two npy are created by ptycho by this time
-            self._prb = open_memmap(self.param.working_directory + '.mmap_prb.npy', mode = 'r')
-            self._obj = open_memmap(self.param.working_directory + '.mmap_obj.npy', mode = 'r')
-        if it % self.param.display_interval == 1 or (it > 0 and self.param.display_interval == 1):
-            # look at the previous slice to mitigate synchronization problem? should have better solution...
-            plt.clf()
-            plt.subplot(221)
-            plt.imshow(np.flipud(np.abs(self._prb[it-1, 0]).T))
-            plt.colorbar()
-            plt.subplot(222)
-            plt.imshow(np.flipud(np.angle(self._prb[it-1, 0]).T))
-            plt.colorbar()
-            plt.subplot(223)
-            plt.imshow(np.flipud(np.abs(self._obj[it-1, 0]).T))
-            plt.colorbar()
-            plt.subplot(224)
-            plt.imshow(np.flipud(np.angle(self._obj[it-1, 0]).T))
-            plt.colorbar()
-            plt.suptitle('iteration #'+str(it-1))
-            plt.show()
+        try:
+            it -= 1
+            if it == 0:
+                # the two npy are created by ptycho by this time
+                self._prb = open_memmap(self.param.working_directory + '.mmap_prb.npy', mode = 'r')
+                self._obj = open_memmap(self.param.working_directory + '.mmap_obj.npy', mode = 'r')
+            if it % self.param.display_interval == 1 or (it > 0 and self.param.display_interval == 1):
+                # look at the previous slice to mitigate synchronization problem? should have better solution...
+                plt.clf()
+                plt.subplot(221)
+                plt.imshow(np.flipud(np.abs(self._prb[it-1, 0]).T))
+                plt.colorbar()
+                #plt.title("prb amplitude")
+                plt.subplot(222)
+                plt.imshow(np.flipud(np.angle(self._prb[it-1, 0]).T))
+                plt.colorbar()
+                #plt.title("prb phase")
+                plt.subplot(223)
+                plt.imshow(np.flipud(np.abs(self._obj[it-1, 0]).T))
+                plt.colorbar()
+                #plt.title("obj amplitude")
+                plt.subplot(224)
+                plt.imshow(np.flipud(np.angle(self._obj[it-1, 0]).T))
+                plt.colorbar()
+                #plt.title("obj phase")
+                #plt.tight_layout() 
+                plt.suptitle('iteration #'+str(it-1))
+                plt.show()
+        except Exception as ex: # when MPI processes are terminated, _prb and _obj are deleted and so not subscriptable
+            print(ex, file=sys.stderr)
 
 
     def loadProbe(self):
@@ -285,7 +296,6 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
 
     def loadObject(self):
-        print('loadObject')
         filename, _ = QFileDialog.getOpenFileName(self, 'Open object file', filter="(*.npy)")
         if filename is not None and len(filename) > 0:
             obj_filename = os.path.basename(filename)
