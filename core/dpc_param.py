@@ -1,6 +1,25 @@
 import os
 import numpy as np
 
+
+def get_working_directory():
+    config_path = os.path.expanduser("~") + "/.ptycho_gui_config"
+    working_dir = ''
+    try:
+        with open(config_path, "r") as config:
+            while True:
+                line = config.readline()
+                if line == '':
+                    raise Exception("working_directory not found, abort!")
+                line = line.split()
+                if line[0] == "working_directory":
+                    working_dir = line[2] 
+                    break
+    except FileNotFoundError:
+        working_dir = os.path.expanduser("~") # default to user's home
+    return working_dir
+
+
 class Param(object):
     """
     ptychography reconstruction parameters
@@ -49,6 +68,8 @@ class Param(object):
         self.obj_dir = ''
         self.obj_path = None         # path to existing object array (.npy)
 
+        self.working_directory = get_working_directory()
+
         self.mode_flag = False       # do multi-mode reconstruction
         self.prb_mode_num = 5
         self.obj_mode_num = 1
@@ -68,6 +89,7 @@ class Param(object):
         #
         # [Need to organize]
         #
+        self.gui = True
         self.init_obj_dpc_flag = False
         self.prb_center_flag = True
         self.mask_prb_flag = False
@@ -84,6 +106,8 @@ class Param(object):
 
         # scan direction and geomety correction handling
         self.cal_scan_pattern_flag = False
+        self.x_direction = -1.
+        self.y_direction = -1.
 
         self.ml_mode = 'Poisson'     # mode for ML
 
@@ -112,6 +136,9 @@ class Param(object):
         self.position_correction_start = 50
         self.position_correction_step = 10
 
+        # angular correction parameter
+        self.angle_correction_flag = True
+
         self.start_update_probe = 0 # iteration number to start updating probe
         self.start_update_object = 0
 
@@ -120,6 +147,7 @@ class Param(object):
         self.ms_pie_flag = False
         self.weak_obj_flag = False
         self.processes = 0
+        self.display_interval = 5 # plot every 5 steps
 
     def set_prb_path(self, dir, filename):
         self.prb_dir = dir
@@ -131,6 +159,8 @@ class Param(object):
         self.obj_filename = filename
         self.obj_path = os.path.join(self.obj_dir, self.obj_filename)
 
+    def set_working_directory(self, path):
+        self.working_directory = path
 
     def get_alg_flg_index(self):
         return ['DM', 'ER', 'ML_G', 'ML_P'].index(self.alg_flag)

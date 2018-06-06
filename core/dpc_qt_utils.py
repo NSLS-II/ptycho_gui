@@ -1,12 +1,13 @@
-from PyQt4 import QtCore
+from PyQt4 import QtCore, QtGui
 
 class DPCStream(QtCore.QObject):
-    message = QtCore.pyqtSignal(str)
-    def __init__(self, parent=None):
+    message = QtCore.pyqtSignal(str, QtGui.QColor)
+    def __init__(self, parent=None, color="black"):
         super().__init__(parent)
+        self.color = QtGui.QColor(color) # output text color
 
     def write(self, message):
-        self.message.emit(str(message))
+        self.message.emit(str(message), self.color)
 
     def flush(self):
         pass
