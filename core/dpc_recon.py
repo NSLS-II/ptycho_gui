@@ -107,3 +107,25 @@ class DPCReconWorker(QtCore.QThread):
         print('killing the subprocess...')
         self.process.terminate()
         self.process.wait()
+
+class DPCReconFakeWorker(QtCore.QThread):
+    update_signal = QtCore.pyqtSignal(int)
+
+    def __init__(self, param:Param=None, parent=None):
+        super().__init__(parent)
+        self.param = param
+
+    def run(self):
+        from time import sleep
+        update_fcn = self.update_signal.emit
+        for it in range(self.param.n_iterations):
+            update_fcn(it+1)
+            sleep(.1)
+
+        print("finished")
+
+
+
+
+
+

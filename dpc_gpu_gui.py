@@ -5,13 +5,16 @@ from PyQt5.QtWidgets import QFileDialog
 
 from ui import ui_dpc
 from core.dpc_param import Param
-from core.dpc_recon import DPCReconWorker
+from core.dpc_recon import DPCReconWorker, DPCReconFakeWorker
 from core.dpc_qt_utils import DPCStream
+
+from reconStep_gui import ReconStepWindow
 
 import h5py
 import numpy as np
 from numpy.lib.format import open_memmap
 import matplotlib.pyplot as plt
+
 
 
 class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
@@ -21,29 +24,18 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         QtWidgets.QApplication.setStyle('Plastique')
 
         # connect
-        # QtCore.QObject.connect(self.btn_load_probe , QtCore.SIGNAL('clicked()'), self.loadProbe)
-        # QtCore.QObject.connect(self.btn_load_object, QtCore.SIGNAL('clicked()'), self.loadObject)
-        # QtCore.QObject.connect(self.ck_init_prb_flag, QtCore.SIGNAL('clicked()'), self.updateProbeFlg)
-        # QtCore.QObject.connect(self.ck_init_obj_flag, QtCore.SIGNAL('clicked()'), self.updateObjectFlg)
         self.btn_load_probe.clicked.connect(self.loadProbe)
         self.btn_load_object.clicked.connect(self.loadObject)
         self.ck_init_prb_flag.clicked.connect(self.updateProbeFlg)
         self.ck_init_obj_flag.clicked.connect(self.updateObjectFlg)
 
-        # QtCore.QObject.connect(self.btn_choose_cwd, QtCore.SIGNAL('clicked()'), self.setWorkingDirectory)
-        # QtCore.QObject.connect(self.btn_load_scan, QtCore.SIGNAL('clicked()'), self.loadExpParam)
         self.btn_choose_cwd.clicked.connect(self.setWorkingDirectory)
         self.btn_load_scan.clicked.connect(self.loadExpParam)
 
-        # QtCore.QObject.connect(self.ck_mode_flag, QtCore.SIGNAL('clicked()'), self.updateModeFlg)
-        # QtCore.QObject.connect(self.ck_multislice_flag, QtCore.SIGNAL('clicked()'), self.updateMultiSliceFlg)
-        # QtCore.QObject.connect(self.ck_gpu_flag, QtCore.SIGNAL('clicked()'), self.updateGpuFlg)
         self.ck_mode_flag.clicked.connect(self.updateModeFlg)
         self.ck_multislice_flag.clicked.connect(self.updateMultiSliceFlg)
         self.ck_gpu_flag.clicked.connect(self.updateGpuFlg)
 
-        # QtCore.QObject.connect(self.btn_recon_start, QtCore.SIGNAL('clicked()'), self.start)
-        # QtCore.QObject.connect(self.btn_recon_stop , QtCore.SIGNAL('clicked()'), self.stop)
         self.btn_recon_start.clicked.connect(self.start)
         self.btn_recon_stop.clicked.connect(self.stop)
 
@@ -57,6 +49,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self._prb = None
         self._obj = None
         self._dpc_gpu_thread = None
+
+        self.reconStepWindow = None
 
         self.update_gui_from_param()
         self.updateModeFlg()
@@ -77,9 +71,11 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         if self._prb is not None:
             del self._prb
             self._prb = None
+            os.remove(self.param.working_directory + '.mmap_prb.npy')
         if self._obj is not None:
             del self._obj
             self._obj = None
+            os.remove(self.param.working_directory + '.mmap_obj.npy')
         
 
     def update_param_from_gui(self):
@@ -203,68 +199,111 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
 
     def start(self):
+        # -------------------- Sungsoo version -------------------------------------
         if self._dpc_gpu_thread is not None and self._dpc_gpu_thread.isFinished():
             self._dpc_gpu_thread = None
 
         if self._dpc_gpu_thread is None:
+            # init reconStepWindow
+            if self.reconStepWindow is None:
+                self.reconStepWindow = ReconStepWindow()
+                self.reconStepWindow.reset_iter(self.param.n_iterations)
+                self.reconStepWindow.show()
+
             self.update_param_from_gui()
             self.recon_bar.setValue(0)
             self.recon_bar.setMaximum(self.param.n_iterations)
 
-            # TEST: get live update of probe and object
-            # the order of these two lines cannot be exchanged!
-            plt.ion() # non-blocking plotting
-            plt.figure()
-            if self.param.gpu_flag and self.param.display_interval<3:
-                print("[WARNING] The display interval is too small ({}). You might not see the actual live update."\
-                      .format(self.param.display_interval), file=sys.stderr)
-
-            thread = self._dpc_gpu_thread = DPCReconWorker(self.param)
+            thread = self._dpc_gpu_thread = DPCReconFakeWorker(self.param)
             thread.update_signal.connect(self.update_recon_step)
-            # QtCore.QObject.connect(thread, QtCore.SIGNAL("finished()"), self.resetButtons)
+            thread.finished.connect(self.resetButtons)
             thread.start()
 
             self.btn_recon_stop.setEnabled(True)
             self.btn_recon_start.setEnabled(False)
+        # -------------------- Leo version -------------------------------------
+        # if self._dpc_gpu_thread is not None and self._dpc_gpu_thread.isFinished():
+        #     self._dpc_gpu_thread = None
+        #
+        # if self._dpc_gpu_thread is None:
+        #     self.update_param_from_gui()
+        #     self.recon_bar.setValue(0)
+        #     self.recon_bar.setMaximum(self.param.n_iterations)
+        #
+        #     # TEST: get live update of probe and object
+        #     # the order of these two lines cannot be exchanged!
+        #     plt.ion() # non-blocking plotting
+        #     plt.figure()
+        #     if self.param.gpu_flag and self.param.display_interval<3:
+        #         print("[WARNING] The display interval is too small ({}). You might not see the actual live update."\
+        #               .format(self.param.display_interval), file=sys.stderr)
+        #
+        #     thread = self._dpc_gpu_thread = DPCReconWorker(self.param)
+        #     thread.update_signal.connect(self.update_recon_step)
+        #     thread.finished.connect(self.resetButtons)
+        #     thread.start()
+        #
+        #     self.btn_recon_stop.setEnabled(True)
+        #     self.btn_recon_start.setEnabled(False)
 
 
     def stop(self):
-        # force quitting if running, otherwise do nothing
+        # -------------------- Sungsoo version -------------------------------------
+        # close reconStepWindow ??? (or close from reconStepWindow)
+        if self.reconStepWindow is not None:
+            self.reconStepWindow.close()
+
         if self._dpc_gpu_thread is not None and self._dpc_gpu_thread.isRunning():
-        #if self._dpc_gpu_thread is not None:
-            self._dpc_gpu_thread.kill() # first kill the mpi processes
-            self._dpc_gpu_thread.quit() # then quit QThread gracefully
-            #self._dpc_gpu_thread.terminate()
-            #self._dpc_gpu_thread.wait()
+            self._dpc_gpu_thread.quit()
             self._dpc_gpu_thread = None
             self.resetButtons()
+        # -------------------- Leo version -------------------------------------
+        # force quitting if running, otherwise do nothing
+        # if self._dpc_gpu_thread is not None and self._dpc_gpu_thread.isRunning():
+        #     self._dpc_gpu_thread.kill() # first kill the mpi processes
+        #     self._dpc_gpu_thread.quit() # then quit QThread gracefully
+        #     self._dpc_gpu_thread = None
+        #     self.resetButtons()
 
 
     def update_recon_step(self, it):
         self.recon_bar.setValue(it)
+
+        # -------------------- Sungsoo version -------------------------------------
+        if self.reconStepWindow is not None:
+            self.reconStepWindow.update_iter(it)
+
+            # a list of random images for test
+            images = [np.random.random((128,128)) for _ in range(4)]
+            self.reconStepWindow.update_images(it, images)
+
+        # -------------------- Leo version -------------------------------------
         # TEST: get live update of probe and object
-        it -= 1
-        if it == 0:
-            # the two npy are created by ptycho by this time
-            self._prb = open_memmap(self.param.working_directory + '.mmap_prb.npy', mode = 'r')
-            self._obj = open_memmap(self.param.working_directory + '.mmap_obj.npy', mode = 'r')
-        if it % self.param.display_interval == 1 or (it > 0 and self.param.display_interval == 1):
-            # look at the previous slice to mitigate synchronization problem? should have better solution...
-            plt.clf()
-            plt.subplot(221)
-            plt.imshow(np.flipud(np.abs(self._prb[it-1, 0]).T))
-            plt.colorbar()
-            plt.subplot(222)
-            plt.imshow(np.flipud(np.angle(self._prb[it-1, 0]).T))
-            plt.colorbar()
-            plt.subplot(223)
-            plt.imshow(np.flipud(np.abs(self._obj[it-1, 0]).T))
-            plt.colorbar()
-            plt.subplot(224)
-            plt.imshow(np.flipud(np.angle(self._obj[it-1, 0]).T))
-            plt.colorbar()
-            plt.suptitle('iteration #'+str(it-1))
-            plt.show()
+        # try:
+        #     it -= 1
+        #     if it == 0:
+        #         # the two npy are created by ptycho by this time
+        #         self._prb = open_memmap(self.param.working_directory + '.mmap_prb.npy', mode = 'r')
+        #         self._obj = open_memmap(self.param.working_directory + '.mmap_obj.npy', mode = 'r')
+        #     if it % self.param.display_interval == 1 or (it > 0 and self.param.display_interval == 1):
+        #         # look at the previous slice to mitigate synchronization problem? should have better solution...
+        #         plt.clf()
+        #         plt.subplot(221)
+        #         plt.imshow(np.flipud(np.abs(self._prb[it-1, 0]).T))
+        #         plt.colorbar()
+        #         plt.subplot(222)
+        #         plt.imshow(np.flipud(np.angle(self._prb[it-1, 0]).T))
+        #         plt.colorbar()
+        #         plt.subplot(223)
+        #         plt.imshow(np.flipud(np.abs(self._obj[it-1, 0]).T))
+        #         plt.colorbar()
+        #         plt.subplot(224)
+        #         plt.imshow(np.flipud(np.angle(self._obj[it-1, 0]).T))
+        #         plt.colorbar()
+        #         plt.suptitle('iteration #'+str(it-1))
+        #         plt.show()
+        # except Exception as ex:
+        #     print(ex, file=sys.stderr)
 
 
     def loadProbe(self):
@@ -285,7 +324,6 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
 
     def loadObject(self):
-        print('loadObject')
         filename, _ = QFileDialog.getOpenFileName(self, 'Open object file', filter="(*.npy)")
         if filename is not None and len(filename) > 0:
             obj_filename = os.path.basename(filename)

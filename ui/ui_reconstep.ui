@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>680</width>
+    <height>446</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="MplCanvas" name="canvas_image" native="true">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>50</y>
+      <width>311</width>
+      <height>291</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="MplCanvas" name="canvas_metric" native="true">
+    <property name="geometry">
+     <rect>
+      <x>340</x>
+      <y>50</y>
+      <width>311</width>
+      <height>291</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="cb_image_kind">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>20</y>
+      <width>311</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>object amplitude</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>object phase</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>probe amplitude</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>probe phase</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QComboBox" name="cb_metric_kind">
+    <property name="geometry">
+     <rect>
+      <x>340</x>
+      <y>20</y>
+      <width>311</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>object chi</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>probe chi</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>diff chi</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QWidget" name="gridLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>350</y>
+      <width>641</width>
+      <height>80</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="1" column="0">
+      <widget class="QProgressBar" name="progressBar">
+       <property name="value">
+        <number>24</number>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QSpinBox" name="sb_iter">
+       <property name="minimum">
+        <number>1</number>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QSlider" name="slider_iters">
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="tickPosition">
+        <enum>QSlider::TicksAbove</enum>
+       </property>
+       <property name="tickInterval">
+        <number>5</number>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QCheckBox" name="cb_live">
+       <property name="text">
+        <string>live</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1" colspan="2">
+      <widget class="QPushButton" name="btn_close">
+       <property name="text">
+        <string>Close</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MplCanvas</class>
+   <extends>QWidget</extends>
+   <header>core.widgets.mplcanvas</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
