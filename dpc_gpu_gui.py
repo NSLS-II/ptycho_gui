@@ -14,6 +14,9 @@ from numpy.lib.format import open_memmap
 import matplotlib.pyplot as plt
 
 
+subplot_title = ["prb amplitude", "prb phase", "obj amplitude", "obj phase"]
+
+
 class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
     def __init__(self, parent=None, param:Param=None):
         super().__init__(parent)
@@ -254,25 +257,18 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
                 self._obj = open_memmap(self.param.working_directory + '.mmap_obj.npy', mode = 'r')
             if it % self.param.display_interval == 1 or (it > 0 and self.param.display_interval == 1):
                 # look at the previous slice to mitigate synchronization problem? should have better solution...
+                data = [np.flipud(np.abs(self._prb[it-1, 0]).T),
+                        np.flipud(np.angle(self._prb[it-1, 0]).T),
+                        np.flipud(np.abs(self._obj[it-1, 0]).T),
+                        np.flipud(np.angle(self._obj[it-1, 0]).T)]
                 plt.clf()
-                plt.subplot(221)
-                plt.imshow(np.flipud(np.abs(self._prb[it-1, 0]).T))
-                plt.colorbar()
-                #plt.title("prb amplitude")
-                plt.subplot(222)
-                plt.imshow(np.flipud(np.angle(self._prb[it-1, 0]).T))
-                plt.colorbar()
-                #plt.title("prb phase")
-                plt.subplot(223)
-                plt.imshow(np.flipud(np.abs(self._obj[it-1, 0]).T))
-                plt.colorbar()
-                #plt.title("obj amplitude")
-                plt.subplot(224)
-                plt.imshow(np.flipud(np.angle(self._obj[it-1, 0]).T))
-                plt.colorbar()
-                #plt.title("obj phase")
-                #plt.tight_layout() 
+                for i in range(4):
+                    ax = plt.subplot(2, 2, i+1)
+                    im = plt.imshow(data[i])
+                    plt.colorbar(im, ax=ax)
+                    ax.set_title(subplot_title[i])
                 plt.suptitle('iteration #'+str(it-1))
+                plt.subplots_adjust(left=0.02, bottom=0.05, right=0.95, top=0.9, wspace=0.05, hspace=0.3)
                 plt.show()
         except Exception as ex: # when MPI processes are terminated, _prb and _obj are deleted and so not subscriptable
             print(ex, file=sys.stderr)
