@@ -11,15 +11,53 @@ from fcntl import fcntl, F_GETFL, F_SETFL
 from os import O_NONBLOCK
 import numpy as np
 
+
 class DPCReconWorker(QtCore.QThread):
-    # update signal
-    # arg[0]: current iteration number
-    update_signal = QtCore.pyqtSignal(int)
-    process = None
+    update_signal = QtCore.pyqtSignal(int, object) # (interation number, chi arrays)
+    process = None # subprocess 
 
     def __init__(self, param:Param=None, parent=None):
         super().__init__(parent)
         self.param = param
+
+    def _parse_message(self, tokens):
+        def _parser(current, upper_limit, target_list):
+            if self.param.mode_flag:
+                for j in range(upper_limit):
+                    target_list.append(float(tokens[current+2+j]))
+            elif self.param.multislice_flag:
+                raise NotImplementedError("DPCReconWorker's parser doesn't know how to handle multislice yet.") 
+            else:
+                target_list.append(float(tokens[current+2]))
+    
+        # assuming tokens (stdout line) is split but not yet processed
+        it = int(tokens[2])
+        
+        # first remove brackets
+        empty_index_list = []
+        for i, token in enumerate(tokens):
+            tokens[i] = token.replace('[', '').replace(']', '')
+            if tokens[i] == '':
+                empty_index_list.append(i)
+        counter = 0
+        for i in empty_index_list:
+            del tokens[i-counter]
+            counter += 1
+
+        # next parse based on param and the known format
+        prb_list = []
+        obj_list = []
+        for i, token in enumerate(tokens):
+            if token == 'probe_chi':
+                _parser(i, self.param.prb_mode_num, prb_list)
+            if token == 'object_chi':
+                _parser(i, self.param.obj_mode_num, obj_list)
+
+        # return a dictionary
+        result = {'probe_chi':prb_list, 'object_chi':obj_list}
+
+        return it, result
+
 
     def recon_api(self, param:Param, update_fcn=None, signals=None):
         config_path = os.path.expanduser("~") + "/.ptycho_gui_config"
@@ -36,7 +74,7 @@ class DPCReconWorker(QtCore.QThread):
             num_processes = str(len(param.gpus))
         else:
             num_processes = str(1)
-        mpirun_command = ["mpirun", "-n", num_processes, "python", "./core/ptycho/recon_ptycho_gui.py"]
+        mpirun_command = ["mpirun", "-n", num_processes, "python", "-W", "ignore", "./core/ptycho/recon_ptycho_gui.py"]
 
         try:
             return_value = None
@@ -72,7 +110,9 @@ class DPCReconWorker(QtCore.QThread):
                         print(stdout)
                         stdout = stdout.split()
                         if len(stdout) > 0 and stdout[0] == "[INFO]" and update_fcn is not None:
-                            update_fcn(int(stdout[2])+1)
+                            it, result = self._parse_message(stdout)
+                            #print(result['probe_chi'])
+                            update_fcn(it+1, result)
 
                     if stderr:
                         stderr = stderr.decode('utf-8')
@@ -107,6 +147,7 @@ class DPCReconWorker(QtCore.QThread):
         print('killing the subprocess...')
         self.process.terminate()
         self.process.wait()
+
 
 class DPCReconFakeWorker(QtCore.QThread):
     update_signal = QtCore.pyqtSignal(int, object)
@@ -182,6 +223,8 @@ class DPCReconFakeWorker(QtCore.QThread):
 
         print("finished")
 
+    def kill(self):
+        pass
 
 
 

@@ -8,7 +8,6 @@ from matplotlib.figure import Figure
 from matplotlib.pyplot import Axes
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_area_auto_adjustable
 
-
 import csv
 import numpy as np
 from PIL import Image
@@ -42,7 +41,6 @@ class MplCanvas(FigureCanvas):
         fig = Figure(figsize=(width, height), dpi=dpi)
 
         ax = Axes(fig, [0., 0., 1., 1.])
-        ax.set_axis_off()
         fig.add_axes(ax)
         self.axes = ax
         self.fig = fig
@@ -60,8 +58,14 @@ class MplCanvas(FigureCanvas):
         fig.set_facecolor(brush_to_color_tuple(window_brush))
         fig.set_facecolor(brush_to_color_tuple(window_brush))
 
+        self.reset()
+
+    def reset(self):
         self.image_handlers = None
         self.line_handlers = []
+        self.axes.clear()
+        self.axes.set_axis_off() # must be after clear()
+        self.draw() # test 
 
     def compute_initial_figure(self):
         pass
@@ -75,6 +79,8 @@ class MplCanvas(FigureCanvas):
             self.image_handlers = self.axes.imshow(image)
         else:
             self.image_handlers.set_data(image)
+            # amplitude and phase have dramatically different ranges, so rescaling is necessary
+            self.image_handlers.autoscale()
         self.draw()
 
     def update_plot(self, xValues, yValues):
@@ -91,6 +97,8 @@ class MplCanvas(FigureCanvas):
             self.axes.autoscale_view()
 
         self.draw()
+
+
 
 class MplCanvasTool(QtWidgets.QWidget):
     def __init__(self, parent=None, width=5, height=4, dpi=100):

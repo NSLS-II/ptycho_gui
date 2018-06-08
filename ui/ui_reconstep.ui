@@ -45,12 +45,12 @@
     </property>
     <item>
      <property name="text">
-      <string>object amplitude</string>
+      <string>object phase</string>
      </property>
     </item>
     <item>
      <property name="text">
-      <string>object phase</string>
+      <string>object amplitude</string>
      </property>
     </item>
    </widget>

@@ -146,8 +146,8 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "NSLS-II HXN Pytchography Recon. Monitor"))
-        self.cb_image_object.setItemText(0, _translate("MainWindow", "object amplitude"))
-        self.cb_image_object.setItemText(1, _translate("MainWindow", "object phase"))
+        self.cb_image_object.setItemText(0, _translate("MainWindow", "object phase"))
+        self.cb_image_object.setItemText(1, _translate("MainWindow", "object amplitude"))
         self.cb_image_probe.setItemText(0, _translate("MainWindow", "probe amplitude"))
         self.cb_image_probe.setItemText(1, _translate("MainWindow", "probe phase"))
         self.ck_live.setText(_translate("MainWindow", "live"))
