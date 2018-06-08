@@ -16,11 +16,9 @@ from numpy.lib.format import open_memmap
 import matplotlib.pyplot as plt
 
 
-<<<<<<< HEAD
-subplot_title = ["prb amplitude", "prb phase", "obj amplitude", "obj phase"]
+# set True for testing GUI changes
+_TEST = False
 
-=======
->>>>>>> f034ad3eff71ece038c6501e07b54421d25e472f
 
 class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
     def __init__(self, parent=None, param:Param=None):
@@ -204,153 +202,73 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
 
     def start(self):
-        # -------------------- Sungsoo version -------------------------------------
         if self._dpc_gpu_thread is not None and self._dpc_gpu_thread.isFinished():
             self._dpc_gpu_thread = None
 
         if self._dpc_gpu_thread is None:
-            # init reconStepWindow
-            if self.reconStepWindow is None:
-                self.reconStepWindow = ReconStepWindow()
-                self.reconStepWindow.reset_iter(self.param.n_iterations)
-                self.reconStepWindow.show()
-            else:
-                self.reconStepWindow.reset_iter(self.param.n_iterations)
-                self.reconStepWindow.show()
-
-            self.update_param_from_gui()
+            self.update_param_from_gui() # this has to be done first, so all operations depending on param are correct
             self.recon_bar.setValue(0)
             self.recon_bar.setMaximum(self.param.n_iterations)
 
-<<<<<<< HEAD
-            # TEST: get live update of probe and object
-            plt.ion() # non-blocking plotting
-            plt.figure()
-            if self.param.gpu_flag and self.param.display_interval<3:
-                # this warning message may be inaccurate...
-                print("[WARNING] The display interval is too small ({}). You might not see the actual live update."\
-                      .format(self.param.display_interval), file=sys.stderr)
+            # init reconStepWindow
+            if self.reconStepWindow is None:
+                self.reconStepWindow = ReconStepWindow()
+            self.reconStepWindow.reset_window(iterations=self.param.n_iterations,
+                                              slider_interval=self.param.display_interval)
+            self.reconStepWindow.show()
 
-            thread = self._dpc_gpu_thread = DPCReconWorker(self.param)
+            if not _TEST:
+                thread = self._dpc_gpu_thread = DPCReconWorker(self.param)
+            else:
+                thread = self._dpc_gpu_thread = DPCReconFakeWorker(self.param)
+
             thread.update_signal.connect(self.update_recon_step)
-            # QtCore.QObject.connect(thread, QtCore.SIGNAL("finished()"), self.resetButtons)
-=======
-            thread = self._dpc_gpu_thread = DPCReconFakeWorker(self.param)
-            thread.update_signal.connect(self.update_recon_step)
->>>>>>> f034ad3eff71ece038c6501e07b54421d25e472f
             thread.finished.connect(self.resetButtons)
+            #thread.finished.connect(self.reconStepWindow.debug)
             thread.start()
 
             self.btn_recon_stop.setEnabled(True)
             self.btn_recon_start.setEnabled(False)
-        # -------------------- Leo version -------------------------------------
-        # if self._dpc_gpu_thread is not None and self._dpc_gpu_thread.isFinished():
-        #     self._dpc_gpu_thread = None
-        #
-        # if self._dpc_gpu_thread is None:
-        #     self.update_param_from_gui()
-        #     self.recon_bar.setValue(0)
-        #     self.recon_bar.setMaximum(self.param.n_iterations)
-        #
-        #     # TEST: get live update of probe and object
-        #     # the order of these two lines cannot be exchanged!
-        #     plt.ion() # non-blocking plotting
-        #     plt.figure()
-        #     if self.param.gpu_flag and self.param.display_interval<3:
-        #         print("[WARNING] The display interval is too small ({}). You might not see the actual live update."\
-        #               .format(self.param.display_interval), file=sys.stderr)
-        #
-        #     thread = self._dpc_gpu_thread = DPCReconWorker(self.param)
-        #     thread.update_signal.connect(self.update_recon_step)
-        #     thread.finished.connect(self.resetButtons)
-        #     thread.start()
-        #
-        #     self.btn_recon_stop.setEnabled(True)
-        #     self.btn_recon_start.setEnabled(False)
 
 
     def stop(self):
-        # -------------------- Sungsoo version -------------------------------------
-
         if self._dpc_gpu_thread is not None and self._dpc_gpu_thread.isRunning():
-            self._dpc_gpu_thread.quit()
+            self._dpc_gpu_thread.kill() # first kill the mpi processes
+            self._dpc_gpu_thread.quit() # then quit QThread gracefully
             self._dpc_gpu_thread = None
             self.resetButtons()
-        # -------------------- Leo version -------------------------------------
-        # force quitting if running, otherwise do nothing
-        # if self._dpc_gpu_thread is not None and self._dpc_gpu_thread.isRunning():
-        #     self._dpc_gpu_thread.kill() # first kill the mpi processes
-        #     self._dpc_gpu_thread.quit() # then quit QThread gracefully
-        #     self._dpc_gpu_thread = None
-        #     self.resetButtons()
+            self.reconStepWindow.reset_window()
 
 
     def update_recon_step(self, it, data=None):
         self.recon_bar.setValue(it)
 
-        # -------------------- Sungsoo version -------------------------------------
         if self.reconStepWindow is not None:
             self.reconStepWindow.update_iter(it)
 
-            # a list of random images for test
-            # in the order of [object_amplitude, object_phase, probe_amplitude, probe_phase]
-            images = [np.random.random((128,128)) for _ in range(4)]
-            self.reconStepWindow.update_images(it, images)
-            self.reconStepWindow.update_metric(it, data)
-
-        # -------------------- Leo version -------------------------------------
-        # TEST: get live update of probe and object
-<<<<<<< HEAD
-        try:
-            it -= 1
-            if it == 0:
-                # the two npy are created by ptycho by this time
-                self._prb = open_memmap(self.param.working_directory + '.mmap_prb.npy', mode = 'r')
-                self._obj = open_memmap(self.param.working_directory + '.mmap_obj.npy', mode = 'r')
-            if it % self.param.display_interval == 1 or (it > 0 and self.param.display_interval == 1):
-                # look at the previous slice to mitigate synchronization problem? should have better solution...
-                data = [np.flipud(np.abs(self._prb[it-1, 0]).T),
-                        np.flipud(np.angle(self._prb[it-1, 0]).T),
-                        np.flipud(np.abs(self._obj[it-1, 0]).T),
-                        np.flipud(np.angle(self._obj[it-1, 0]).T)]
-                plt.clf()
-                for i in range(4):
-                    ax = plt.subplot(2, 2, i+1)
-                    im = plt.imshow(data[i])
-                    plt.colorbar(im, ax=ax)
-                    ax.set_title(subplot_title[i])
-                plt.suptitle('iteration #'+str(it-1))
-                plt.subplots_adjust(left=0.02, bottom=0.05, right=0.95, top=0.9, wspace=0.05, hspace=0.3)
-                plt.show()
-        except TypeError as ex: # when MPI processes are terminated, _prb and _obj are deleted and so not subscriptable 
-            pass
-=======
-        # try:
-        #     it -= 1
-        #     if it == 0:
-        #         # the two npy are created by ptycho by this time
-        #         self._prb = open_memmap(self.param.working_directory + '.mmap_prb.npy', mode = 'r')
-        #         self._obj = open_memmap(self.param.working_directory + '.mmap_obj.npy', mode = 'r')
-        #     if it % self.param.display_interval == 1 or (it > 0 and self.param.display_interval == 1):
-        #         # look at the previous slice to mitigate synchronization problem? should have better solution...
-        #         plt.clf()
-        #         plt.subplot(221)
-        #         plt.imshow(np.flipud(np.abs(self._prb[it-1, 0]).T))
-        #         plt.colorbar()
-        #         plt.subplot(222)
-        #         plt.imshow(np.flipud(np.angle(self._prb[it-1, 0]).T))
-        #         plt.colorbar()
-        #         plt.subplot(223)
-        #         plt.imshow(np.flipud(np.abs(self._obj[it-1, 0]).T))
-        #         plt.colorbar()
-        #         plt.subplot(224)
-        #         plt.imshow(np.flipud(np.angle(self._obj[it-1, 0]).T))
-        #         plt.colorbar()
-        #         plt.suptitle('iteration #'+str(it-1))
-        #         plt.show()
-        # except Exception as ex:
-        #     print(ex, file=sys.stderr)
->>>>>>> f034ad3eff71ece038c6501e07b54421d25e472f
+            if not _TEST:
+                try:
+                    if it == 1:
+                        # the two npy are created by ptycho by this time
+                        self._prb = open_memmap(self.param.working_directory + '.mmap_prb.npy', mode = 'r')
+                        self._obj = open_memmap(self.param.working_directory + '.mmap_obj.npy', mode = 'r')
+                    if it % self.param.display_interval == 1 or (it >= 1 and self.param.display_interval == 1):
+                        # there could be synchronization problem? should have better solution...
+                        images = [np.flipud(np.angle(self._obj[it-1, 0]).T),
+                                  np.flipud(np.abs(self._obj[it-1, 0]).T),
+                                  np.flipud(np.abs(self._prb[it-1, 0]).T),
+                                  np.flipud(np.angle(self._prb[it-1, 0]).T)]
+                        self.reconStepWindow.update_images(it, images)
+                        self.reconStepWindow.update_metric(it, data)
+                except TypeError as ex: # when MPI processes are terminated, _prb and _obj are deleted and so not subscriptable 
+                    pass
+            else:
+                # -------------------- Sungsoo version -------------------------------------
+                # a list of random images for test
+                # in the order of [object_amplitude, object_phase, probe_amplitude, probe_phase]
+                images = [np.random.random((128,128)) for _ in range(4)]
+                self.reconStepWindow.update_images(it, images)
+                self.reconStepWindow.update_metric(it, data)
 
 
     def loadProbe(self):
