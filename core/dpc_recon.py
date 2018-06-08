@@ -9,7 +9,7 @@ import pickle     # dump param into disk
 import subprocess # call mpirun from shell
 from fcntl import fcntl, F_GETFL, F_SETFL
 from os import O_NONBLOCK
-
+import numpy as np
 
 class DPCReconWorker(QtCore.QThread):
     # update signal
@@ -109,17 +109,75 @@ class DPCReconWorker(QtCore.QThread):
         self.process.wait()
 
 class DPCReconFakeWorker(QtCore.QThread):
-    update_signal = QtCore.pyqtSignal(int)
+    update_signal = QtCore.pyqtSignal(int, object)
 
     def __init__(self, param:Param=None, parent=None):
         super().__init__(parent)
         self.param = param
 
+    def _get_random_message(self, it):
+        object_chi = np.random.random()
+        probe_chi = np.random.random()
+        diff_chi = np.random.random()
+        return '[INFO] DM {:d} object_chi = {:f} probe_chi = {:f} diff_chi = {:f}'.format(
+            it, object_chi, probe_chi, diff_chi)
+
+    def _array_to_str(self, arr):
+        arrstr = ''
+        for v in arr: arrstr += '{:f} '.format(v)
+        return arrstr
+
+    def _get_random_message_multi(self, it):
+        object_chi = np.random.random(4)
+        probe_chi = np.random.random(4)
+        diff_chi = np.random.random(4)
+
+        object_chi_str = self._array_to_str(object_chi)
+        probe_chi_str = self._array_to_str(probe_chi)
+        diff_chi_str = self._array_to_str(diff_chi)
+
+        return '[INFO] DM {:d} object_chi = {:s} probe_chi = {:s} diff_chi = {:s}'.format(
+            it, object_chi_str, probe_chi_str, diff_chi_str)
+
+
+    def _parse_message(self, message):
+        message = str(message).replace('[', '').replace(']', '')
+
+        tokens = message.split()
+        id, alg, it = tokens[0], tokens[1], int(tokens[2])
+
+        metric_tokens = tokens[3:]
+        metric = {}
+        name = 'Unknown'
+        data = []
+
+        for i in range(len(metric_tokens)):
+            token = str(metric_tokens[i])
+
+            if token == '=': continue
+
+            if i < len(metric_tokens) - 2 and metric_tokens[i+1] == '=':
+                if len(data): metric[name] = list(data)
+                name = token
+                data = []
+                continue
+
+            data.append(float(token))
+
+        if len(data):
+            metric[name] = data
+
+        return id, alg, it, metric
+
     def run(self):
         from time import sleep
         update_fcn = self.update_signal.emit
         for it in range(self.param.n_iterations):
-            update_fcn(it+1)
+
+            message = self._get_random_message(it)
+            _id, _alg, _it, _metric = self._parse_message(message)
+
+            update_fcn(_it+1, _metric)
             sleep(.1)
 
         print("finished")

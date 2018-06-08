@@ -1,7 +1,9 @@
 import sys
 from PyQt5 import QtWidgets
-
 from ui import ui_reconstep
+
+import numpy as np
+
 
 class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
     def __init__(self, parent=None):
@@ -12,19 +14,22 @@ class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
         # connect
         self.slider_iters.valueChanged.connect(self.slider_iters_op)
         self.sb_iter.valueChanged.connect(self.sb_iter_op)
-        self.cb_image_kind.currentIndexChanged.connect(self.cb_image_kind_op)
+        self.cb_image_object.currentIndexChanged.connect(self.cb_image_object_op)
+        self.cb_image_probe.currentIndexChanged.connect(self.cb_image_probe_op)
         self.btn_close.clicked.connect(self.btn_close_op)
 
+        self.canvas_probe_chi.axis_on()
+        self.canvas_object_chi.axis_on()
+
         self.image_buffer = {}
-        self.metric_buffer = {}
+        self.metric_buffer_it = []
+        self.metric_buffer = []
         self.current_max_iters = 1
-        self.current_iter = 1
-        self.current_image_kind_idx = 0
 
         self.progressBar.setValue(0)
 
     def is_live_update(self):
-        return self.cb_live.isChecked()
+        return self.ck_live.isChecked()
 
     def slider_iters_op(self, it):
         self.sb_iter.setValue(it)
@@ -34,11 +39,22 @@ class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
         self.slider_iters.setValue(it)
         self.update_images(it)
 
-    def cb_image_kind_op(self, idx):
-        self.current_image_kind_idx = idx
-        self.update_images(self.current_iter)
+    def cb_image_object_op(self, idx):
+        it = self.sb_iter.value()
+        if it in self.image_buffer:
+            images_to_show = self.image_buffer[it]
+            object_image = images_to_show[idx]
+            self.canvas_object.update_image(object_image)
+
+    def cb_image_probe_op(self, idx):
+        it = self.sb_iter.value()
+        if it in self.image_buffer:
+            images_to_show = self.image_buffer[it]
+            probe_image = images_to_show[idx+2]
+            self.canvas_probe.update_image(probe_image)
 
     def btn_close_op(self):
+        # todo: close with signal to main window
         self.close()
 
     def reset_iter(self, max_iters):
@@ -62,22 +78,35 @@ class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
             self.sb_iter.setMaximum(it)
             self.current_max_iters = it
 
-            if self.is_live_update():
-                self.slider_iters.setValue(it)
-                self.sb_iter.setValue(it)
-                self.current_iter = it
+        if self.is_live_update():
+            self.slider_iters.setValue(it)
+            self.sb_iter.setValue(it)
 
     def update_images(self, it, images=None):
         if images is not None:
             self.image_buffer[it] = [img.copy() for img in images]
 
+        images_to_show = None
         if self.is_live_update() and images is not None:
-            selected_image = images[self.current_image_kind_idx].copy()
-            self.canvas_image.update_image(selected_image)
-
+            images_to_show = images
         elif it in self.image_buffer:
-            selected_image = self.image_buffer[it]
-            self.canvas_image.update_image(selected_image[self.current_image_kind_idx])
+            images_to_show = self.image_buffer[it]
+
+        if images_to_show is not None:
+            object_image = images_to_show[self.cb_image_object.currentIndex()]
+            probe_image = images_to_show[self.cb_image_probe.currentIndex()+2]
+            self.canvas_object.update_image(object_image)
+            self.canvas_probe.update_image(probe_image)
+
+    def update_metric(self, it, data):
+        self.metric_buffer_it.append(it)
+        self.metric_buffer.append(data)
+
+        # get key from combo box
+        object_to_plot = np.array([ d['object_chi'] for d in self.metric_buffer])
+        probe_to_plot  = np.array([ d['probe_chi'] for d in self.metric_buffer])
+        self.canvas_object_chi.update_plot(self.metric_buffer_it, object_to_plot)
+        self.canvas_probe_chi.update_plot(self.metric_buffer_it, probe_to_plot)
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)

@@ -209,6 +209,9 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
                 self.reconStepWindow = ReconStepWindow()
                 self.reconStepWindow.reset_iter(self.param.n_iterations)
                 self.reconStepWindow.show()
+            else:
+                self.reconStepWindow.reset_iter(self.param.n_iterations)
+                self.reconStepWindow.show()
 
             self.update_param_from_gui()
             self.recon_bar.setValue(0)
@@ -249,9 +252,6 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
     def stop(self):
         # -------------------- Sungsoo version -------------------------------------
-        # close reconStepWindow ??? (or close from reconStepWindow)
-        if self.reconStepWindow is not None:
-            self.reconStepWindow.close()
 
         if self._dpc_gpu_thread is not None and self._dpc_gpu_thread.isRunning():
             self._dpc_gpu_thread.quit()
@@ -266,7 +266,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         #     self.resetButtons()
 
 
-    def update_recon_step(self, it):
+    def update_recon_step(self, it, data=None):
         self.recon_bar.setValue(it)
 
         # -------------------- Sungsoo version -------------------------------------
@@ -274,8 +274,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             self.reconStepWindow.update_iter(it)
 
             # a list of random images for test
+            # in the order of [object_amplitude, object_phase, probe_amplitude, probe_phase]
             images = [np.random.random((128,128)) for _ in range(4)]
             self.reconStepWindow.update_images(it, images)
+            self.reconStepWindow.update_metric(it, data)
 
         # -------------------- Leo version -------------------------------------
         # TEST: get live update of probe and object
