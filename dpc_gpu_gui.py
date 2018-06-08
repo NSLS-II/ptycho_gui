@@ -217,10 +217,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             self.recon_bar.setMaximum(self.param.n_iterations)
 
             # TEST: get live update of probe and object
-            # the order of these two lines cannot be exchanged!
             plt.ion() # non-blocking plotting
             plt.figure()
             if self.param.gpu_flag and self.param.display_interval<3:
+                # this warning message may be inaccurate...
                 print("[WARNING] The display interval is too small ({}). You might not see the actual live update."\
                       .format(self.param.display_interval), file=sys.stderr)
 
@@ -270,8 +270,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
                 plt.suptitle('iteration #'+str(it-1))
                 plt.subplots_adjust(left=0.02, bottom=0.05, right=0.95, top=0.9, wspace=0.05, hspace=0.3)
                 plt.show()
-        except Exception as ex: # when MPI processes are terminated, _prb and _obj are deleted and so not subscriptable
-            print(ex, file=sys.stderr)
+        except TypeError as ex: # when MPI processes are terminated, _prb and _obj are deleted and so not subscriptable 
+            pass
 
 
     def loadProbe(self):
