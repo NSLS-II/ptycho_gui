@@ -1526,7 +1526,7 @@
         </widget>
        </item>
        <item row="3" column="8">
-        <widget class="QDoubleSpinBox" name="doubleSpinBox">
+        <widget class="QDoubleSpinBox" name="sp_angle">
          <property name="minimum">
           <double>-181.000000000000000</double>
          </property>

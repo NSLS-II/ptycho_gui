@@ -108,6 +108,7 @@ class Param(object):
         self.cal_scan_pattern_flag = False
         self.x_direction = -1.
         self.y_direction = -1.
+        self.angle = 15.
 
         self.ml_mode = 'Poisson'     # mode for ML
 

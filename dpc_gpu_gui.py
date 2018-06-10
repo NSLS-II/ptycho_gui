@@ -135,6 +135,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         p.angle_correction_flag = self.ck_angle_correction_flag.isChecked()
         p.x_direction = float(self.sp_x_direction.value())
         p.y_direction = float(self.sp_y_direction.value())
+        p.angle = self.sp_angle.value()
 
         p.alpha = float(self.sp_alpha.value()*1.e-8)
         p.beta = float(self.sp_beta.value())
@@ -194,6 +195,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.ck_angle_correction_flag.setChecked(p.angle_correction_flag)
         self.sp_x_direction.setValue(p.x_direction)
         self.sp_y_direction.setValue(p.y_direction)
+        self.sp_angle.setValue(p.angle)
 
         self.sp_alpha.setValue(p.alpha * 1e+8)
         self.sp_beta.setValue(p.beta)
@@ -369,9 +371,13 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
                     self.sp_y_step_size.setValue(f['dr_y'].value)
                     self.sp_x_scan_range.setValue(f['x_range'].value)
                     self.sp_y_scan_range.setValue(f['y_range'].value)
+                    self.sp_angle.setValue(f['angle'].value)
                     #self.cb_scan_type = ...
                     self.sp_num_points.setValue(nz)
                     print("done")
+            except KeyError:
+                self.sp_angle.setValue(15.) # backward compatibility for old datasets
+                print("angle not found, assuming 15...done", file=sys.stderr)
             except OSError:
                 print("[ERROR] h5 not found. Resetting...", file=sys.stderr, end='')
                 self.resetExperimentalParameters()
