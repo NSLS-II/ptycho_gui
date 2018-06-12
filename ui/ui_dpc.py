@@ -521,7 +521,7 @@ class Ui_MainWindow(object):
         spacerItem7 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.gridLayout_5.addItem(spacerItem7, 0, 6, 1, 1)
         self.layoutWidget = QtWidgets.QWidget(self.tab_2)
-        self.layoutWidget.setGeometry(QtCore.QRect(20, 10, 713, 131))
+        self.layoutWidget.setGeometry(QtCore.QRect(20, 10, 681, 131))
         self.layoutWidget.setObjectName("layoutWidget")
         self.gridLayout_3 = QtWidgets.QGridLayout(self.layoutWidget)
         self.gridLayout_3.setContentsMargins(0, 0, 0, 0)

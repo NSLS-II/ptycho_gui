@@ -9,6 +9,7 @@ from core.dpc_recon import DPCReconWorker, DPCReconFakeWorker
 from core.dpc_qt_utils import DPCStream
 
 from reconStep_gui import ReconStepWindow
+from roi_gui import RoiWindow
 
 import h5py
 import numpy as np
@@ -41,6 +42,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
         self.btn_recon_start.clicked.connect(self.start)
         self.btn_recon_stop.clicked.connect(self.stop)
+
+        self.btn_view_frame.clicked.connect(self.viewDataFrame)
 
         self.btn_gpu_all = [self.btn_gpu_0, self.btn_gpu_1, self.btn_gpu_2, self.btn_gpu_3]
 
@@ -339,8 +342,24 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         '''
         Correspond to "View & set" in DPC GUI
         '''
-        pass
+        from core.widgets.mplcanvas import load_image_pil
+        image = load_image_pil('./test.tif')
+        self.roiWindow = RoiWindow(image=image)
+        self.roiWindow.roi_changed.connect(self._get_roi_slot)
+        self.roiWindow.show()
 
+    def _get_roi_slot(self, x0, y0, width, height):
+        '''
+        feel free to rename this function as you need
+        : this function to get roi when user click SEND button or
+        : dynamically...
+
+        x0: upper left x coordinate
+        y0: upper left y coordinate
+        width: width
+        height: height
+        '''
+        print(x0, y0, width, height)
 
     def loadExpParam(self): 
         '''
