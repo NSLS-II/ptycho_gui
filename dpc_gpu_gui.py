@@ -41,6 +41,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.btn_load_scan.clicked.connect(self.loadExpParam)
         self.btn_view_frame.clicked.connect(self.viewDataFrame)
 
+        self.le_scan_num.editingFinished.connect(self.forceLoad)
+        self.cb_dataloader.currentTextChanged.connect(self.forceLoad)
+        self.cb_detectorkind.currentTextChanged.connect(self.forceLoad)
+
         self.ck_mode_flag.clicked.connect(self.updateModeFlg)
         self.ck_multislice_flag.clicked.connect(self.updateMultiSliceFlg)
         self.ck_gpu_flag.clicked.connect(self.updateGpuFlg)
@@ -60,6 +64,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self._dpc_gpu_thread = None
         self._db = None          # hold the Broker instance that contains the info of the given scan id
         self._mds_table = None   # hold a Pandas.dataframe instance
+        self._loaded = False     # whether the user has loaded metadata or not (from either databroker or h5)
 
         self.reconStepWindow = None
 
@@ -123,7 +128,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         #p.y_arr_size = float(self.sp_y_arr_size.value()) # can get from diffamp
         p.dr_y = float(self.sp_y_step_size.value())
         p.y_range = float(self.sp_y_scan_range.value())
-        p.scan_type = str(self.cb_scan_type.currentText()) # do we need this one?
+        #p.scan_type = str(self.cb_scan_type.currentText()) # do we need this one?
         #p.num_points = int(self.sp_num_points.value()) # can get from diffamp
 
         p.n_iterations = int(self.sp_n_iterations.value())
@@ -235,6 +240,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             self._dpc_gpu_thread = None
 
         if self._dpc_gpu_thread is None:
+            if not self._loaded:
+                print("[WARNING] Remember to click \"Load\" before proceeding!", file=sys.stderr) 
+                return
+
             self.update_param_from_gui() # this has to be done first, so all operations depending on param are correct
             self.recon_bar.setValue(0)
             self.recon_bar.setMaximum(self.param.n_iterations)
@@ -369,6 +378,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         '''
         Correspond to "View & set" in DPC GUI
         '''
+        if not self._loaded:
+            print("[WARNING] Remember to click \"Load\" before proceeding!", file=sys.stderr) 
+            return
+
         plt.ion()
         #plt.figure()
         frame_num = self.sp_fram_num.value()
@@ -507,6 +520,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             print("[ERROR] no image available for the chosen detector.", file=sys.stderr)
         except Exception as ex: # everything unexpected at this time...
             self.exception_handler(ex)
+        else:
+            self._loaded = True
         finally:
             print("done")
 
@@ -532,6 +547,14 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.sp_y_scan_range.setValue(0)
         #self.cb_scan_type = ...
         self.sp_num_points.setValue(0)
+
+    
+    def forceLoad(self):
+        '''
+        A foolproof mechanism that forces users to click "load" before "start" or "view data frame".
+        This can avoid handling many weird exceptions.
+        '''
+        self._loaded = False
 
 
     def exception_handler(self, ex):
