@@ -373,7 +373,6 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.btn_gpu_3.setEnabled(flag)
 
 
-    #@profile
     def viewDataFrame(self):
         '''
         Correspond to "View & set" in DPC GUI
@@ -385,37 +384,14 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         plt.ion()
         #plt.figure()
         frame_num = self.sp_fram_num.value()
+        img = None
 
         try:
             if self.cb_dataloader.currentText() == "Load from databroker":
-                # assuming at this point the user has clicked "load" 
-                # TODO: perhaps need a more sophisticated, foolproof errer detection?
-                if self._mds_table is None:
-                    raise RuntimeError("[ERROR] Need to click the \"load\" button before viewing.")
-                length = (self._mds_table.shape)[0] 
-                if frame_num >= length:
-                    message = "[ERROR] The {0}-th frame doesn't exist. "
-                    message += "Available frames for the chosen scan: [0, {1}]."
-                    raise ValueError(message.format(frame_num, length-1))
-
-                img = self.db.reg.retrieve(self._mds_table.iat[frame_num])[0]
+                img = self._viewDataFrameBroker(frame_num)
             
-            # load the data from the h5 in the working directory
             if self.cb_dataloader.currentText() == "Load from h5":
-                # TODO: do we have a cleverer way? perhaps put parsing in a separate helper?
-                #self.loadExpParam() # first get the experimental parameters if we haven't done so already
-                working_dir = str(self.le_working_directory.text()) # self.param.working_directory
-                scan_num = str(self.le_scan_num.text())
-                length = self.sp_num_points.value()
-                if frame_num >= length:
-                    message = "[ERROR] The {0}-th frame doesn't exist. "
-                    message += "Available frames for the chosen scan: [0, {1}]."
-                    raise ValueError(message.format(frame_num, length-1))
-                with h5py.File(working_dir+'/scan_'+scan_num+'.h5','r') as f:
-                    print("h5 loaded, parsing the {}-th frame...".format(frame_num), end='')
-                    data = f['diffamp'].value
-                    img = data[frame_num]
-                    print("done")
+                img = self._viewDataFrameH5(frame_num)
         except OSError:
             # h5 not found, but loadExpParam() has detected it, so do nothing here
             pass
@@ -434,77 +410,49 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         plt.ioff()
 
 
-    #@profile    
+    #@profile
+    def _viewDataFrameBroker(self, frame_num:int):
+        # assuming at this point the user has clicked "load" 
+        if self._mds_table is None:
+            raise RuntimeError("[ERROR] Need to click the \"load\" button before viewing.")
+        length = (self._mds_table.shape)[0] 
+        if frame_num >= length:
+            message = "[ERROR] The {0}-th frame doesn't exist. "
+            message += "Available frames for the chosen scan: [0, {1}]."
+            raise ValueError(message.format(frame_num, length-1))
+
+        img = self.db.reg.retrieve(self._mds_table.iat[frame_num])[0]
+        return img
+
+
+    #@profile
+    def _viewDataFrameH5(self, frame_num:int):
+        # load the data from the h5 in the working directory
+        working_dir = str(self.le_working_directory.text()) # self.param.working_directory
+        scan_num = str(self.le_scan_num.text())
+        length = self.sp_num_points.value()
+        if frame_num >= length:
+            message = "[ERROR] The {0}-th frame doesn't exist. "
+            message += "Available frames for the chosen scan: [0, {1}]."
+            raise ValueError(message.format(frame_num, length-1))
+        with h5py.File(working_dir+'/scan_'+scan_num+'.h5','r') as f:
+            print("h5 loaded, parsing the {}-th frame...".format(frame_num), end='')
+            img = f['diffamp'][frame_num]
+            #data = f['diffamp'].value
+            #img = data[frame_num]
+            print("done")
+        return img
+
+
     def loadExpParam(self): 
-        scan_num = scan_id = int(self.le_scan_num.text())
+        scan_num = int(self.le_scan_num.text())
 
         try:
             if self.cb_dataloader.currentText() == "Load from databroker":
-                #doesn't really work...
-                #print("loading begins...may take a while...")
-                #sys.stdout.flush()
-                self.db = scan_id # set the correct database
-                header = self.db[scan_id]
+                self._loadExpParamBroker(scan_num)
 
-                # get the list of detector names; TODO: a better way without ScanInfo?
-                scan = ScanInfo(header)
-                det_name = self.cb_detectorkind.currentText()
-                det_name_exists = False
-                self.cb_detectorkind.clear()
-                for detector_name in scan.filestore_keys:
-                    self.cb_detectorkind.addItem(detector_name)
-                    if det_name == detector_name:
-                        det_name_exists = True
-                if not det_name_exists:
-                    det_name = self.cb_detectorkind.currentText()
-
-                # get metadata
-                metadata = load_metadata(self.db, scan_id, det_name)
-                self.param.__dict__ = {**self.param.__dict__, **metadata} # for Python 3.5+ only
-                if metadata['nz'] == 0:
-                    raise ValueError
-                else:
-                    nz = metadata['nz']
-                    # get the mds keys to the image (diffamp) array 
-                    self._mds_table = metadata['mds_table']
-
-                print("databroker connected, parsing experimental parameters...", end='')
-                # get nx and ny by looking at the first image
-                img = self.db.reg.retrieve(self._mds_table.iat[0])[0]
-                nx, ny = img.shape # can also give a ValueError; TODO: come up a better way!
-                self.sp_xray_energy.setValue(metadata['energy_kev'])
-                #self.sp_detector_distance.setValue(f['z_m'].value) # don't know how to handle this...
-                self.sp_x_arr_size.setValue(nx)
-                self.sp_y_arr_size.setValue(ny)
-                self.sp_num_points.setValue(nz)
-                self.sp_x_step_size.setValue(metadata['dr_x'])
-                self.sp_y_step_size.setValue(metadata['dr_y'])
-                self.sp_x_scan_range.setValue(metadata['x_range'])
-                self.sp_y_scan_range.setValue(metadata['y_range'])
-                self.sp_angle.setValue(metadata['angle'])
-                if self.cb_scan_type.findText(metadata['scan_type']) == -1:
-                    self.cb_scan_type.addItem(metadata['scan_type'])
-                self.cb_scan_type.setCurrentText(metadata['scan_type'])
-
-            # load the parameters from the h5 in the working directory
             if self.cb_dataloader.currentText() == "Load from h5":
-                working_dir = str(self.le_working_directory.text()) # self.param.working_directory
-                with h5py.File(working_dir+'/scan_'+str(scan_num)+'.h5','r') as f:
-                    # this code is not robust enough as certain keys may not be present...
-                    print("h5 loaded, parsing experimental parameters...", end='')
-                    self.sp_xray_energy.setValue(1.2398/f['lambda_nm'].value)
-                    self.sp_detector_distance.setValue(f['z_m'].value)
-                    nz, nx, ny = f['diffamp'].shape
-                    self.sp_x_arr_size.setValue(nx)
-                    self.sp_y_arr_size.setValue(ny)
-                    self.sp_x_step_size.setValue(f['dr_x'].value)
-                    self.sp_y_step_size.setValue(f['dr_y'].value)
-                    self.sp_x_scan_range.setValue(f['x_range'].value)
-                    self.sp_y_scan_range.setValue(f['y_range'].value)
-                    self.sp_angle.setValue(f['angle'].value)
-                    #self.cb_scan_type = ...
-                    self.sp_num_points.setValue(nz)
-                    # read the detector name and set it in GUI??
+                self._loadExpParamH5(scan_num)
         except KeyError as ex: # for h5
             if ex.args[0] == 'angle':
                 self.sp_angle.setValue(15.) # backward compatibility for old datasets
@@ -526,6 +474,55 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             print("done")
 
 
+    #@profile
+    def _loadExpParamBroker(self, scan_id:int):
+        #doesn't really work...
+        #print("loading begins...may take a while...")
+        #sys.stdout.flush()
+        self.db = scan_id # set the correct database
+        header = self.db[scan_id]
+
+        # get the list of detector names; TODO: a better way without ScanInfo?
+        scan = ScanInfo(header)
+        det_name = self.cb_detectorkind.currentText()
+        det_name_exists = False
+        self.cb_detectorkind.clear()
+        for detector_name in scan.filestore_keys:
+            self.cb_detectorkind.addItem(detector_name)
+            if det_name == detector_name:
+                det_name_exists = True
+        if not det_name_exists:
+            det_name = self.cb_detectorkind.currentText()
+
+        # get metadata
+        metadata = load_metadata(self.db, scan_id, det_name)
+        self.param.__dict__ = {**self.param.__dict__, **metadata} # for Python 3.5+ only
+        if metadata['nz'] == 0:
+            raise ValueError
+        else:
+            nz = metadata['nz']
+            # get the mds keys to the image (diffamp) array 
+            self._mds_table = metadata['mds_table']
+
+        print("databroker connected, parsing experimental parameters...", end='')
+        # get nx and ny by looking at the first image
+        img = self.db.reg.retrieve(self._mds_table.iat[0])[0]
+        nx, ny = img.shape # can also give a ValueError; TODO: come up a better way!
+        self.sp_xray_energy.setValue(metadata['energy_kev'])
+        #self.sp_detector_distance.setValue(f['z_m'].value) # don't know how to handle this...
+        self.sp_x_arr_size.setValue(nx)
+        self.sp_y_arr_size.setValue(ny)
+        self.sp_num_points.setValue(nz)
+        self.sp_x_step_size.setValue(metadata['dr_x'])
+        self.sp_y_step_size.setValue(metadata['dr_y'])
+        self.sp_x_scan_range.setValue(metadata['x_range'])
+        self.sp_y_scan_range.setValue(metadata['y_range'])
+        self.sp_angle.setValue(metadata['angle'])
+        if self.cb_scan_type.findText(metadata['scan_type']) == -1:
+            self.cb_scan_type.addItem(metadata['scan_type'])
+        self.cb_scan_type.setCurrentText(metadata['scan_type'])
+
+
     def setLoadButton(self):
         if self.cb_dataloader.currentText() == "Load from databroker":
             self.cb_detectorkind.setEnabled(True)
@@ -534,6 +531,28 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         if self.cb_dataloader.currentText() == "Load from h5":
             self.cb_detectorkind.setEnabled(False)
             self.cb_scan_type.setEnabled(False) # do we ever write scan type to h5???
+
+
+    #@profile
+    def _loadExpParamH5(self, scan_num:int):
+        # load the parameters from the h5 in the working directory
+        working_dir = str(self.le_working_directory.text()) # self.param.working_directory
+        with h5py.File(working_dir+'/scan_'+str(scan_num)+'.h5','r') as f:
+            # this code is not robust enough as certain keys may not be present...
+            print("h5 loaded, parsing experimental parameters...", end='')
+            self.sp_xray_energy.setValue(1.2398/f['lambda_nm'].value)
+            self.sp_detector_distance.setValue(f['z_m'].value)
+            nz, nx, ny = f['diffamp'].shape
+            self.sp_x_arr_size.setValue(nx)
+            self.sp_y_arr_size.setValue(ny)
+            self.sp_x_step_size.setValue(f['dr_x'].value)
+            self.sp_y_step_size.setValue(f['dr_y'].value)
+            self.sp_x_scan_range.setValue(f['x_range'].value)
+            self.sp_y_scan_range.setValue(f['y_range'].value)
+            self.sp_angle.setValue(f['angle'].value)
+            #self.cb_scan_type = ...
+            self.sp_num_points.setValue(nz)
+            # read the detector name and set it in GUI??
 
 
     def resetExperimentalParameters(self):
