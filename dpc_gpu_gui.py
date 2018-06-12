@@ -115,7 +115,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         # p.frame_num = int(self.sp_fram_num.value()) # do we need this one?
 
         # p.xray_energy = float(self.sp_xray_energy.value()) # do we need this one?
-        p.lambda_nm = 1.2398/self.sp_xran_energy.value()
+        p.lambda_nm = 1.2398/self.sp_xray_energy.value()
         p.z_m = float(self.sp_detector_distance.value())
         #p.x_arr_size = float(self.sp_x_arr_size.value()) # can get from diffamp
         p.dr_x = float(self.sp_x_step_size.value())
