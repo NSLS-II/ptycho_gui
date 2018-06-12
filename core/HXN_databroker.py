@@ -129,7 +129,11 @@ def load_metadata(db, scan_num:int, det_name:str):
     ccd_pixel_um = 55.
     metadata['ccd_pixel_um'] = ccd_pixel_um
 
-    # get diffamp (uncropped!)
+    # get diffamp dimensions (uncropped!)
+    nz, = df[det_name].shape
+    mds_table = df[det_name]
+    metadata['nz'] = nz
+    metadata['mds_table'] = mds_table
 
     # get x_pixel_m, y_pixel_m, x_depth_of_field_m, y_depth_of_field_m
     #x_pixel_m = lambda_nm * 1.e-9 * det_distance_m / (n * det_pixel_um * 1e-6)
