@@ -7,7 +7,10 @@ from ui import ui_dpc
 from core.dpc_param import Param
 from core.dpc_recon import DPCReconWorker, DPCReconFakeWorker
 from core.dpc_qt_utils import DPCStream
+from core.widgets.mplcanvas import load_image_pil
 
+# databroker related
+# TODO: a try-except for ImportError??
 from core.HXN_databroker import db1, db2, db_old, load_metadata
 from hxntools.scan_info import ScanInfo
 
@@ -52,8 +55,6 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
         self.btn_recon_start.clicked.connect(self.start)
         self.btn_recon_stop.clicked.connect(self.stop)
-
-        self.btn_view_frame.clicked.connect(self.viewDataFrame)
 
         self.btn_gpu_all = [self.btn_gpu_0, self.btn_gpu_1, self.btn_gpu_2, self.btn_gpu_3]
 
@@ -380,12 +381,18 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         '''
         Correspond to "View & set" in DPC GUI
         '''
-<<<<<<< HEAD
+        if _TEST:
+            image = load_image_pil('./test.tif')
+            self.roiWindow = RoiWindow(image=image)
+            self.roiWindow.roi_changed.connect(self._get_roi_slot)
+            self.roiWindow.show()
+            return
+
         if not self._loaded:
             print("[WARNING] Remember to click \"Load\" before proceeding!", file=sys.stderr) 
             return
 
-        plt.ion()
+        #plt.ion()
         #plt.figure()
         frame_num = self.sp_fram_num.value()
         img = None
@@ -406,12 +413,15 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             # don't expect this will happen but if so I'd like to know what
             self.exception_handler(ex)
         else:
-            plt.imshow(img)
-            plt.title("Frame #{}".format(frame_num))
-            plt.autoscale()
-            plt.show()
+            #plt.imshow(img)
+            #plt.title("Frame #{}".format(frame_num))
+            #plt.autoscale()
+            #plt.show()
+            self.roiWindow = RoiWindow(image=img)
+            #self.roiWindow.roi_changed.connect(self._get_roi_slot)
+            self.roiWindow.show()
 
-        plt.ioff()
+        #plt.ioff()
 
 
     #@profile
@@ -446,13 +456,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             #img = data[frame_num]
             print("done")
         return img
-=======
-        from core.widgets.mplcanvas import load_image_pil
-        image = load_image_pil('./test.tif')
-        self.roiWindow = RoiWindow(image=image)
-        self.roiWindow.roi_changed.connect(self._get_roi_slot)
-        self.roiWindow.show()
->>>>>>> c61a2b71f09730ebc66312794d936fb1d96f7372
+
 
     def _get_roi_slot(self, x0, y0, width, height):
         '''
@@ -466,6 +470,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         height: height
         '''
         print(x0, y0, width, height)
+
 
     def loadExpParam(self): 
         scan_num = int(self.le_scan_num.text())
