@@ -84,6 +84,9 @@ class MplCanvasTool(QtWidgets.QWidget):
         layout.addWidget(self.sp_w)
         layout.addWidget(QtWidgets.QLabel('h'))
         layout.addWidget(self.sp_h)
+
+        spacerItem = QtWidgets.QSpacerItem(0,0,QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Preferred)
+        layout.addItem(spacerItem)
         return layout
 
     def _update_roi(self, x0, y0, w, h):
