@@ -2,6 +2,7 @@ import sys
 from PyQt5 import QtWidgets
 from ui import ui_roi
 
+
 class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
 
     def __init__(self, parent=None, image=None):
@@ -15,10 +16,7 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
             self.canvas.draw_image(image)
 
         self.roi_changed = self.canvas.roi_changed
-
-
-
-
+        self.reset = self.canvas.reset
 
 
 if __name__ == '__main__':
