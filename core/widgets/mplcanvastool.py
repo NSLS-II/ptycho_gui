@@ -161,6 +161,8 @@ class MplCanvasTool(QtWidgets.QWidget):
             if vmax is None: vmax = np.max(image)
             self.image_handler = self.ax.imshow(image, cmap=cmap, vmin=vmin, vmax=vmax)
         else:
+            if vmin is None: vmin = np.min(image)
+            if vmax is None: vmax = np.max(image)
             self.image_handler.set_data(image)
         self.image = image
 

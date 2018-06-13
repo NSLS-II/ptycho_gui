@@ -3,7 +3,7 @@ from PyQt5 import QtWidgets
 from ui import ui_roi
 
 import numpy as np
-from core.widgets.imgTools import find_outlier_pixels, find_brightest_pixels
+from core.widgets.imgTools import find_outlier_pixels, find_brightest_pixels, rm_outlier_pixels
 
 BADPIX_BRIGHTEST = 0
 BADPIX_OUTLIERS = 1
@@ -27,17 +27,28 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         # connect
         self.btn_badpixels_brightest.clicked.connect(lambda: self.find_badpixels(BADPIX_BRIGHTEST))
         self.btn_badpixels_outliers.clicked.connect(lambda : self.find_badpixels(BADPIX_OUTLIERS))
+        self.btn_badpixels_correct.clicked.connect(self.correct_badpixels)
         self.ck_show_badpixels.clicked.connect(self.show_badpixels)
 
         # badpixels
         # : to compute indices w.r.t original image
         # rows = badpixels[0] + offset_y
         # cols = badpixels[1] + offset_x
+        self.badpixels_method = BADPIX_BRIGHTEST # method applied to get the badpixels
         self.badpixels = None # indice w.r.t roi
         self.offset_x = None  # offset x to convert indice w.r.t frame (original image)
         self.offset_y = None  # offset y to convert indice w.r.t frame (original image)
 
     def find_badpixels(self, op_name):
+        if op_name == BADPIX_BRIGHTEST:
+            self.btn_badpixels_brightest.setChecked(True)
+            self.btn_badpixels_outliers.setChecked(False)
+        else:
+            self.btn_badpixels_brightest.setChecked(False)
+            self.btn_badpixels_outliers.setChecked(True)
+        self.badpixels_method = op_name
+
+
         img = self.canvas.image
         if img is None:
             return
@@ -71,6 +82,21 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
 
         self.canvas.set_overlay(self.badpixels[0] + self.offset_y, self.badpixels[1] + self.offset_x)
         self.ck_show_badpixels.setChecked(True)
+        self.btn_badpixels_correct.setEnabled(True)
+
+    def correct_badpixels(self):
+        if self.badpixels is None: return
+
+        img = self.canvas.image
+        img = rm_outlier_pixels(img,
+                                self.badpixels[0] + self.offset_y,
+                                self.badpixels[1] + self.offset_x,
+                                self.badpixels_method==BADPIX_BRIGHTEST)
+
+        self.canvas.draw_image(img)
+        # update badpixels with corrected one????????
+        self.find_badpixels(self.badpixels_method)
+
 
     def show_badpixels(self, state):
         self.canvas.show_overlay(state)
