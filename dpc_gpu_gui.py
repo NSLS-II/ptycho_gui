@@ -56,7 +56,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.btn_recon_start.clicked.connect(self.start)
         self.btn_recon_stop.clicked.connect(self.stop)
 
+        self.btn_MPI_file.clicked.connect(self.setMPIfile)
         self.btn_gpu_all = [self.btn_gpu_0, self.btn_gpu_1, self.btn_gpu_2, self.btn_gpu_3]
+        for btn in self.btn_gpu_all:
+            btn.clicked.connect(self.updateMPIFlg)
 
         # init.
         if param is None:
@@ -375,6 +378,25 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.btn_gpu_1.setEnabled(flag)
         self.btn_gpu_2.setEnabled(flag)
         self.btn_gpu_3.setEnabled(flag)
+
+
+    def setMPIfile(self):
+        filename, _ = QFileDialog.getOpenFileName(self, 'Open MPI machine file')
+        if filename is not None and len(filename) > 0:
+            mpi_filename = os.path.basename(filename)
+            mpi_dir = filename[:(len(filename)-len(mpi_filename))]
+            #self.param.le_MPI_file_path(mpi_dir, mpi_filename)
+            self.param.mpi_file_path = filename
+            #print(filename)
+            self.le_MPI_file_path.setText(mpi_filename)
+            for btn in self.btn_gpu_all:
+                btn.setChecked(False)
+
+
+    def updateMPIFlg(self):
+        # called when any gpu button is clicked
+        self.param.mpi_file_path = ''
+        self.le_MPI_file_path.setText('')
 
 
     def viewDataFrame(self):
