@@ -40,7 +40,9 @@ class MplCanvasTool(QtWidgets.QWidget):
         self.setLayout(layout)
 
         self.image = None
+        self.overlay = None
         self.image_handler = None
+        self.overlay_handler = None
         self.reset()
 
     def _get_toolbar(self):
@@ -90,6 +92,9 @@ class MplCanvasTool(QtWidgets.QWidget):
         layout.addWidget(self.sp_w)
         layout.addWidget(QtWidgets.QLabel('h'))
         layout.addWidget(self.sp_h)
+
+        spacerItem = QtWidgets.QSpacerItem(0,0,QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Preferred)
+        layout.addItem(spacerItem)
         return layout
 
     def _update_roi(self, x0, y0, w, h):
@@ -149,6 +154,8 @@ class MplCanvasTool(QtWidgets.QWidget):
     def reset(self):
         self.image_handler = None
         self.image = None
+        self.overlay = None
+        self.overlay_handler = None
         self.ax.clear()
         self.ax.set_axis_off()
         self.canvas.draw()
@@ -159,11 +166,31 @@ class MplCanvasTool(QtWidgets.QWidget):
             if vmax is None: vmax = np.max(image)
             self.image_handler = self.ax.imshow(image, cmap=cmap, vmin=vmin, vmax=vmax)
         else:
+            if vmin is None: vmin = np.min(image)
+            if vmax is None: vmax = np.max(image)
             self.image_handler.set_data(image)
         self.image = image
 
         # if len(self._ids) == 0:
         #     self._ids = self._eventHandler.monitor_factory(self.ax, self.image_handler)
+        self.canvas.draw()
+
+    def set_overlay(self, rows, cols, highlight=(1,0,0,.5)):
+        if self.image is None: return
+        if len(rows) != len(cols): return
+
+        self.overlay = np.zeros(self.image.shape + (4,), dtype=np.float32)
+        self.overlay[rows, cols] = highlight
+        if self.overlay_handler is None:
+            self.overlay_handler = self.ax.imshow(self.overlay)
+        else:
+            self.overlay_handler.set_data(self.overlay)
+            self.overlay_handler.set_visible(True)
+        self.canvas.draw()
+
+    def show_overlay(self, state):
+        if self.overlay_handler is None: return
+        self.overlay_handler.set_visible(state)
         self.canvas.draw()
 
     def get_curr_roi(self):
