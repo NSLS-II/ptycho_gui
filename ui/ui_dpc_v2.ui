@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>813</width>
-    <height>861</height>
+    <width>758</width>
+    <height>871</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -100,6 +100,9 @@
              <property name="text">
               <string>detector</string>
              </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
             </widget>
            </item>
            <item>
@@ -143,6 +146,9 @@
              </property>
              <property name="text">
               <string>Frame #</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
              </property>
             </widget>
            </item>
@@ -193,7 +199,7 @@
       <property name="alignment">
        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
       </property>
-      <layout class="QHBoxLayout" name="horizontalLayout_5">
+      <layout class="QHBoxLayout" name="horizontalLayout_10">
        <item>
         <layout class="QGridLayout" name="gridLayout_9">
          <item row="3" column="0">
@@ -453,609 +459,593 @@
        <attribute name="title">
         <string>Reconstruction parameters</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_4">
+       <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout">
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_4">
-            <item>
-             <widget class="QLabel" name="label_3">
-              <property name="text">
-               <string>Num. of iteration</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSpinBox" name="sp_n_iterations">
-              <property name="minimum">
-               <number>1</number>
-              </property>
-              <property name="maximum">
-               <number>999999</number>
-              </property>
-              <property name="value">
-               <number>50</number>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_8">
-              <property name="text">
-               <string>Algorithm</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="cb_alg_flag">
-              <item>
-               <property name="text">
-                <string>DM</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>ER</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>ML_G</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>ML_P</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="cb_alg2_flag">
-              <item>
-               <property name="text">
-                <string>DM</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>ER</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>ML_G</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>ML_P</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item>
-             <widget class="QDoubleSpinBox" name="sp_alg_percentage">
-              <property name="value">
-               <double>0.800000000000000</double>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Num. of iteration</string>
+            </property>
+           </widget>
           </item>
           <item>
-           <layout class="QGridLayout" name="gridLayout">
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_27">
-              <property name="text">
-               <string>Save filename</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QLineEdit" name="le_sign">
-              <property name="text">
-               <string>t1</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QSpinBox" name="sp_n_iterations">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>999999</number>
+            </property>
+            <property name="value">
+             <number>50</number>
+            </property>
+           </widget>
           </item>
           <item>
-           <layout class="QGridLayout" name="gridLayout_10">
-            <item row="0" column="3">
-             <widget class="QLineEdit" name="le_prb_path">
-              <property name="readOnly">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2">
-             <widget class="QPushButton" name="btn_load_object">
-              <property name="text">
-               <string>Load object</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="2">
-             <widget class="QPushButton" name="btn_load_probe">
-              <property name="text">
-               <string>Load probe</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_9">
-              <property name="text">
-               <string>Probe initialization:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="3">
-             <widget class="QLineEdit" name="le_obj_path">
-              <property name="readOnly">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QCheckBox" name="ck_init_prb_flag">
-              <property name="layoutDirection">
-               <enum>Qt::RightToLeft</enum>
-              </property>
-              <property name="text">
-               <string>Estimate from data</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_11">
-              <property name="text">
-               <string>Object initialization:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QCheckBox" name="ck_init_obj_flag">
-              <property name="layoutDirection">
-               <enum>Qt::RightToLeft</enum>
-              </property>
-              <property name="text">
-               <string>Random start</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QLabel" name="label_8">
+            <property name="text">
+             <string>Algorithm</string>
+            </property>
+           </widget>
           </item>
           <item>
-           <layout class="QGridLayout" name="gridLayout_11">
-            <item row="1" column="0">
-             <widget class="QCheckBox" name="ck_multislice_flag">
-              <property name="layoutDirection">
-               <enum>Qt::RightToLeft</enum>
-              </property>
-              <property name="text">
-               <string>Multi-slice</string>
-              </property>
-             </widget>
+           <widget class="QComboBox" name="cb_alg_flag">
+            <item>
+             <property name="text">
+              <string>DM</string>
+             </property>
             </item>
-            <item row="0" column="4">
-             <widget class="QSpinBox" name="sp_prb_mode_num">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="value">
-               <number>5</number>
-              </property>
-             </widget>
+            <item>
+             <property name="text">
+              <string>ER</string>
+             </property>
             </item>
-            <item row="0" column="2" colspan="2">
-             <widget class="QLabel" name="label_22">
-              <property name="text">
-               <string>Num. of probe mode</string>
-              </property>
-             </widget>
+            <item>
+             <property name="text">
+              <string>ML_G</string>
+             </property>
             </item>
-            <item row="0" column="8">
-             <widget class="QSpinBox" name="sp_obj_mode_num">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="value">
-               <number>1</number>
-              </property>
-             </widget>
+            <item>
+             <property name="text">
+              <string>ML_P</string>
+             </property>
             </item>
-            <item row="1" column="8">
-             <widget class="QDoubleSpinBox" name="sp_slice_spacing_m">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="value">
-               <double>5.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="6" colspan="2">
-             <widget class="QLabel" name="label_23">
-              <property name="text">
-               <string>Num. of object mode</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="6" colspan="2">
-             <widget class="QLabel" name="label_48">
-              <property name="text">
-               <string>Slice spacing (um)</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="0">
-             <widget class="QCheckBox" name="ck_mode_flag">
-              <property name="layoutDirection">
-               <enum>Qt::RightToLeft</enum>
-              </property>
-              <property name="text">
-               <string>Modes</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="4">
-             <widget class="QSpinBox" name="sp_slice_num">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="value">
-               <number>2</number>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2" colspan="2">
-             <widget class="QLabel" name="label_47">
-              <property name="text">
-               <string>Num. of slices</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <spacer name="horizontalSpacer_8">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>10</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item row="0" column="5">
-             <spacer name="horizontalSpacer_9">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
+           </widget>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <widget class="QComboBox" name="cb_alg2_flag">
             <item>
-             <widget class="QLabel" name="label_15">
-              <property name="text">
-               <string>Amplitude range:</string>
-              </property>
-             </widget>
+             <property name="text">
+              <string>DM</string>
+             </property>
             </item>
             <item>
-             <widget class="QLabel" name="label_32">
-              <property name="text">
-               <string>min</string>
-              </property>
-             </widget>
+             <property name="text">
+              <string>ER</string>
+             </property>
             </item>
             <item>
-             <widget class="QDoubleSpinBox" name="sp_pha_min">
-              <property name="prefix">
-               <string/>
-              </property>
-              <property name="decimals">
-               <number>3</number>
-              </property>
-              <property name="minimum">
-               <double>-99.000000000000000</double>
-              </property>
-              <property name="value">
-               <double>-0.600000000000000</double>
-              </property>
-             </widget>
+             <property name="text">
+              <string>ML_G</string>
+             </property>
             </item>
             <item>
-             <widget class="QLabel" name="label_35">
-              <property name="text">
-               <string>max</string>
-              </property>
-             </widget>
+             <property name="text">
+              <string>ML_P</string>
+             </property>
             </item>
-            <item>
-             <widget class="QDoubleSpinBox" name="sp_amp_min">
-              <property name="prefix">
-               <string/>
-              </property>
-              <property name="decimals">
-               <number>3</number>
-              </property>
-              <property name="value">
-               <double>0.850000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_16">
-              <property name="text">
-               <string>Phase range:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_34">
-              <property name="text">
-               <string>min</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QDoubleSpinBox" name="sp_pha_max">
-              <property name="prefix">
-               <string/>
-              </property>
-              <property name="decimals">
-               <number>3</number>
-              </property>
-              <property name="value">
-               <double>0.010000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_33">
-              <property name="text">
-               <string>max</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QDoubleSpinBox" name="sp_amp_max">
-              <property name="prefix">
-               <string/>
-              </property>
-              <property name="decimals">
-               <number>3</number>
-              </property>
-              <property name="minimum">
-               <double>-3.000000000000000</double>
-              </property>
-              <property name="value">
-               <double>1.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           </widget>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_8">
-            <item>
-             <widget class="QPushButton" name="btn_MPI_file">
-              <property name="text">
-               <string>MPI</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="le_MPI_file_path"/>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_6">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>10</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="ck_gpu_flag">
-              <property name="layoutDirection">
-               <enum>Qt::RightToLeft</enum>
-              </property>
-              <property name="text">
-               <string>GPU:</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btn_gpu_0">
-              <property name="maximumSize">
-               <size>
-                <width>25</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">:checked {
+           <widget class="QDoubleSpinBox" name="sp_alg_percentage">
+            <property name="value">
+             <double>0.800000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_27">
+            <property name="text">
+             <string>Save filename</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="le_sign">
+            <property name="text">
+             <string>t1</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QGridLayout" name="gridLayout_10">
+          <item row="0" column="3">
+           <widget class="QLineEdit" name="le_prb_path">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QPushButton" name="btn_load_object">
+            <property name="text">
+             <string>Load object</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QPushButton" name="btn_load_probe">
+            <property name="text">
+             <string>Load probe</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_9">
+            <property name="text">
+             <string>Probe initialization:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QLineEdit" name="le_obj_path">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QCheckBox" name="ck_init_prb_flag">
+            <property name="layoutDirection">
+             <enum>Qt::RightToLeft</enum>
+            </property>
+            <property name="text">
+             <string>Estimate from data</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_11">
+            <property name="text">
+             <string>Object initialization:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QCheckBox" name="ck_init_obj_flag">
+            <property name="layoutDirection">
+             <enum>Qt::RightToLeft</enum>
+            </property>
+            <property name="text">
+             <string>Random start</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QGridLayout" name="gridLayout_11">
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="ck_multislice_flag">
+            <property name="layoutDirection">
+             <enum>Qt::RightToLeft</enum>
+            </property>
+            <property name="text">
+             <string>Multi-slice</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="4">
+           <widget class="QSpinBox" name="sp_prb_mode_num">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="value">
+             <number>5</number>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2" colspan="2">
+           <widget class="QLabel" name="label_22">
+            <property name="text">
+             <string>Num. of probe mode</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="8">
+           <widget class="QSpinBox" name="sp_obj_mode_num">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="value">
+             <number>1</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="8">
+           <widget class="QDoubleSpinBox" name="sp_slice_spacing_m">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="value">
+             <double>5.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="6" colspan="2">
+           <widget class="QLabel" name="label_23">
+            <property name="text">
+             <string>Num. of object mode</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="6" colspan="2">
+           <widget class="QLabel" name="label_48">
+            <property name="text">
+             <string>Slice spacing (um)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="ck_mode_flag">
+            <property name="layoutDirection">
+             <enum>Qt::RightToLeft</enum>
+            </property>
+            <property name="text">
+             <string>Modes</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="4">
+           <widget class="QSpinBox" name="sp_slice_num">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="value">
+             <number>2</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2" colspan="2">
+           <widget class="QLabel" name="label_47">
+            <property name="text">
+             <string>Num. of slices</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <spacer name="horizontalSpacer_8">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>10</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="0" column="5">
+           <spacer name="horizontalSpacer_9">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QLabel" name="label_15">
+            <property name="text">
+             <string>Amplitude range:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_32">
+            <property name="text">
+             <string>min</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="sp_pha_min">
+            <property name="prefix">
+             <string/>
+            </property>
+            <property name="decimals">
+             <number>3</number>
+            </property>
+            <property name="minimum">
+             <double>-99.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>-0.600000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_35">
+            <property name="text">
+             <string>max</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="sp_amp_min">
+            <property name="prefix">
+             <string/>
+            </property>
+            <property name="decimals">
+             <number>3</number>
+            </property>
+            <property name="value">
+             <double>0.850000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_16">
+            <property name="text">
+             <string>Phase range:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_34">
+            <property name="text">
+             <string>min</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="sp_pha_max">
+            <property name="prefix">
+             <string/>
+            </property>
+            <property name="decimals">
+             <number>3</number>
+            </property>
+            <property name="value">
+             <double>0.010000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_33">
+            <property name="text">
+             <string>max</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="sp_amp_max">
+            <property name="prefix">
+             <string/>
+            </property>
+            <property name="decimals">
+             <number>3</number>
+            </property>
+            <property name="minimum">
+             <double>-3.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>1.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+           <widget class="QCheckBox" name="ck_gpu_flag">
+            <property name="layoutDirection">
+             <enum>Qt::RightToLeft</enum>
+            </property>
+            <property name="text">
+             <string>GPU:</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_gpu_0">
+            <property name="maximumSize">
+             <size>
+              <width>25</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">:checked {
 	background-color: rgba(255, 170, 0, 150);
 }</string>
-              </property>
-              <property name="text">
-               <string>0</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btn_gpu_1">
-              <property name="maximumSize">
-               <size>
-                <width>25</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">:checked {
+            </property>
+            <property name="text">
+             <string>0</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_gpu_1">
+            <property name="maximumSize">
+             <size>
+              <width>25</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">:checked {
 	background-color: rgba(255, 170, 0, 150);
 }</string>
-              </property>
-              <property name="text">
-               <string>1</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btn_gpu_2">
-              <property name="maximumSize">
-               <size>
-                <width>25</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">:checked {
+            </property>
+            <property name="text">
+             <string>1</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_gpu_2">
+            <property name="maximumSize">
+             <size>
+              <width>25</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">:checked {
 	background-color: rgba(255, 170, 0, 150);
 }</string>
-              </property>
-              <property name="text">
-               <string>2</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-              <property name="checked">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btn_gpu_3">
-              <property name="maximumSize">
-               <size>
-                <width>25</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">:checked {
+            </property>
+            <property name="text">
+             <string>2</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_gpu_3">
+            <property name="maximumSize">
+             <size>
+              <width>25</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">:checked {
 	background-color: rgba(255, 170, 0, 150);
 }</string>
-              </property>
-              <property name="text">
-               <string>3</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-              <property name="checked">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_7">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btn_recon_start">
-              <property name="maximumSize">
-               <size>
-                <width>80</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>start</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btn_recon_stop">
-              <property name="maximumSize">
-               <size>
-                <width>80</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>stop</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
+            </property>
+            <property name="text">
+             <string>3</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_51">
+            <property name="text">
+             <string>or</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_MPI_file">
+            <property name="text">
+             <string>MPI machine file</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="le_MPI_file_path"/>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_7">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>18</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_recon_start">
+            <property name="maximumSize">
+             <size>
+              <width>80</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>start</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_recon_stop">
+            <property name="maximumSize">
+             <size>
+              <width>80</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>stop</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
@@ -1065,122 +1055,9 @@
        <attribute name="title">
         <string>Advanced options</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_3">
+       <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
          <layout class="QGridLayout" name="gridLayout_3">
-          <item row="0" column="8">
-           <widget class="QSpinBox" name="sp_start_update_probe"/>
-          </item>
-          <item row="0" column="4" colspan="2">
-           <widget class="QDoubleSpinBox" name="sp_ccd_pixel_um">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="decimals">
-             <number>3</number>
-            </property>
-            <property name="value">
-             <double>55.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="3" colspan="2">
-           <widget class="QLabel" name="label_50">
-            <property name="text">
-             <string>y direction</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="5">
-           <widget class="QDoubleSpinBox" name="sp_start_ave">
-            <property name="decimals">
-             <number>1</number>
-            </property>
-            <property name="value">
-             <double>0.800000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0" colspan="4">
-           <widget class="QLabel" name="label_7">
-            <property name="text">
-             <string>Detector pixel size (um)</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="7">
-           <widget class="QLabel" name="label_28">
-            <property name="text">
-             <string>Update probe</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="9">
-           <widget class="QLabel" name="label_6">
-            <property name="text">
-             <string>nth</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="10">
-           <widget class="QSpinBox" name="sp_nth">
-            <property name="value">
-             <number>5</number>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="10">
-           <widget class="QComboBox" name="cb_ml_mode">
-            <item>
-             <property name="text">
-              <string>Poisson</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Gaussian</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="1" column="10">
-           <widget class="QSpinBox" name="sp_dm_version">
-            <property name="value">
-             <number>1</number>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="4" colspan="2">
-           <widget class="QDoubleSpinBox" name="sp_distance">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="decimals">
-             <number>3</number>
-            </property>
-            <property name="minimum">
-             <double>-999999.998999999952503</double>
-            </property>
-            <property name="maximum">
-             <double>999999.998999999952503</double>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="8">
-           <widget class="QSpinBox" name="sp_start_update_object"/>
-          </item>
           <item row="2" column="2">
            <widget class="QDoubleSpinBox" name="sp_x_direction">
             <property name="decimals">
@@ -1200,31 +1077,30 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="7">
-           <widget class="QLabel" name="label_29">
-            <property name="text">
-             <string>Update object</string>
+          <item row="0" column="7">
+           <widget class="QSpinBox" name="sp_start_update_probe"/>
+          </item>
+          <item row="2" column="9">
+           <widget class="QSpinBox" name="sp_nth">
+            <property name="value">
+             <number>5</number>
             </property>
            </widget>
           </item>
-          <item row="1" column="0" colspan="4">
-           <widget class="QLabel" name="label_4">
-            <property name="text">
-             <string>probe propagation distance (um)</string>
+          <item row="3" column="9">
+           <widget class="QSpinBox" name="sp_processes"/>
+          </item>
+          <item row="3" column="7">
+           <widget class="QDoubleSpinBox" name="sp_start_ave">
+            <property name="decimals">
+             <number>1</number>
+            </property>
+            <property name="value">
+             <double>0.800000000000000</double>
             </property>
            </widget>
           </item>
-          <item row="3" column="0" colspan="3">
-           <widget class="QCheckBox" name="ck_angle_correction_flag">
-            <property name="layoutDirection">
-             <enum>Qt::RightToLeft</enum>
-            </property>
-            <property name="text">
-             <string>angular correction</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="3" colspan="2">
+          <item row="3" column="6">
            <widget class="QLabel" name="label_5">
             <property name="text">
              <string>start ave</string>
@@ -1234,10 +1110,40 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0" colspan="2">
-           <widget class="QLabel" name="label_49">
+          <item row="2" column="6" colspan="2">
+           <widget class="QCheckBox" name="ck_cal_scal_pattern_flag">
+            <property name="layoutDirection">
+             <enum>Qt::RightToLeft</enum>
+            </property>
             <property name="text">
-             <string>x direction</string>
+             <string>calculate scan pattern</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="5">
+           <widget class="QDoubleSpinBox" name="sp_angle">
+            <property name="minimum">
+             <double>-181.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>181.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="8">
+           <widget class="QLabel" name="label_10">
+            <property name="text">
+             <string>ML</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="8">
+           <widget class="QLabel" name="label_30">
+            <property name="text">
+             <string>DM ver.</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -1263,60 +1169,150 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="9">
-           <widget class="QLabel" name="label_30">
+          <item row="2" column="0" colspan="2">
+           <widget class="QLabel" name="label_49">
             <property name="text">
-             <string>DM ver.</string>
+             <string>x direction</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
             </property>
            </widget>
           </item>
-          <item row="0" column="9">
-           <widget class="QLabel" name="label_10">
-            <property name="text">
-             <string>ML</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="6">
-           <spacer name="horizontalSpacer_3">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>15</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="2" column="7" colspan="2">
-           <widget class="QCheckBox" name="ck_cal_scal_pattern_flag">
+          <item row="3" column="0" colspan="3">
+           <widget class="QCheckBox" name="ck_angle_correction_flag">
             <property name="layoutDirection">
              <enum>Qt::RightToLeft</enum>
             </property>
             <property name="text">
-             <string>cal. scan pattern</string>
+             <string>angular correction</string>
             </property>
            </widget>
           </item>
-          <item row="3" column="7">
-           <widget class="QLabel" name="label_2">
+          <item row="1" column="6">
+           <widget class="QLabel" name="label_29">
             <property name="text">
-             <string>angle</string>
+             <string>Update object</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="4">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>probe propagation distance (um)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="4" colspan="2">
+           <widget class="QDoubleSpinBox" name="sp_distance">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="decimals">
+             <number>3</number>
+            </property>
+            <property name="minimum">
+             <double>-999999.998999999952503</double>
+            </property>
+            <property name="maximum">
+             <double>999999.998999999952503</double>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="9">
+           <widget class="QComboBox" name="cb_ml_mode">
+            <item>
+             <property name="text">
+              <string>Poisson</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Gaussian</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="1" column="7">
+           <widget class="QSpinBox" name="sp_start_update_object"/>
+          </item>
+          <item row="1" column="9">
+           <widget class="QSpinBox" name="sp_dm_version">
+            <property name="value">
+             <number>1</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="8">
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>nth</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="6">
+           <widget class="QLabel" name="label_28">
+            <property name="text">
+             <string>Update probe</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="4">
+           <widget class="QLabel" name="label_7">
+            <property name="text">
+             <string>Detector pixel size (um)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="3" colspan="2">
+           <widget class="QLabel" name="label_50">
+            <property name="text">
+             <string>y direction</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="4" colspan="2">
+           <widget class="QDoubleSpinBox" name="sp_ccd_pixel_um">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="decimals">
+             <number>3</number>
+            </property>
+            <property name="value">
+             <double>55.000000000000000</double>
             </property>
            </widget>
           </item>
           <item row="3" column="8">
-           <widget class="QDoubleSpinBox" name="doubleSpinBox">
-            <property name="minimum">
-             <double>-181.000000000000000</double>
+           <widget class="QLabel" name="label_31">
+            <property name="text">
+             <string>Processes</string>
             </property>
-            <property name="maximum">
-             <double>181.000000000000000</double>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="3" colspan="2">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>angle</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
@@ -1347,6 +1343,9 @@
           </item>
           <item row="0" column="2">
            <widget class="QDoubleSpinBox" name="sp_bragg_theta">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="decimals">
              <number>3</number>
             </property>
@@ -1357,6 +1356,9 @@
           </item>
           <item row="0" column="8">
            <widget class="QDoubleSpinBox" name="sp_bragg_delta">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="decimals">
              <number>3</number>
             </property>
@@ -1367,6 +1369,9 @@
           </item>
           <item row="1" column="5">
            <widget class="QComboBox" name="cb_pc_alg">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <item>
              <property name="text">
               <string>lucy</string>
@@ -1381,6 +1386,9 @@
           </item>
           <item row="0" column="5">
            <widget class="QDoubleSpinBox" name="sp_bragg_gamma">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="decimals">
              <number>3</number>
             </property>
@@ -1391,6 +1399,9 @@
           </item>
           <item row="1" column="2">
            <widget class="QDoubleSpinBox" name="sp_pc_sigma">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="decimals">
              <number>3</number>
             </property>
@@ -1401,6 +1412,9 @@
           </item>
           <item row="2" column="5">
            <widget class="QSpinBox" name="sp_position_correction_step">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="value">
              <number>10</number>
             </property>
@@ -1443,6 +1457,9 @@
           </item>
           <item row="2" column="2">
            <widget class="QSpinBox" name="sp_position_correction_start">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="value">
              <number>50</number>
             </property>
@@ -1477,6 +1494,9 @@
           </item>
           <item row="1" column="8">
            <widget class="QSpinBox" name="sp_pc_kernel_n">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="value">
              <number>32</number>
             </property>
@@ -1505,87 +1525,88 @@
          </layout>
         </item>
         <item>
-         <layout class="QGridLayout" name="gridLayout_16">
+         <layout class="QGridLayout" name="gridLayout_2">
           <item row="0" column="0">
-           <layout class="QGridLayout" name="gridLayout_8">
-            <item row="1" column="3">
-             <widget class="QLabel" name="label_31">
-              <property name="text">
-               <string>Processes</string>
-              </property>
-             </widget>
+           <layout class="QVBoxLayout" name="verticalLayout_3">
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_6">
+              <item>
+               <widget class="QLabel" name="label_20">
+                <property name="text">
+                 <string>alpha (1e-8)</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="sp_alpha">
+                <property name="decimals">
+                 <number>2</number>
+                </property>
+                <property name="maximum">
+                 <double>10.000000000000000</double>
+                </property>
+                <property name="value">
+                 <double>1.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_21">
+                <property name="text">
+                 <string>beta</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="sp_beta">
+                <property name="decimals">
+                 <number>2</number>
+                </property>
+                <property name="maximum">
+                 <double>96.989999999999995</double>
+                </property>
+                <property name="value">
+                 <double>0.900000000000000</double>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
-            <item row="1" column="2">
-             <widget class="QSpinBox" name="sp_display_interval">
-              <property name="minimum">
-               <number>1</number>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="4">
-             <widget class="QSpinBox" name="sp_processes"/>
-            </item>
-            <item row="0" column="4">
-             <widget class="QDoubleSpinBox" name="sp_beta">
-              <property name="decimals">
-               <number>2</number>
-              </property>
-              <property name="maximum">
-               <double>96.989999999999995</double>
-              </property>
-              <property name="value">
-               <double>0.900000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0" colspan="2">
-             <widget class="QLabel" name="label_55">
-              <property name="text">
-               <string>Display interval</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="3">
-             <widget class="QLabel" name="label_21">
-              <property name="text">
-               <string>beta</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="2">
-             <widget class="QDoubleSpinBox" name="sp_alpha">
-              <property name="decimals">
-               <number>2</number>
-              </property>
-              <property name="maximum">
-               <double>10.000000000000000</double>
-              </property>
-              <property name="value">
-               <double>1.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="0" colspan="2">
-             <widget class="QLabel" name="label_20">
-              <property name="text">
-               <string>alpha (1e-8)</string>
-              </property>
-             </widget>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_7">
+              <item>
+               <widget class="QLabel" name="label_55">
+                <property name="text">
+                 <string>Display interval</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSpinBox" name="sp_display_interval">
+                <property name="minimum">
+                 <number>1</number>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="ck_preview_flag">
+                <property name="layoutDirection">
+                 <enum>Qt::RightToLeft</enum>
+                </property>
+                <property name="text">
+                 <string>Live preview</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
            </layout>
           </item>
           <item row="0" column="1">
            <layout class="QGridLayout" name="gridLayout_13">
-            <item row="0" column="0">
-             <widget class="QCheckBox" name="ck_init_obj_dpc_flag">
-              <property name="layoutDirection">
-               <enum>Qt::RightToLeft</enum>
-              </property>
-              <property name="text">
-               <string>init. object (dpc)</string>
-              </property>
-             </widget>
-            </item>
             <item row="0" column="1">
              <widget class="QCheckBox" name="ck_mask_prb_flag">
               <property name="layoutDirection">
@@ -1609,6 +1630,16 @@
               </property>
              </widget>
             </item>
+            <item row="0" column="0">
+             <widget class="QCheckBox" name="ck_init_obj_dpc_flag">
+              <property name="layoutDirection">
+               <enum>Qt::RightToLeft</enum>
+              </property>
+              <property name="text">
+               <string>init. object (dpc)</string>
+              </property>
+             </widget>
+            </item>
             <item row="1" column="1">
              <widget class="QCheckBox" name="ck_weak_obj_flag">
               <property name="layoutDirection">
@@ -1623,19 +1654,6 @@
           </item>
           <item row="0" column="2">
            <layout class="QGridLayout" name="gridLayout_14">
-            <item row="0" column="0">
-             <widget class="QCheckBox" name="ck_mesh_flag">
-              <property name="layoutDirection">
-               <enum>Qt::RightToLeft</enum>
-              </property>
-              <property name="text">
-               <string>mesh</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
             <item row="1" column="0">
              <widget class="QCheckBox" name="ck_ms_pie_flag">
               <property name="layoutDirection">
@@ -1656,11 +1674,122 @@
               </property>
              </widget>
             </item>
+            <item row="0" column="0">
+             <widget class="QCheckBox" name="ck_mesh_flag">
+              <property name="layoutDirection">
+               <enum>Qt::RightToLeft</enum>
+              </property>
+              <property name="text">
+               <string>mesh</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
          </layout>
         </item>
        </layout>
+      </widget>
+      <widget class="QWidget" name="tab_3">
+       <attribute name="title">
+        <string>Batch mode</string>
+       </attribute>
+       <widget class="QPushButton" name="btn_recon_batch_start">
+        <property name="geometry">
+         <rect>
+          <x>560</x>
+          <y>280</y>
+          <width>70</width>
+          <height>32</height>
+         </rect>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>80</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>start</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_recon_batch_stop">
+        <property name="geometry">
+         <rect>
+          <x>630</x>
+          <y>280</y>
+          <width>69</width>
+          <height>32</height>
+         </rect>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>80</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>stop</string>
+        </property>
+       </widget>
+       <widget class="QWidget" name="layoutWidget">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>20</y>
+          <width>491</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <item>
+          <widget class="QLabel" name="label_52">
+           <property name="text">
+            <string>Scan numbers &amp; ranges</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="le_batch_items">
+           <property name="toolTip">
+            <string>Set scan numbers and ranges. Example: 2, 3-5, 7-15, 23, 30-55</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="layoutWidget">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>50</y>
+          <width>244</width>
+          <height>26</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_9">
+         <item>
+          <widget class="QLabel" name="label_53">
+           <property name="text">
+            <string>Process every n-th scan</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="sp_batch_step">
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>1000000</number>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </widget>
      </widget>
     </item>

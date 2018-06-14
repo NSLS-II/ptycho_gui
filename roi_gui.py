@@ -8,6 +8,7 @@ from core.widgets.imgTools import find_outlier_pixels, find_brightest_pixels, rm
 BADPIX_BRIGHTEST = 0
 BADPIX_OUTLIERS = 1
 
+
 class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
 
     def __init__(self, parent=None, image=None):
@@ -15,14 +16,15 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         self.setupUi(self)
         QtWidgets.QApplication.setStyle('Plastique')
 
-        from core.widgets.mplcanvas import load_image_pil
-        img = load_image_pil('./test.tif')
-        self.canvas.draw_image(img)
+        #from core.widgets.mplcanvas import load_image_pil
+        #img = load_image_pil('./test.tif')
+        #self.canvas.draw_image(img)
         if image is not None:
             self.canvas.draw_image(image)
 
         # signal
         self.roi_changed = self.canvas.roi_changed
+        self.reset = self.canvas.reset
 
         # connect
         self.btn_badpixels_brightest.clicked.connect(lambda: self.find_badpixels(BADPIX_BRIGHTEST))
@@ -100,8 +102,6 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
 
     def show_badpixels(self, state):
         self.canvas.show_overlay(state)
-
-
 
 
 if __name__ == '__main__':

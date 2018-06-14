@@ -76,6 +76,22 @@ class DPCReconWorker(QtCore.QThread):
             num_processes = str(1)
         mpirun_command = ["mpirun", "-n", num_processes, "python", "-W", "ignore", "./core/ptycho/recon_ptycho_gui.py"]
 
+        # use MPI machine file if available, assuming each line of which is: 
+        # ip_address slots=n max-slots=n
+        if param.mpi_file_path != '':
+            with open(param.mpi_file_path, 'r') as f:
+                node_count = 0
+                while True:
+                    line = f.readline()
+                    if line == '':
+                        break
+                    line = line.split()
+                    node_count += int(line[1].split('=')[-1])
+                mpirun_command[2] = str(node_count)
+                mpirun_command.insert(3, "-machinefile")
+                mpirun_command.insert(4, param.mpi_file_path)
+                #param.gpus = range(node_count)
+
         try:
             return_value = None
             with subprocess.Popen(mpirun_command,
