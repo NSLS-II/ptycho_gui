@@ -1590,6 +1590,9 @@
               <property name="text">
                <string>Live preview</string>
               </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
              </widget>
             </item>
            </layout>
@@ -1744,7 +1747,11 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="le_batch_items"/>
+        <widget class="QLineEdit" name="le_batch_items">
+         <property name="toolTip">
+          <string>Set scan numbers and ranges. Example: 2, 3-5, 7-15, 23, 30-55</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -1766,7 +1773,14 @@
         </widget>
        </item>
        <item>
-        <widget class="QSpinBox" name="sp_batch_step"/>
+        <widget class="QSpinBox" name="sp_batch_step">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>1000000</number>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>

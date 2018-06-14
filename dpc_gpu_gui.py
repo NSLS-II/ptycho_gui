@@ -55,6 +55,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
         self.btn_recon_start.clicked.connect(self.start)
         self.btn_recon_stop.clicked.connect(self.stop)
+        self.btn_recon_batch_start.clicked.connect(self.batch_start)
+        self.btn_recon_batch_stop.clicked.connect(self.batch_stop)
 
         self.btn_MPI_file.clicked.connect(self.setMPIfile)
         self.btn_gpu_all = [self.btn_gpu_0, self.btn_gpu_1, self.btn_gpu_2, self.btn_gpu_3]
@@ -69,9 +71,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self._prb = None
         self._obj = None
         self._dpc_gpu_thread = None
-        self._db = None          # hold the Broker instance that contains the info of the given scan id
-        self._mds_table = None   # hold a Pandas.dataframe instance
-        self._loaded = False     # whether the user has loaded metadata or not (from either databroker or h5)
+        self._db = None             # hold the Broker instance that contains the info of the given scan id
+        self._mds_table = None      # hold a Pandas.dataframe instance
+        self._loaded = False        # whether the user has loaded metadata or not (from either databroker or h5)
+        self._scan_numbers = None   # a list of scan numbers for batch mode
 
         self.reconStepWindow = None
 
@@ -104,6 +107,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
     def resetButtons(self):
         self.btn_recon_start.setEnabled(True)
         self.btn_recon_stop.setEnabled(False)
+        self.btn_recon_batch_start.setEnabled(True)
+        self.btn_recon_batch_stop.setEnabled(False)
         self.recon_bar.setValue(0)
         #plt.ioff()
         plt.close('all')
@@ -256,11 +261,12 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             self.recon_bar.setMaximum(self.param.n_iterations)
 
             # init reconStepWindow
-            if self.reconStepWindow is None:
-                self.reconStepWindow = ReconStepWindow()
-            self.reconStepWindow.reset_window(iterations=self.param.n_iterations,
-                                              slider_interval=self.param.display_interval)
-            self.reconStepWindow.show()
+            if self.ck_preview_flag.isChecked():
+                if self.reconStepWindow is None:
+                    self.reconStepWindow = ReconStepWindow()
+                self.reconStepWindow.reset_window(iterations=self.param.n_iterations,
+                                                  slider_interval=self.param.display_interval)
+                self.reconStepWindow.show()
 
             if not _TEST:
                 thread = self._dpc_gpu_thread = DPCReconWorker(self.param)
@@ -282,7 +288,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             self._dpc_gpu_thread.quit() # then quit QThread gracefully
             self._dpc_gpu_thread = None
             self.resetButtons()
-            self.reconStepWindow.reset_window()
+            if self.reconStepWindow is not None:
+                self.reconStepWindow.reset_window()
 
 
     def update_recon_step(self, it, data=None):
@@ -397,6 +404,80 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         # called when any gpu button is clicked
         self.param.mpi_file_path = ''
         self.le_MPI_file_path.setText('')
+
+
+    # adapted from dpc_batch.py
+    def parse_scan_range(self):
+        '''
+        Note the range is inclusive on both ends. 
+        Ex: 1238 - 1242 with step size 2 --> [1238, 1240, 1242]
+        '''
+        scan_range = []
+        scan_numbers = []
+        every_nth_scan = self.sp_batch_step.value()
+
+        # first parse items and separate them into two catogories
+        slist = self.le_batch_items.text().split(',')
+        for item in slist:
+            if '-' in item:
+                sublist = item.split('-')
+                scan_range.append((int(sublist[0].strip()), int(sublist[1].strip())))
+            else:
+                scan_numbers.append(int(item.strip()))
+    
+        # next generate all legit items from the chosen ranges and make a sorted item list
+        for item in scan_range:
+            scan_numbers = scan_numbers + list(range(item[0], item[1]+1, every_nth_scan))
+        scan_numbers.sort(reverse=True)
+        print(scan_numbers)
+
+        return scan_numbers
+
+
+    def batch_start(self):
+        '''
+        Currently only support load from h5. 
+        '''
+        if self.cb_dataloader.currentText() == "Load from databroker":
+            print("[WARNING] Batch mode with databroker is not yet supported. Abort.", file=sys.stderr)
+            return
+
+        self._scan_numbers = self.parse_scan_range()
+        # TODO: is there a way to lock all widgets to prevent accidental parameter changes in the middle?
+
+        # fire up
+        self._batch_manager() # serve as linked list's head
+        self.btn_recon_batch_start.setEnabled(False)
+        self.btn_recon_batch_stop.setEnabled(True)
+
+
+    def batch_stop(self):
+        '''
+        Brute-force abortion of the entire batch. No resumption is possible.
+        '''
+        self._dpc_gpu_thread.finished.disconnect(self._batch_manager)
+        self._scan_numbers = None
+        self.stop()
+
+
+    def _batch_manager(self):
+        '''
+        This is a "linked list" that utilizes Qt's signal mechanism to retrieve the next item in the list
+        when the current item is processed. We need this because most likely the users want to put all
+        available computing resources to process the batch item by item, and having more than one worker
+        is not helping.
+        '''
+        # TODO: think what if anything goes wrong in the middle. Is this robust?
+        if len(self._scan_numbers) > 0:
+            scan_num = self._scan_numbers.pop()
+            print("begin processing scan " + str(scan_num) + "...") 
+            self.le_scan_num.setText(str(scan_num))
+            self.start()
+            self._dpc_gpu_thread.finished.connect(self._batch_manager)
+        else:
+            print("batch processing complete!")
+            self._scan_numbers = None
+            self.resetButtons()
 
 
     def viewDataFrame(self):
