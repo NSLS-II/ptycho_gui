@@ -7,6 +7,7 @@ from core.widgets.imgTools import find_outlier_pixels, find_brightest_pixels, rm
 
 BADPIX_BRIGHTEST = 0
 BADPIX_OUTLIERS = 1
+######
 
 
 class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):

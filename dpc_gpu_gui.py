@@ -11,8 +11,13 @@ from core.widgets.mplcanvas import load_image_pil
 
 # databroker related
 # TODO: a try-except for ImportError??
-from core.HXN_databroker import db1, db2, db_old, load_metadata
-from hxntools.scan_info import ScanInfo
+try:
+    from core.HXN_databroker import db1, db2, db_old, load_metadata
+    from hxntools.scan_info import ScanInfo
+except ImportError as ex:
+    print('[!] Unable to import hxntools-related packages some features will '
+          'be unavailable')
+    print('[!] (import error: {})'.format(ex))
 
 from reconStep_gui import ReconStepWindow
 from roi_gui import RoiWindow
