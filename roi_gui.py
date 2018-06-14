@@ -16,9 +16,9 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         self.setupUi(self)
         QtWidgets.QApplication.setStyle('Plastique')
 
-        from core.widgets.mplcanvas import load_image_pil
-        img = load_image_pil('./test.tif')
-        self.canvas.draw_image(img)
+        #from core.widgets.mplcanvas import load_image_pil
+        #img = load_image_pil('./test.tif')
+        #self.canvas.draw_image(img)
         if image is not None:
             self.canvas.draw_image(image)
 
