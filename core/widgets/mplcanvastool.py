@@ -20,6 +20,13 @@ class MplCanvasTool(QtWidgets.QWidget):
         self.fig = fig
         self.canvas = FigureCanvas(fig)
 
+        # initialized by _get_roi_bar()
+        self.sp_x0 = None
+        self.sp_y0 = None
+        self.sp_w = None
+        self.sp_h = None
+        self._roi_all = None
+
         self._actions = {}
         self._active = None
         self._eventHandler = EventHandler()
@@ -61,14 +68,13 @@ class MplCanvasTool(QtWidgets.QWidget):
 
     def _get_roi_bar(self):
 
-        self.sp_x0 = QtWidgets.QDoubleSpinBox(self)
-        self.sp_y0 = QtWidgets.QDoubleSpinBox(self)
-        self.sp_w = QtWidgets.QDoubleSpinBox(self)
-        self.sp_h = QtWidgets.QDoubleSpinBox(self)
+        self.sp_x0 = QtWidgets.QSpinBox(self)
+        self.sp_y0 = QtWidgets.QSpinBox(self)
+        self.sp_w = QtWidgets.QSpinBox(self)
+        self.sp_h = QtWidgets.QSpinBox(self)
+        self._roi_all = [self.sp_x0, self.sp_y0, self.sp_w, self.sp_h]
 
-
-        all = [self.sp_x0, self.sp_y0, self.sp_w, self.sp_h]
-        for sp in all:
+        for sp in self._roi_all:
             sp.setMaximum(9999.)
             sp.setMinimum(-9999.)
             sp.setValue(0.)
@@ -92,15 +98,14 @@ class MplCanvasTool(QtWidgets.QWidget):
         return layout
 
     def _update_roi(self, x0, y0, w, h):
-        all = [self.sp_x0, self.sp_y0, self.sp_w, self.sp_h]
-        for sp in all: sp.valueChanged.disconnect(self._update_roi_canvas)
+        for sp in self._roi_all: sp.valueChanged.disconnect(self._update_roi_canvas)
 
         self.sp_x0.setValue(x0)
         self.sp_y0.setValue(y0)
         self.sp_w.setValue(w)
         self.sp_h.setValue(h)
 
-        for sp in all: sp.valueChanged.connect(self._update_roi_canvas)
+        for sp in self._roi_all: sp.valueChanged.connect(self._update_roi_canvas)
 
     def _update_roi_canvas(self):
         x0 = self.sp_x0.value()
@@ -108,7 +113,7 @@ class MplCanvasTool(QtWidgets.QWidget):
         w = self.sp_w.value()
         h = self.sp_h.value()
 
-        if x0 <= 0 or y0 <= 0 or w <= 0 or h <= 0:
+        if x0 < 0 or y0 < 0 or w < 0 or h < 0:
             return
 
         self._eventHandler.set_curr_roi(self.ax, (x0, y0), w, h)

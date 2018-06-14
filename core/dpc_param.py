@@ -83,8 +83,9 @@ class Param(object):
         self.pha_max = 0.01  # up/low limit of allowed object phase range
         self.pha_min = -1.0  #
 
-        self.gpu_flag = True         # whether to use GPU
+        self.gpu_flag = True      # whether to use GPU
         self.gpus = [1, 2, 3]     # should be a list of gpu numbers, ex: [0, 2, 3]
+        self.mpi_file_path = ''   # full path to a valid MPI machine file
 
         #
         # [Need to organize]
@@ -108,6 +109,7 @@ class Param(object):
         self.cal_scan_pattern_flag = False
         self.x_direction = -1.
         self.y_direction = -1.
+        self.angle = 15.
 
         self.ml_mode = 'Poisson'     # mode for ML
 

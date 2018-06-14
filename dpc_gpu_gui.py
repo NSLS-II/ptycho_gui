@@ -7,6 +7,12 @@ from ui import ui_dpc
 from core.dpc_param import Param
 from core.dpc_recon import DPCReconWorker, DPCReconFakeWorker
 from core.dpc_qt_utils import DPCStream
+from core.widgets.mplcanvas import load_image_pil
+
+# databroker related
+# TODO: a try-except for ImportError??
+from core.HXN_databroker import db1, db2, db_old, load_metadata
+from hxntools.scan_info import ScanInfo
 
 from reconStep_gui import ReconStepWindow
 from roi_gui import RoiWindow
@@ -15,6 +21,7 @@ import h5py
 import numpy as np
 from numpy.lib.format import open_memmap
 import matplotlib.pyplot as plt
+import traceback
 
 
 # set True for testing GUI changes
@@ -34,7 +41,13 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.ck_init_obj_flag.clicked.connect(self.updateObjectFlg)
 
         self.btn_choose_cwd.clicked.connect(self.setWorkingDirectory)
+        self.cb_dataloader.currentTextChanged.connect(self.setLoadButton)
         self.btn_load_scan.clicked.connect(self.loadExpParam)
+        self.btn_view_frame.clicked.connect(self.viewDataFrame)
+
+        self.le_scan_num.editingFinished.connect(self.forceLoad)
+        self.cb_dataloader.currentTextChanged.connect(self.forceLoad)
+        self.cb_detectorkind.currentTextChanged.connect(self.forceLoad)
 
         self.ck_mode_flag.clicked.connect(self.updateModeFlg)
         self.ck_multislice_flag.clicked.connect(self.updateMultiSliceFlg)
@@ -42,10 +55,13 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
         self.btn_recon_start.clicked.connect(self.start)
         self.btn_recon_stop.clicked.connect(self.stop)
+        self.btn_recon_batch_start.clicked.connect(self.batch_start)
+        self.btn_recon_batch_stop.clicked.connect(self.batch_stop)
 
-        self.btn_view_frame.clicked.connect(self.viewDataFrame)
-
+        self.btn_MPI_file.clicked.connect(self.setMPIfile)
         self.btn_gpu_all = [self.btn_gpu_0, self.btn_gpu_1, self.btn_gpu_2, self.btn_gpu_3]
+        for btn in self.btn_gpu_all:
+            btn.clicked.connect(self.updateMPIFlg)
 
         # init.
         if param is None:
@@ -55,6 +71,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self._prb = None
         self._obj = None
         self._dpc_gpu_thread = None
+        self._db = None             # hold the Broker instance that contains the info of the given scan id
+        self._mds_table = None      # hold a Pandas.dataframe instance
+        self._loaded = False        # whether the user has loaded metadata or not (from either databroker or h5)
+        self._scan_numbers = None   # a list of scan numbers for batch mode
 
         self.reconStepWindow = None
 
@@ -64,13 +84,33 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.updateGpuFlg()
         self.resetButtons()
         self.resetExperimentalParameters() # probably not necessary
+        self.setLoadButton()
+
+
+    @property
+    def db(self):
+        # access the Broker instance; the name is probably not intuitive enough...?
+        return self._db
+
+
+    @db.setter
+    def db(self, scan_id:int):
+        # choose the correct Broker instance based on the given scan id
+        if scan_id <= 34000:
+            self._db = db_old
+        elif scan_id <= 48990:
+            self._db = db1
+        else:
+            self._db = db2
 
 
     def resetButtons(self):
         self.btn_recon_start.setEnabled(True)
         self.btn_recon_stop.setEnabled(False)
+        self.btn_recon_batch_start.setEnabled(True)
+        self.btn_recon_batch_stop.setEnabled(False)
         self.recon_bar.setValue(0)
-        plt.ioff()
+        #plt.ioff()
         plt.close('all')
         # close the mmap arrays
         # removing these arrays, can be changed later if needed
@@ -89,9 +129,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         p.scan_num = str(self.le_scan_num.text())
         p.sign = str(self.le_sign.text())
         p.detectorkind = str(self.cb_detectorkind.currentText())
-        p.frame_num = int(self.sp_fram_num.value())
+        # p.frame_num = int(self.sp_fram_num.value()) # do we need this one?
 
-        p.xray_energy = float(self.sp_xray_energy.value()) # do we need this one?
+        # p.xray_energy = float(self.sp_xray_energy.value()) # do we need this one?
+        p.lambda_nm = 1.2398/self.sp_xray_energy.value()
         p.z_m = float(self.sp_detector_distance.value())
         #p.x_arr_size = float(self.sp_x_arr_size.value()) # can get from diffamp
         p.dr_x = float(self.sp_x_step_size.value())
@@ -99,7 +140,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         #p.y_arr_size = float(self.sp_y_arr_size.value()) # can get from diffamp
         p.dr_y = float(self.sp_y_step_size.value())
         p.y_range = float(self.sp_y_scan_range.value())
-        p.scan_type = str(self.cb_scan_type.currentText()) # do we need this one?
+        #p.scan_type = str(self.cb_scan_type.currentText()) # do we need this one?
         #p.num_points = int(self.sp_num_points.value()) # can get from diffamp
 
         p.n_iterations = int(self.sp_n_iterations.value())
@@ -138,6 +179,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         p.angle_correction_flag = self.ck_angle_correction_flag.isChecked()
         p.x_direction = float(self.sp_x_direction.value())
         p.y_direction = float(self.sp_y_direction.value())
+        p.angle = self.sp_angle.value()
 
         p.alpha = float(self.sp_alpha.value()*1.e-8)
         p.beta = float(self.sp_beta.value())
@@ -153,7 +195,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.sp_fram_num.setValue(int(p.frame_num))
 
         self.sp_xray_energy.setValue(float(p.xray_energy))
-        self.sp_detector_distance.setValue(float(p.detector_distance))
+        self.sp_detector_distance.setValue(float(p.z_m) if 'z_m' in p.__dict__ else 0)
         self.sp_x_arr_size.setValue(float(p.x_arr_size))
         self.sp_x_step_size.setValue(float(p.x_step_size))
         self.sp_x_scan_range.setValue(float(p.x_scan_range))
@@ -197,6 +239,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.ck_angle_correction_flag.setChecked(p.angle_correction_flag)
         self.sp_x_direction.setValue(p.x_direction)
         self.sp_y_direction.setValue(p.y_direction)
+        self.sp_angle.setValue(p.angle)
 
         self.sp_alpha.setValue(p.alpha * 1e+8)
         self.sp_beta.setValue(p.beta)
@@ -209,16 +252,21 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             self._dpc_gpu_thread = None
 
         if self._dpc_gpu_thread is None:
+            if not self._loaded:
+                print("[WARNING] Remember to click \"Load\" before proceeding!", file=sys.stderr) 
+                return
+
             self.update_param_from_gui() # this has to be done first, so all operations depending on param are correct
             self.recon_bar.setValue(0)
             self.recon_bar.setMaximum(self.param.n_iterations)
 
             # init reconStepWindow
-            if self.reconStepWindow is None:
-                self.reconStepWindow = ReconStepWindow()
-            self.reconStepWindow.reset_window(iterations=self.param.n_iterations,
-                                              slider_interval=self.param.display_interval)
-            self.reconStepWindow.show()
+            if self.ck_preview_flag.isChecked():
+                if self.reconStepWindow is None:
+                    self.reconStepWindow = ReconStepWindow()
+                self.reconStepWindow.reset_window(iterations=self.param.n_iterations,
+                                                  slider_interval=self.param.display_interval)
+                self.reconStepWindow.show()
 
             if not _TEST:
                 thread = self._dpc_gpu_thread = DPCReconWorker(self.param)
@@ -240,7 +288,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             self._dpc_gpu_thread.quit() # then quit QThread gracefully
             self._dpc_gpu_thread = None
             self.resetButtons()
-            self.reconStepWindow.reset_window()
+            if self.reconStepWindow is not None:
+                self.reconStepWindow.reset_window()
 
 
     def update_recon_step(self, it, data=None):
@@ -338,15 +387,179 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.btn_gpu_3.setEnabled(flag)
 
 
+    def setMPIfile(self):
+        filename, _ = QFileDialog.getOpenFileName(self, 'Open MPI machine file')
+        if filename is not None and len(filename) > 0:
+            mpi_filename = os.path.basename(filename)
+            mpi_dir = filename[:(len(filename)-len(mpi_filename))]
+            #self.param.le_MPI_file_path(mpi_dir, mpi_filename)
+            self.param.mpi_file_path = filename
+            #print(filename)
+            self.le_MPI_file_path.setText(mpi_filename)
+            for btn in self.btn_gpu_all:
+                btn.setChecked(False)
+
+
+    def updateMPIFlg(self):
+        # called when any gpu button is clicked
+        self.param.mpi_file_path = ''
+        self.le_MPI_file_path.setText('')
+
+
+    # adapted from dpc_batch.py
+    def parse_scan_range(self):
+        '''
+        Note the range is inclusive on both ends. 
+        Ex: 1238 - 1242 with step size 2 --> [1238, 1240, 1242]
+        '''
+        scan_range = []
+        scan_numbers = []
+        every_nth_scan = self.sp_batch_step.value()
+
+        # first parse items and separate them into two catogories
+        slist = self.le_batch_items.text().split(',')
+        for item in slist:
+            if '-' in item:
+                sublist = item.split('-')
+                scan_range.append((int(sublist[0].strip()), int(sublist[1].strip())))
+            else:
+                scan_numbers.append(int(item.strip()))
+    
+        # next generate all legit items from the chosen ranges and make a sorted item list
+        for item in scan_range:
+            scan_numbers = scan_numbers + list(range(item[0], item[1]+1, every_nth_scan))
+        scan_numbers.sort(reverse=True)
+        print(scan_numbers)
+
+        return scan_numbers
+
+
+    def batch_start(self):
+        '''
+        Currently only support load from h5. 
+        '''
+        if self.cb_dataloader.currentText() == "Load from databroker":
+            print("[WARNING] Batch mode with databroker is not yet supported. Abort.", file=sys.stderr)
+            return
+
+        self._scan_numbers = self.parse_scan_range()
+        # TODO: is there a way to lock all widgets to prevent accidental parameter changes in the middle?
+
+        # fire up
+        self._batch_manager() # serve as linked list's head
+        self.btn_recon_batch_start.setEnabled(False)
+        self.btn_recon_batch_stop.setEnabled(True)
+
+
+    def batch_stop(self):
+        '''
+        Brute-force abortion of the entire batch. No resumption is possible.
+        '''
+        self._dpc_gpu_thread.finished.disconnect(self._batch_manager)
+        self._scan_numbers = None
+        self.stop()
+
+
+    def _batch_manager(self):
+        '''
+        This is a "linked list" that utilizes Qt's signal mechanism to retrieve the next item in the list
+        when the current item is processed. We need this because most likely the users want to put all
+        available computing resources to process the batch item by item, and having more than one worker
+        is not helping.
+        '''
+        # TODO: think what if anything goes wrong in the middle. Is this robust?
+        if len(self._scan_numbers) > 0:
+            scan_num = self._scan_numbers.pop()
+            print("begin processing scan " + str(scan_num) + "...") 
+            self.le_scan_num.setText(str(scan_num))
+            self.start()
+            self._dpc_gpu_thread.finished.connect(self._batch_manager)
+        else:
+            print("batch processing complete!")
+            self._scan_numbers = None
+            self.resetButtons()
+
+
     def viewDataFrame(self):
         '''
         Correspond to "View & set" in DPC GUI
         '''
-        from core.widgets.mplcanvas import load_image_pil
-        image = load_image_pil('./test.tif')
-        self.roiWindow = RoiWindow(image=image)
-        self.roiWindow.roi_changed.connect(self._get_roi_slot)
-        self.roiWindow.show()
+        if _TEST:
+            image = load_image_pil('./test.tif')
+            self.roiWindow = RoiWindow(image=image)
+            self.roiWindow.roi_changed.connect(self._get_roi_slot)
+            self.roiWindow.show()
+            return
+
+        if not self._loaded:
+            print("[WARNING] Remember to click \"Load\" before proceeding!", file=sys.stderr) 
+            return
+
+        #plt.ion()
+        #plt.figure()
+        frame_num = self.sp_fram_num.value()
+        img = None
+
+        try:
+            if self.cb_dataloader.currentText() == "Load from databroker":
+                img = self._viewDataFrameBroker(frame_num)
+            
+            if self.cb_dataloader.currentText() == "Load from h5":
+                img = self._viewDataFrameH5(frame_num)
+        except OSError:
+            # h5 not found, but loadExpParam() has detected it, so do nothing here
+            pass
+        except (ValueError, RuntimeError) as ex:
+            # let user follow the instruction to make correction
+            print(ex, file=sys.stderr)
+        except Exception as ex:
+            # don't expect this will happen but if so I'd like to know what
+            self.exception_handler(ex)
+        else:
+            #plt.imshow(img)
+            #plt.title("Frame #{}".format(frame_num))
+            #plt.autoscale()
+            #plt.show()
+            self.roiWindow = RoiWindow(image=img)
+            #self.roiWindow.roi_changed.connect(self._get_roi_slot)
+            self.roiWindow.show()
+
+        #plt.ioff()
+
+
+    #@profile
+    def _viewDataFrameBroker(self, frame_num:int):
+        # assuming at this point the user has clicked "load" 
+        if self._mds_table is None:
+            raise RuntimeError("[ERROR] Need to click the \"load\" button before viewing.")
+        length = (self._mds_table.shape)[0] 
+        if frame_num >= length:
+            message = "[ERROR] The {0}-th frame doesn't exist. "
+            message += "Available frames for the chosen scan: [0, {1}]."
+            raise ValueError(message.format(frame_num, length-1))
+
+        img = self.db.reg.retrieve(self._mds_table.iat[frame_num])[0]
+        return img
+
+
+    #@profile
+    def _viewDataFrameH5(self, frame_num:int):
+        # load the data from the h5 in the working directory
+        working_dir = str(self.le_working_directory.text()) # self.param.working_directory
+        scan_num = str(self.le_scan_num.text())
+        length = self.sp_num_points.value()
+        if frame_num >= length:
+            message = "[ERROR] The {0}-th frame doesn't exist. "
+            message += "Available frames for the chosen scan: [0, {1}]."
+            raise ValueError(message.format(frame_num, length-1))
+        with h5py.File(working_dir+'/scan_'+scan_num+'.h5','r') as f:
+            print("h5 loaded, parsing the {}-th frame...".format(frame_num), end='')
+            img = f['diffamp'][frame_num]
+            #data = f['diffamp'].value
+            #img = data[frame_num]
+            print("done")
+        return img
+
 
     def _get_roi_slot(self, x0, y0, width, height):
         '''
@@ -361,40 +574,116 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         '''
         print(x0, y0, width, height)
 
-    def loadExpParam(self): 
-        '''
-        WARNING:
-        Currently this function only supports h5.
-        '''
-        if self.cb_dataloader.currentText() == "Load from databroker":
-            # do nothing because databroker is not ready
-            print("[ERROR] the databroker is currently unavailable in this version.", file=sys.stderr)
-            self.resetExperimentalParameters()
 
-        # load the parameters from the h5 in the working directory
+    def loadExpParam(self): 
+        scan_num = int(self.le_scan_num.text())
+
+        try:
+            if self.cb_dataloader.currentText() == "Load from databroker":
+                self._loadExpParamBroker(scan_num)
+
+            if self.cb_dataloader.currentText() == "Load from h5":
+                self._loadExpParamH5(scan_num)
+        except KeyError as ex: # for h5
+            if ex.args[0] == 'angle':
+                self.sp_angle.setValue(15.) # backward compatibility for old datasets
+                print("angle not found, assuming 15...", file=sys.stderr)
+            else: # shouldn't happen, and we'd like to know (ex: old scan data from databroker)
+                self.exception_handler(ex)
+        except OSError: # for h5
+            print("[ERROR] h5 not found. Resetting...", file=sys.stderr, end='')
+            self.resetExperimentalParameters()
+        except ValueError as ex: # for databroker
+            print()
+            print(ex, file=sys.stderr)
+            print("[ERROR] no image available for the chosen detector.", file=sys.stderr)
+        except Exception as ex: # everything unexpected at this time...
+            self.exception_handler(ex)
+        else:
+            self._loaded = True
+        finally:
+            print("done")
+
+
+    #@profile
+    def _loadExpParamBroker(self, scan_id:int):
+        #doesn't really work...
+        #print("loading begins...may take a while...")
+        #sys.stdout.flush()
+        self.db = scan_id # set the correct database
+        header = self.db[scan_id]
+
+        # get the list of detector names; TODO: a better way without ScanInfo?
+        scan = ScanInfo(header)
+        det_name = self.cb_detectorkind.currentText()
+        det_name_exists = False
+        self.cb_detectorkind.clear()
+        for detector_name in scan.filestore_keys:
+            self.cb_detectorkind.addItem(detector_name)
+            if det_name == detector_name:
+                det_name_exists = True
+        if not det_name_exists:
+            det_name = self.cb_detectorkind.currentText()
+
+        # get metadata
+        metadata = load_metadata(self.db, scan_id, det_name)
+        self.param.__dict__ = {**self.param.__dict__, **metadata} # for Python 3.5+ only
+        if metadata['nz'] == 0:
+            raise ValueError
+        else:
+            nz = metadata['nz']
+            # get the mds keys to the image (diffamp) array 
+            self._mds_table = metadata['mds_table']
+
+        print("databroker connected, parsing experimental parameters...", end='')
+        # get nx and ny by looking at the first image
+        img = self.db.reg.retrieve(self._mds_table.iat[0])[0]
+        nx, ny = img.shape # can also give a ValueError; TODO: come up a better way!
+        self.sp_xray_energy.setValue(metadata['energy_kev'])
+        #self.sp_detector_distance.setValue(f['z_m'].value) # don't know how to handle this...
+        self.sp_x_arr_size.setValue(nx)
+        self.sp_y_arr_size.setValue(ny)
+        self.sp_num_points.setValue(nz)
+        self.sp_x_step_size.setValue(metadata['dr_x'])
+        self.sp_y_step_size.setValue(metadata['dr_y'])
+        self.sp_x_scan_range.setValue(metadata['x_range'])
+        self.sp_y_scan_range.setValue(metadata['y_range'])
+        self.sp_angle.setValue(metadata['angle'])
+        if self.cb_scan_type.findText(metadata['scan_type']) == -1:
+            self.cb_scan_type.addItem(metadata['scan_type'])
+        self.cb_scan_type.setCurrentText(metadata['scan_type'])
+
+
+    def setLoadButton(self):
+        if self.cb_dataloader.currentText() == "Load from databroker":
+            self.cb_detectorkind.setEnabled(True)
+            self.cb_scan_type.setEnabled(True)
+            print("[WARNING] Currently detector distance is unavailable in Databroker and must be set manually!", file=sys.stderr)
         if self.cb_dataloader.currentText() == "Load from h5":
-            working_dir = str(self.le_working_directory.text()) # self.param.working_directory
-            scan_num = str(self.le_scan_num.text())
-            try:
-                with h5py.File(working_dir+'/scan_'+scan_num+'.h5','r') as f:
-                    # this code is not robust enough as certain keys may not be present...
-                    print("h5 loaded, parsing experimental parameters...", end='')
-                    self.sp_xray_energy.setValue(1.24/f['lambda_nm'].value)
-                    self.sp_detector_distance.setValue(f['z_m'].value)
-                    nz, nx, ny = f['diffamp'].shape
-                    self.sp_x_arr_size.setValue(nx)
-                    self.sp_y_arr_size.setValue(ny)
-                    self.sp_x_step_size.setValue(f['dr_x'].value)
-                    self.sp_y_step_size.setValue(f['dr_y'].value)
-                    self.sp_x_scan_range.setValue(f['x_range'].value)
-                    self.sp_y_scan_range.setValue(f['y_range'].value)
-                    #self.cb_scan_type = ...
-                    self.sp_num_points.setValue(nz)
-                    print("done")
-            except OSError:
-                print("[ERROR] h5 not found. Resetting...", file=sys.stderr, end='')
-                self.resetExperimentalParameters()
-                print("done", file=sys.stderr)
+            self.cb_detectorkind.setEnabled(False)
+            self.cb_scan_type.setEnabled(False) # do we ever write scan type to h5???
+
+
+    #@profile
+    def _loadExpParamH5(self, scan_num:int):
+        # load the parameters from the h5 in the working directory
+        working_dir = str(self.le_working_directory.text()) # self.param.working_directory
+        with h5py.File(working_dir+'/scan_'+str(scan_num)+'.h5','r') as f:
+            # this code is not robust enough as certain keys may not be present...
+            print("h5 loaded, parsing experimental parameters...", end='')
+            self.sp_xray_energy.setValue(1.2398/f['lambda_nm'].value)
+            self.sp_detector_distance.setValue(f['z_m'].value)
+            nz, nx, ny = f['diffamp'].shape
+            self.sp_x_arr_size.setValue(nx)
+            self.sp_y_arr_size.setValue(ny)
+            self.sp_x_step_size.setValue(f['dr_x'].value)
+            self.sp_y_step_size.setValue(f['dr_y'].value)
+            self.sp_x_scan_range.setValue(f['x_range'].value)
+            self.sp_y_scan_range.setValue(f['y_range'].value)
+            self.sp_angle.setValue(f['angle'].value)
+            #self.cb_scan_type = ...
+            self.sp_num_points.setValue(nz)
+            # read the detector name and set it in GUI??
 
 
     def resetExperimentalParameters(self):
@@ -408,6 +697,21 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.sp_y_scan_range.setValue(0)
         #self.cb_scan_type = ...
         self.sp_num_points.setValue(0)
+
+    
+    def forceLoad(self):
+        '''
+        A foolproof mechanism that forces users to click "load" before "start" or "view data frame".
+        This can avoid handling many weird exceptions.
+        '''
+        self._loaded = False
+
+
+    def exception_handler(self, ex):
+        formatted_lines = traceback.format_exc().splitlines()
+        for line in formatted_lines:
+            print(line, file=sys.stderr) 
+        print(ex, file=sys.stderr)
 
 
     @QtCore.pyqtSlot(str, QtGui.QColor)
