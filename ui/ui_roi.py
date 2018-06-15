@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_roi.ui'
 #
-# Created by: PyQt5 UI code generator 5.10.1
+# Created by: PyQt5 UI code generator 5.9.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -40,9 +40,9 @@ class Ui_MainWindow(object):
         self.btn_save_to_h5 = QtWidgets.QPushButton(self.groupBox)
         self.btn_save_to_h5.setGeometry(QtCore.QRect(320, 100, 99, 27))
         self.btn_save_to_h5.setObjectName("btn_save_to_h5")
-        self.doubleSpinBox = QtWidgets.QDoubleSpinBox(self.groupBox)
-        self.doubleSpinBox.setGeometry(QtCore.QRect(100, 70, 69, 27))
-        self.doubleSpinBox.setObjectName("doubleSpinBox")
+        self.sp_threshold = QtWidgets.QDoubleSpinBox(self.groupBox)
+        self.sp_threshold.setGeometry(QtCore.QRect(100, 70, 69, 27))
+        self.sp_threshold.setObjectName("sp_threshold")
         self.label_2 = QtWidgets.QLabel(self.groupBox)
         self.label_2.setGeometry(QtCore.QRect(20, 80, 67, 17))
         self.label_2.setObjectName("label_2")

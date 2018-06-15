@@ -76,7 +76,7 @@
           <string>save to h5</string>
          </property>
         </widget>
-        <widget class="QDoubleSpinBox" name="doubleSpinBox">
+        <widget class="QDoubleSpinBox" name="sp_threshold">
          <property name="geometry">
           <rect>
            <x>100</x>

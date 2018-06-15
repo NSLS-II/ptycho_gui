@@ -4,6 +4,7 @@ from ui import ui_roi
 
 import numpy as np
 from core.widgets.imgTools import find_outlier_pixels, find_brightest_pixels, rm_outlier_pixels
+from core.HXN_databroker import save_data
 
 BADPIX_BRIGHTEST = 0
 BADPIX_OUTLIERS = 1
@@ -11,7 +12,7 @@ BADPIX_OUTLIERS = 1
 
 class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
 
-    def __init__(self, parent=None, image=None):
+    def __init__(self, parent=None, image=None, param=None, main_window=None):
         super().__init__(parent)
         self.setupUi(self)
         QtWidgets.QApplication.setStyle('Plastique')
@@ -31,6 +32,7 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         self.btn_badpixels_outliers.clicked.connect(lambda : self.find_badpixels(BADPIX_OUTLIERS))
         self.btn_badpixels_correct.clicked.connect(self.correct_badpixels)
         self.ck_show_badpixels.clicked.connect(self.show_badpixels)
+        self.btn_save_to_h5.clicked.connect(self.save_to_h5)
 
         # badpixels
         # : to compute indices w.r.t original image
@@ -41,7 +43,19 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         self.offset_x = None  # offset x to convert indice w.r.t frame (original image)
         self.offset_y = None  # offset y to convert indice w.r.t frame (original image)
 
+        # for h5 operation
+        self.main_window = main_window # need to know the caller
+        self.roi_width = None
+        self.roi_height = None
+        self.cx = None
+        self.cy = None
+        self.sp_threshold.setValue(1.0)
+
     def find_badpixels(self, op_name):
+        img = self.canvas.image
+        if img is None:
+            return
+
         if op_name == BADPIX_BRIGHTEST:
             self.btn_badpixels_brightest.setChecked(True)
             self.btn_badpixels_outliers.setChecked(False)
@@ -49,11 +63,6 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
             self.btn_badpixels_brightest.setChecked(False)
             self.btn_badpixels_outliers.setChecked(True)
         self.badpixels_method = op_name
-
-
-        img = self.canvas.image
-        if img is None:
-            return
 
         height, width = img.shape
         roi = self.canvas.get_curr_roi()
@@ -65,11 +74,16 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
             xy = roi[0]
             roi_width = np.int(np.round(roi[1]))
             roi_height = np.int(np.round(roi[2]))
+            self.roi_width = roi_width
+            self.roi_height = roi_height
 
             x0 = np.maximum(np.int(np.round(xy[0])), 0)
             y0 = np.maximum(np.int(np.round(xy[1])), 0)
             x1 = np.minimum(x0 + roi_width, width)
             y1 = np.minimum(y0 + roi_height, height)
+            # TEST: ROI center
+            self.cx = x0 + roi_width//2
+            self.cy = y0 + roi_height//2
 
             roi_img = img[y0:y1, x0:x1]
             self.offset_x = x0
@@ -99,9 +113,43 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         # update badpixels with corrected one????????
         self.find_badpixels(self.badpixels_method)
 
-
     def show_badpixels(self, state):
         self.canvas.show_overlay(state)
+
+    def save_to_h5(self):
+        master = self.main_window
+        if master is None:
+            return
+
+        # need an up-to-date param
+        master.update_param_from_gui()
+        p = master.param
+        if p.z_m == 0.:
+            print("[ERROR] detector distance (z_m) is 0 --- maybe forget to set it?", file=sys.stderr)
+            return
+    
+        # get threshold
+        threshold = self.sp_threshold.value()
+
+        # get bad pixels
+        # TODO: need a better foolproof way 
+        if self.badpixels is None or self.offset_x is None or self.offset_y is None:
+            self.find_badpixels(BADPIX_OUTLIERS) 
+        # TODO: separate this part to another function?
+        if len(self.badpixels) == 2 and len(self.badpixels[0]) == len(self.badpixels[1]) > 0:
+            badpixels = [self.badpixels[0] + self.offset_y, self.badpixels[1] + self.offset_x]
+            print("bad pixels:")
+            for x, y in zip(badpixels[0], badpixels[1]):
+                print("  (x, y) = ({0}, {1})".format(x, y))
+        else:
+            badpixels = None
+            print("no bad pixels")
+
+        #TODO: ask a QThread to do the work
+        #print("center: {0} {1} ".format(self.cx, self.cy), file=sys.stderr)
+        save_data(master.db, p, int(p.scan_num), self.roi_width, self.roi_height, cx=self.cx, cy=self.cy,
+                  threshold=threshold, bad_pixels=badpixels)
+        print("h5 saved.")
 
 
 if __name__ == '__main__':
