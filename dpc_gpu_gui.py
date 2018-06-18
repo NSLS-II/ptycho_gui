@@ -514,7 +514,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             # don't expect this will happen but if so I'd like to know what
             self.exception_handler(ex)
         else:
-            img = np.rot90(img, axes=(1,0))
+            #img = np.rot90(img, axes=(1,0))
             self.roiWindow = RoiWindow(image=img, main_window=self)
             #self.roiWindow.roi_changed.connect(self._get_roi_slot)
             self.roiWindow.show()

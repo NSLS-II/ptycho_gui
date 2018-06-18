@@ -198,7 +198,7 @@ def save_data(db, param, scan_num:int, n:int, nn:int, cx=110, cy=160, threshold=
     for i in range(num_frame):
         #print(param.mds_table.iat[i], file=sys.stderr)
         img = db.reg.retrieve(param.mds_table.iat[i])[0]
-        img = np.rot90(img, axes=(1,0)) #equivalent to tt = np.flipud(tt).T
+        #img = np.rot90(img, axes=(1,0)) #equivalent to tt = np.flipud(tt).T
         ny, nx = np.shape(img)
 
         img = img * ic[0] / ic[i]
@@ -220,6 +220,7 @@ def save_data(db, param, scan_num:int, n:int, nn:int, cx=110, cy=160, threshold=
             #tmptmp[3:-3,:] = t[:,cy-n//2:cy+n//2]
             tmptmp[4:-8, :] = img[:, cy-n//2:cy+n//2]
         
+        tmptmp = np.rot90(tmptmp, axes=(1,0)) #equivalent to np.flipud(tmptmp).T
         data[i] = np.fft.fftshift(tmptmp)
 
     data[data < threshold] = 0.

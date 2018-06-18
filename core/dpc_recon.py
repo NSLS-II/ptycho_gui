@@ -59,7 +59,7 @@ class DPCReconWorker(QtCore.QThread):
         return it, result
 
 
-    def recon_api(self, param:Param, update_fcn=None, signals=None):
+    def recon_api(self, param:Param, update_fcn=None):
         config_path = os.path.expanduser("~") + "/.ptycho_gui_config"
         with open(config_path, "w") as config:
             config.write("working_directory = "+param.working_directory)
@@ -81,13 +81,10 @@ class DPCReconWorker(QtCore.QThread):
         if param.mpi_file_path != '':
             with open(param.mpi_file_path, 'r') as f:
                 node_count = 0
-                while True:
-                    line = f.readline()
-                    if line == '':
-                        break
+                for line in f:
                     line = line.split()
                     node_count += int(line[1].split('=')[-1])
-                mpirun_command[2] = str(node_count)
+                mpirun_command[2] = str(node_count) # use all available nodes
                 mpirun_command.insert(3, "-machinefile")
                 mpirun_command.insert(4, param.mpi_file_path)
                 #param.gpus = range(node_count)
