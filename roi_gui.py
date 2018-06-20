@@ -4,7 +4,12 @@ from ui import ui_roi
 
 import numpy as np
 from core.widgets.imgTools import find_outlier_pixels, find_brightest_pixels, rm_outlier_pixels
-from core.HXN_databroker import save_data
+try:
+    from core.HXN_databroker import save_data
+except ImportError as ex:
+    print('[!] Unable to import core.HXN_databroker packages some features will '
+          'be unavailable')
+    print('[!] (import error: {})'.format(ex))
 
 BADPIX_BRIGHTEST = 0
 BADPIX_OUTLIERS = 1
@@ -18,9 +23,9 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         self.setupUi(self)
         QtWidgets.QApplication.setStyle('Plastique')
 
-        #from core.widgets.mplcanvas import load_image_pil
-        #img = load_image_pil('./test.tif')
-        #self.canvas.draw_image(img)
+        from core.widgets.mplcanvas import load_image_pil
+        img = load_image_pil('./test.tif')
+        self.canvas.draw_image(img)
         if image is not None:
             self.canvas.draw_image(image)
 

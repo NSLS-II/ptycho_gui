@@ -5,6 +5,7 @@ from matplotlib.figure import Figure
 from matplotlib.pyplot import Axes
 import numpy as np
 
+from core.widgets.imgTools import estimate_roi
 from core.widgets.eventhandler import EventHandler
 
 
@@ -26,6 +27,7 @@ class MplCanvasTool(QtWidgets.QWidget):
         self.sp_w = None
         self.sp_h = None
         self._roi_all = None
+        self.ref_roi_side = [64, 96, 128, 160, 192, 224, 256]
 
         self._actions = {}
         self._active = None
@@ -49,6 +51,7 @@ class MplCanvasTool(QtWidgets.QWidget):
         self.btn_home = QtWidgets.QPushButton('RESET')
         self.btn_pan_zoom = QtWidgets.QPushButton('PAN/ZOOM')
         self.btn_roi = QtWidgets.QPushButton('ROI')
+        self.btn_roi_adjust = QtWidgets.QPushButton('ADJUST')
 
         self.btn_pan_zoom.setCheckable(True)
         self.btn_roi.setCheckable(True)
@@ -56,6 +59,7 @@ class MplCanvasTool(QtWidgets.QWidget):
         self.btn_home.clicked.connect(self._on_reset)
         self.btn_pan_zoom.clicked.connect(lambda: self._update_buttons('pan/zoom'))
         self.btn_roi.clicked.connect(lambda: self._update_buttons('roi'))
+        self.btn_roi_adjust.clicked.connect(self._on_adjust_roi)
 
         self._actions['pan/zoom'] = self.btn_pan_zoom
         self._actions['roi'] = self.btn_roi
@@ -64,6 +68,7 @@ class MplCanvasTool(QtWidgets.QWidget):
         layout.addWidget(self.btn_home)
         layout.addWidget(self.btn_pan_zoom)
         layout.addWidget(self.btn_roi)
+        layout.addWidget(self.btn_roi_adjust)
         return layout
 
     def _get_roi_bar(self):
@@ -113,7 +118,7 @@ class MplCanvasTool(QtWidgets.QWidget):
         w = self.sp_w.value()
         h = self.sp_h.value()
 
-        if x0 < 0 or y0 < 0 or w < 0 or h < 0:
+        if x0 <= 0 or y0 <= 0 or w <= 0 or h <= 0:
             return
 
         self._eventHandler.set_curr_roi(self.ax, (x0, y0), w, h)
@@ -150,6 +155,29 @@ class MplCanvasTool(QtWidgets.QWidget):
             self.ax.set_xlim(0, width)
             self.ax.set_ylim(height, 0)
             self.canvas.draw()
+
+    def _on_adjust_roi(self):
+        x0, y0, w, h = estimate_roi(self.image)
+
+        # x0 = self.sp_x0.value()
+        # y0 = self.sp_y0.value()
+        # w = self.sp_w.value()
+        # h = self.sp_h.value()
+        #
+        # if x0 <= 0 or y0 <= 0 or w <= 0 or h <= 0:
+        #     return
+        #
+        # def _adjust_roi(side):
+        #     idx = np.int(np.argmin(np.abs(np.array(self.ref_roi_side) - side)))
+        #     return self.ref_roi_side[idx]
+        #
+        # w = _adjust_roi(w)
+        # h = _adjust_roi(h)
+        self._eventHandler.set_curr_roi(self.ax, (x0, y0), w, h)
+        self._update_roi(x0, y0, w, h)
+
+
+
 
     def reset(self):
         self.image_handler = None

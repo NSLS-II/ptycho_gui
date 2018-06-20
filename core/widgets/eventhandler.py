@@ -51,13 +51,13 @@ class EventHandler(QObject):
             rect.set_xy(xy)
             rect.set_width(width)
             rect.set_height(height)
-            ax.figure.canvas.draw()
         else:
             rect = Rectangle(xy, width, height, linewidth=1, edgecolor='red', facecolor='none')
             ax.add_patch(rect)
             self.all_rect[self.rect_count] = rect
             self.rect_selected_key = self.rect_count
             self.rect_count += 1
+        ax.figure.canvas.draw()
 
 
     def zoom_factory(self, ax, base_scale=1.05):

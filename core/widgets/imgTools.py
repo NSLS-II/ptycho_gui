@@ -11,6 +11,7 @@ def rm_outlier_pixels(data, rows, cols, set_to_zero=False):
             data[x,y] = np.median(data[x-1:x+1,y-1:y+1])
     return data
 
+
 def find_outlier_pixels(data,tolerance=3,worry_about_edges=True, get_fixed_image=False):
     #This function finds the hot or dead pixels in a 2D dataset.
     #tolerance is the number of standard deviations used to cutoff the hot pixels
@@ -101,6 +102,48 @@ def find_outlier_pixels(data,tolerance=3,worry_about_edges=True, get_fixed_image
         return hot_pixels,fixed_image
     return hot_pixels
 
+
 def find_brightest_pixels(data):
     indices = np.where(data == np.max(data))
     return indices
+
+
+def project_on_x(image):
+    return np.cumsum(image, axis=0)[-1]
+
+
+def project_on_y(image):
+    return np.cumsum(image, axis=1)[:,-1]
+
+def find_start_end(arr, threshold_weight=0.3):
+    diff = np.abs(arr[:-1] - arr[1:])
+    diff = diff < threshold_weight * np.mean(diff)
+    start = np.argmin(diff)
+    end = len(arr) - np.argmin(diff[::-1]) -1
+    return start, end
+
+def estimate_roi(image, threshold=0.3):
+    height, width = image.shape
+    _image = (image - np.min(image)) / np.ptp(image)
+
+    proj_x = project_on_x(_image) / height
+    proj_y = project_on_y(_image) / width
+
+    x0, x1 = find_start_end(proj_x, threshold)
+    y0, y1 = find_start_end(proj_y, threshold)
+
+    x0 = np.clip(x0, 0, width-1)
+    x1 = np.clip(x1, 0, width-1)
+    y0 = np.clip(y0, 0, height-1)
+    y1 = np.clip(y1, 0, height-1)
+
+    w = x1 - x0
+    h = y1 - y0
+
+    if w <= 0 or h <= 0:
+        x0 = 0
+        y0 = 0
+        w = width-1
+        h = height-1
+
+    return x0, y0, w, h
