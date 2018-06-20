@@ -2,12 +2,14 @@ import numpy as np
 from scipy.ndimage import median_filter
 
 def rm_outlier_pixels(data, rows, cols, set_to_zero=False):
+    '''
+    WARNING: this function mutates the input array "data"!!!
+    '''
     if set_to_zero:
         data[rows, cols] = 0.
     else:
-        n = np.size(rows)//2
-        for i in range(n):
-            x,y = rows[i], cols[i]
+        assert(len(rows) == len(cols))
+        for x, y in zip(rows, cols):
             data[x,y] = np.median(data[x-1:x+1,y-1:y+1])
     return data
 
@@ -19,6 +21,7 @@ def find_outlier_pixels(data,tolerance=3,worry_about_edges=True, get_fixed_image
     #
     #The function returns a list of hot pixels and also an image with with hot pixels removed
 
+    data = data.astype(float)
     blurred = median_filter(data, size=2)
     difference = data - blurred
     threshold = 10*np.std(difference)
