@@ -199,7 +199,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.cb_detectorkind.setCurrentIndex(p.get_detector_kind_index())
         self.sp_fram_num.setValue(int(p.frame_num))
 
-        self.sp_xray_energy.setValue(float(p.xray_energy))
+        self.sp_xray_energy.setValue(1.2398/float(p.lambda_nm) if 'lambda_nm' in p.__dict__ else 0.)
         self.sp_detector_distance.setValue(float(p.z_m) if 'z_m' in p.__dict__ else 0)
         self.sp_x_arr_size.setValue(float(p.x_arr_size))
         self.sp_x_step_size.setValue(float(p.x_step_size))
@@ -500,8 +500,6 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             print("[WARNING] Remember to click \"Load\" before proceeding!", file=sys.stderr) 
             return
 
-        #plt.ion()
-        #plt.figure()
         frame_num = self.sp_fram_num.value()
         img = None
 
@@ -521,15 +519,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             # don't expect this will happen but if so I'd like to know what
             self.exception_handler(ex)
         else:
-            #plt.imshow(img)
-            #plt.title("Frame #{}".format(frame_num))
-            #plt.autoscale()
-            #plt.show()
-            self.roiWindow = RoiWindow(image=img)
+            #img = np.rot90(img, axes=(1,0))
+            self.roiWindow = RoiWindow(image=img, main_window=self)
             #self.roiWindow.roi_changed.connect(self._get_roi_slot)
             self.roiWindow.show()
-
-        #plt.ioff()
 
 
     #@profile
@@ -715,8 +708,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
     def exception_handler(self, ex):
         formatted_lines = traceback.format_exc().splitlines()
         for line in formatted_lines:
-            print(line, file=sys.stderr) 
-        print(ex, file=sys.stderr)
+            print("[ERROR] " + line, file=sys.stderr) 
+        print("[ERROR] " + str(ex), file=sys.stderr)
 
 
     @QtCore.pyqtSlot(str, QtGui.QColor)

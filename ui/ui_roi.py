@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_roi.ui'
 #
-# Created by: PyQt5 UI code generator 5.10.1
+# Created by: PyQt5 UI code generator 5.9.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -37,9 +37,20 @@ class Ui_MainWindow(object):
         self.groupBox.setMinimumSize(QtCore.QSize(390, 140))
         self.groupBox.setMaximumSize(QtCore.QSize(16777215, 500))
         self.groupBox.setObjectName("groupBox")
-        self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.groupBox)
-        self.verticalLayout_3.setObjectName("verticalLayout_3")
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.btn_save_to_h5 = QtWidgets.QPushButton(self.groupBox)
+        self.btn_save_to_h5.setGeometry(QtCore.QRect(320, 100, 99, 27))
+        self.btn_save_to_h5.setObjectName("btn_save_to_h5")
+        self.sp_threshold = QtWidgets.QDoubleSpinBox(self.groupBox)
+        self.sp_threshold.setGeometry(QtCore.QRect(100, 70, 69, 27))
+        self.sp_threshold.setObjectName("sp_threshold")
+        self.label_2 = QtWidgets.QLabel(self.groupBox)
+        self.label_2.setGeometry(QtCore.QRect(20, 80, 67, 17))
+        self.label_2.setObjectName("label_2")
+        self.widget = QtWidgets.QWidget(self.groupBox)
+        self.widget.setGeometry(QtCore.QRect(10, 30, 502, 29))
+        self.widget.setObjectName("widget")
+        self.horizontalLayout = QtWidgets.QHBoxLayout(self.widget)
+        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.label = QtWidgets.QLabel(self.groupBox)
         self.label.setObjectName("label")
