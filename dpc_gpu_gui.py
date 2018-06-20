@@ -52,6 +52,9 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.ck_mode_flag.clicked.connect(self.updateModeFlg)
         self.ck_multislice_flag.clicked.connect(self.updateMultiSliceFlg)
         self.ck_gpu_flag.clicked.connect(self.updateGpuFlg)
+        self.ck_bragg_flag.clicked.connect(self.updateBraggFlg)
+        self.ck_pc_flag.clicked.connect(self.updatePcFlg)
+        self.ck_position_correction_flag.clicked.connect(self.updateCorrFlg)
 
         self.btn_recon_start.clicked.connect(self.start)
         self.btn_recon_stop.clicked.connect(self.stop)
@@ -385,6 +388,29 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.btn_gpu_1.setEnabled(flag)
         self.btn_gpu_2.setEnabled(flag)
         self.btn_gpu_3.setEnabled(flag)
+
+
+    def updateBraggFlg(self):
+        flag = self.ck_bragg_flag.isChecked()
+        self.sp_bragg_theta.setEnabled(flag)
+        self.sp_bragg_gamma.setEnabled(flag)
+        self.sp_bragg_delta.setEnabled(flag)
+        self.param.bragg_flag = flag
+
+
+    def updatePcFlg(self):
+        flag = self.ck_pc_flag.isChecked()
+        self.sp_pc_sigma.setEnabled(flag)
+        self.sp_pc_kernel_n.setEnabled(flag)
+        self.cb_pc_alg.setEnabled(flag)
+        self.param.pc_flag = flag
+
+
+    def updateCorrFlg(self):
+        flag = self.ck_position_correction_flag.isChecked()
+        self.sp_position_correction_start.setEnabled(flag)
+        self.sp_position_correction_step.setEnabled(flag)
+        self.param.position_correction_flag = flag
 
 
     def setMPIfile(self):
