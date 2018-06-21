@@ -11,7 +11,7 @@ from fcntl import fcntl, F_GETFL, F_SETFL
 from os import O_NONBLOCK
 import numpy as np
 try:
-    from core.HXN_databroker import save_data
+    from core.HXN_databroker import load_metadata, save_data
 except ImportError as ex:
     print('[!] Unable to import core.HXN_databroker packages some features will '
           'be unavailable')
@@ -171,11 +171,11 @@ class DPCReconWorker(QtCore.QThread):
 # a worker that does the rest of hard work for us
 class HardWorker(QtCore.QThread):
     update_signal = QtCore.pyqtSignal(int, object) # connect to MainWindow???
-
     def __init__(self, task=None, *args, parent=None):
         super().__init__(parent)
         self.task = task
         self.args = args
+        #self.update_signal = QtCore.pyqtSignal(int, object) # connect to MainWindow???
 
     def run(self):
         try:
@@ -200,7 +200,12 @@ class HardWorker(QtCore.QThread):
         print("h5 saved.")
 
     def _fetch_data(self, update_fcn=None):
-        pass
+        '''
+        args = [db, scan_id, det_name]
+        '''
+        if update_fcn is not None:
+            print("loading begins, this may take a while...")
+            update_fcn(0, load_metadata(*self.args)) # 0 is just a placeholder
 
 
 class DPCReconFakeWorker(QtCore.QThread):

@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QFileDialog
 
 from ui import ui_dpc
 from core.dpc_param import Param
-from core.dpc_recon import DPCReconWorker, DPCReconFakeWorker
+from core.dpc_recon import DPCReconWorker, DPCReconFakeWorker, HardWorker
 from core.dpc_qt_utils import DPCStream
 from core.widgets.mplcanvas import load_image_pil
 
@@ -74,12 +74,14 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self._prb = None
         self._obj = None
         self._dpc_gpu_thread = None
+        self._worker_thread = None
         self._db = None             # hold the Broker instance that contains the info of the given scan id
         self._mds_table = None      # hold a Pandas.dataframe instance
         self._loaded = False        # whether the user has loaded metadata or not (from either databroker or h5)
         self._scan_numbers = None   # a list of scan numbers for batch mode
 
         self.reconStepWindow = None
+        self.roiWindow = None
 
         self.update_gui_from_param()
         self.updateModeFlg()
@@ -620,15 +622,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             self.exception_handler(ex)
         else:
             self._loaded = True
-        finally:
-            print("done")
 
 
     #@profile
     def _loadExpParamBroker(self, scan_id:int):
-        #doesn't really work...
-        #print("loading begins...may take a while...")
-        #sys.stdout.flush()
         self.db = scan_id # set the correct database
         header = self.db[scan_id]
 
@@ -645,7 +642,18 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             det_name = self.cb_detectorkind.currentText()
 
         # get metadata
-        metadata = load_metadata(self.db, scan_id, det_name)
+        thread = self._worker_thread \
+               = HardWorker("fetch_data", self.db, scan_id, det_name)
+        thread.update_signal.connect(self._setExpParamBroker)
+        self.btn_load_scan.setEnabled(False)
+        thread.start()
+
+
+    def _setExpParamBroker(self, it, metadata:dict):   
+        '''
+        The parameter "it" is just a placeholder for the signal 
+        '''
+        #metadata = load_metadata(self.db, scan_id, det_name)
         self.param.__dict__ = {**self.param.__dict__, **metadata} # for Python 3.5+ only
         if metadata['nz'] == 0:
             raise ValueError
@@ -671,6 +679,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         if self.cb_scan_type.findText(metadata['scan_type']) == -1:
             self.cb_scan_type.addItem(metadata['scan_type'])
         self.cb_scan_type.setCurrentText(metadata['scan_type'])
+        self.btn_load_scan.setEnabled(True)
+        print("done")
 
 
     def setLoadButton(self):
@@ -704,6 +714,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             #self.cb_scan_type = ...
             self.sp_num_points.setValue(nz)
             # read the detector name and set it in GUI??
+            print("done")
 
 
     def resetExperimentalParameters(self):
