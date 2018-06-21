@@ -153,6 +153,10 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         self.btn_save_to_h5.setEnabled(False)
         thread.start()
 
+        # update Exp parameters. Note that there's a np.rot90 to the images in save_h5!!!
+        master.sp_x_arr_size.setValue(self.roi_height)
+        master.sp_y_arr_size.setValue(self.roi_width)
+
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
