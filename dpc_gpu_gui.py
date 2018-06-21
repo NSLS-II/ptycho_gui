@@ -677,7 +677,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         if self.cb_dataloader.currentText() == "Load from databroker":
             self.cb_detectorkind.setEnabled(True)
             self.cb_scan_type.setEnabled(True)
-            print("[WARNING] Currently detector distance is unavailable in Databroker and must be set manually!", file=sys.stderr)
+            #print("[WARNING] Currently detector distance is unavailable in Databroker and must be set manually!", file=sys.stderr)
+            print("[WARNING] Detector distance is unavailable in Databroker, assumed to be 0.5m", file=sys.stderr)
         if self.cb_dataloader.currentText() == "Load from h5":
             self.cb_detectorkind.setEnabled(False)
             self.cb_scan_type.setEnabled(False) # do we ever write scan type to h5???
@@ -707,7 +708,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
     def resetExperimentalParameters(self):
         self.sp_xray_energy.setValue(0)
-        self.sp_detector_distance.setValue(0)
+        self.sp_detector_distance.setValue(0.5)
         self.sp_x_arr_size.setValue(0)
         self.sp_y_arr_size.setValue(0)
         self.sp_x_step_size.setValue(0)

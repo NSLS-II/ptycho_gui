@@ -10,6 +10,12 @@ import subprocess # call mpirun from shell
 from fcntl import fcntl, F_GETFL, F_SETFL
 from os import O_NONBLOCK
 import numpy as np
+try:
+    from core.HXN_databroker import save_data
+except ImportError as ex:
+    print('[!] Unable to import core.HXN_databroker packages some features will '
+          'be unavailable')
+    print('[!] (import error: {})'.format(ex))
 
 
 class DPCReconWorker(QtCore.QThread):
@@ -162,6 +168,41 @@ class DPCReconWorker(QtCore.QThread):
         self.process.wait()
 
 
+# a worker that does the rest of hard work for us
+class HardWorker(QtCore.QThread):
+    update_signal = QtCore.pyqtSignal(int, object) # connect to MainWindow???
+
+    def __init__(self, task=None, *args, parent=None):
+        super().__init__(parent)
+        self.task = task
+        self.args = args
+
+    def run(self):
+        try:
+            if self.task == "save_h5":
+                self._save_h5(self.update_signal.emit)
+            elif self.task == "fetch_data":
+                self._fetch_data(self.update_signal.emit)
+            # TODO: put other heavy lifting works here
+            # TODO: consider merge other worker threads to this one?
+        except:
+            raise
+
+    def kill(self):
+        pass
+
+    def _save_h5(self, update_fcn=None):
+        '''
+        args = [db, param, scan_num, roi_width, roi_height, cx, cy, threshold, bad_pixels]
+        '''
+        print("saving data to h5, this may take a while...")
+        save_data(*self.args)
+        print("h5 saved.")
+
+    def _fetch_data(self, update_fcn=None):
+        pass
+
+
 class DPCReconFakeWorker(QtCore.QThread):
     update_signal = QtCore.pyqtSignal(int, object)
 
@@ -238,8 +279,3 @@ class DPCReconFakeWorker(QtCore.QThread):
 
     def kill(self):
         pass
-
-
-
-
-

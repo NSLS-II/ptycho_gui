@@ -4,7 +4,7 @@ from ui import ui_roi
 
 import numpy as np
 from core.widgets.imgTools import find_outlier_pixels, find_brightest_pixels, rm_outlier_pixels
-from core.HXN_databroker import save_data
+from core.dpc_recon import HardWorker
 
 BADPIX_BRIGHTEST = 0
 BADPIX_OUTLIERS = 1
@@ -50,6 +50,7 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         self.cx = None
         self.cy = None
         self.sp_threshold.setValue(1.0)
+        self._worker_thread = None
 
     def find_badpixels(self, op_name):
         img = self.canvas.image
@@ -138,18 +139,19 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         # TODO: separate this part to another function?
         if len(self.badpixels) == 2 and len(self.badpixels[0]) == len(self.badpixels[1]) > 0:
             badpixels = [self.badpixels[0] + self.offset_y, self.badpixels[1] + self.offset_x]
-            print("bad pixels:")
-            for x, y in zip(badpixels[0], badpixels[1]):
-                print("  (x, y) = ({0}, {1})".format(x, y))
+            #print("bad pixels:")
+            #for y, x in zip(badpixels[0], badpixels[1]):
+            #    print("  (x, y) = ({0}, {1})".format(x, y))
         else:
             badpixels = None
             print("no bad pixels")
 
-        #TODO: ask a QThread to do the work
-        #print("center: {0} {1} ".format(self.cx, self.cy), file=sys.stderr)
-        save_data(master.db, p, int(p.scan_num), self.roi_width, self.roi_height, cx=self.cx, cy=self.cy,
-                  threshold=threshold, bad_pixels=badpixels)
-        print("h5 saved.")
+        thread = self._worker_thread \
+               = HardWorker("save_h5", master.db, p, int(p.scan_num), self.roi_width, self.roi_height, 
+                                       self.cx, self.cy, threshold, badpixels)
+        thread.finished.connect(lambda: self.btn_save_to_h5.setEnabled(True))
+        self.btn_save_to_h5.setEnabled(False)
+        thread.start()
 
 
 if __name__ == '__main__':
