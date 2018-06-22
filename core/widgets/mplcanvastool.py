@@ -152,6 +152,8 @@ class MplCanvasTool(QtWidgets.QWidget):
             self.canvas.draw()
 
     def reset(self):
+        for sp in self._roi_all:
+            sp.setValue(0.)
         self.image_handler = None
         self.image = None
         self.overlay = None

@@ -185,6 +185,10 @@ class HardWorker(QtCore.QThread):
                 self._fetch_data(self.update_signal.emit)
             # TODO: put other heavy lifting works here
             # TODO: consider merge other worker threads to this one?
+        except ValueError as ex:
+            # from _fetch_data(), print it and quit
+            print(ex, file=sys.stderr)
+            print("[ERROR] possible reason: no image available for the selected detector/scan", file=sys.stderr)
         except:
             raise
 
@@ -204,8 +208,20 @@ class HardWorker(QtCore.QThread):
         args = [db, scan_id, det_name]
         '''
         if update_fcn is not None:
-            print("loading begins, this may take a while...")
-            update_fcn(0, load_metadata(*self.args)) # 0 is just a placeholder
+            print("loading begins, this may take a while...", end='')
+            metadata = load_metadata(*self.args)
+
+            # sanity checks
+            if metadata['nz'] == 0:
+                raise ValueError("nz = 0")
+            #print("databroker connected, parsing experimental parameters...", end='')
+            # get nx and ny by looking at the first image
+            img = self.args[0].reg.retrieve(metadata['mds_table'].iat[0])[0]
+            nx, ny = img.shape # can also give a ValueError; TODO: come up a better way!
+            metadata['nx'] = nx
+            metadata['ny'] = ny
+
+            update_fcn(0, metadata) # 0 is just a placeholder
 
 
 class DPCReconFakeWorker(QtCore.QThread):

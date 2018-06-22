@@ -542,8 +542,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             # don't expect this will happen but if so I'd like to know what
             self.exception_handler(ex)
         else:
-            #img = np.rot90(img, axes=(1,0))
-            self.roiWindow = RoiWindow(image=img, main_window=self)
+            if self.roiWindow is None:
+                self.roiWindow = RoiWindow(image=img, main_window=self)
+            else:
+                self.roiWindow.reset_window(image=img, main_window=self)
             #self.roiWindow.roi_changed.connect(self._get_roi_slot)
             self.roiWindow.show()
 
@@ -614,10 +616,6 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         except OSError: # for h5
             print("[ERROR] h5 not found. Resetting...", file=sys.stderr, end='')
             self.resetExperimentalParameters()
-        except ValueError as ex: # for databroker
-            print()
-            print(ex, file=sys.stderr)
-            print("[ERROR] no image available for the chosen detector.", file=sys.stderr)
         except Exception as ex: # everything unexpected at this time...
             self.exception_handler(ex)
         else:
@@ -645,32 +643,30 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         thread = self._worker_thread \
                = HardWorker("fetch_data", self.db, scan_id, det_name)
         thread.update_signal.connect(self._setExpParamBroker)
+        thread.finished.connect(lambda: self.btn_load_scan.setEnabled(True))
         self.btn_load_scan.setEnabled(False)
         thread.start()
 
 
     def _setExpParamBroker(self, it, metadata:dict):   
         '''
-        The parameter "it" is just a placeholder for the signal 
+        Notes:
+        1. The parameter "it" is just a placeholder for the signal 
+        2. The exceptions are handled in the HardWorker thread, so this function
+           is guaranteed no-throw.
         '''
         #metadata = load_metadata(self.db, scan_id, det_name)
         self.param.__dict__ = {**self.param.__dict__, **metadata} # for Python 3.5+ only
-        if metadata['nz'] == 0:
-            raise ValueError
-        else:
-            nz = metadata['nz']
-            # get the mds keys to the image (diffamp) array 
-            self._mds_table = metadata['mds_table']
 
-        print("databroker connected, parsing experimental parameters...", end='')
-        # get nx and ny by looking at the first image
-        img = self.db.reg.retrieve(self._mds_table.iat[0])[0]
-        nx, ny = img.shape # can also give a ValueError; TODO: come up a better way!
+        # get the mds keys to the image (diffamp) array 
+        self._mds_table = metadata['mds_table']
+
+        # update experimental parameters
         self.sp_xray_energy.setValue(metadata['energy_kev'])
         #self.sp_detector_distance.setValue(f['z_m'].value) # don't know how to handle this...
-        self.sp_x_arr_size.setValue(nx)
-        self.sp_y_arr_size.setValue(ny)
-        self.sp_num_points.setValue(nz)
+        self.sp_x_arr_size.setValue(metadata['nx'])
+        self.sp_y_arr_size.setValue(metadata['ny'])
+        self.sp_num_points.setValue(metadata['nz'])
         self.sp_x_step_size.setValue(metadata['dr_x'])
         self.sp_y_step_size.setValue(metadata['dr_y'])
         self.sp_x_scan_range.setValue(metadata['x_range'])
@@ -679,7 +675,6 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         if self.cb_scan_type.findText(metadata['scan_type']) == -1:
             self.cb_scan_type.addItem(metadata['scan_type'])
         self.cb_scan_type.setCurrentText(metadata['scan_type'])
-        self.btn_load_scan.setEnabled(True)
         print("done")
 
 
