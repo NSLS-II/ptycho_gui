@@ -4,28 +4,50 @@ from matplotlib.patches import Rectangle
 from PyQt5.QtCore import QObject, pyqtSignal
 
 class EventHandler(QObject):
-    roi_changed = pyqtSignal(float, float, float, float, name='roiChanged')
+    ### signals
+    # signal for ROI ==> (x0, y0, w, h)
+    # x0, y0: xy-coordinate of upper-left corner
+    # w, h: width and height of the roi
+    roi_changed = pyqtSignal(int, int, int, int, name='roiChanged')
 
-    def __init__(self, parent=None, multi_roi=False):
+    # signal for coordinate of the mouse pointer ==> (x, y)
+    # x, y: xy-coordinate of the mouse pointer on the axis
+    coord_changed = pyqtSignal(int, int, name='coordChanged')
+
+    def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.cur_xlim = None
-        self.cur_ylim = None
-        self.x0 = None
-        self.y0 = None
-        self.x1 = None
-        self.y1 = None
+        # temporal variable for panning
+        self.pan_cur_xlim = None
+        self.pan_cur_ylim = None
+        self.pan_x0 = None
+        self.pan_y0 = None
 
-        self.multi = multi_roi
-        self.rect_count = 0
-        self.rect_selected_key = -1
-        self.all_rect = {}
-        self.rect = None
-        self.rect_x0 = None
-        self.rect_y0 = None
-        self.rect_x1 = None
-        self.rect_y1 = None
+        # self.cur_xlim = None
+        # self.cur_ylim = None
+        # self.x0 = None
+        # self.y0 = None
+        # self.x1 = None
+        # self.y1 = None
 
+        # self.multi = multi_roi
+        # self.rect_count = 0
+        # self.rect_selected_key = -1
+        # self.all_rect = {}
+        # self.rect = None
+        # self.rect_x0 = None
+        # self.rect_y0 = None
+        # self.rect_x1 = None
+        # self.rect_y1 = None
+
+    # coord related -- common actionc for all
+    def emit_coord(self, event):
+        ix = np.int(np.floor(event.xdata + 0.5))
+        iy = np.int(np.floor(event.ydata + 0.5))
+        self.coord_changed.emit(ix, iy)
+
+
+    #### ROI related ####
     def get_roi(self):
         if self.rect_count:
             rect = self.all_rect[self.rect_selected_key]
@@ -58,10 +80,12 @@ class EventHandler(QObject):
             self.rect_selected_key = self.rect_count
             self.rect_count += 1
         ax.figure.canvas.draw()
+    ### End of ROI related ####
 
 
-    def zoom_factory(self, ax, base_scale=1.05):
-        def zoom(event):
+    # create zoom in/out handler with mouse wheel
+    def zoom_pan_factory(self, ax, base_scale=1.05):
+        def on_scroll(event):
             if not ax.in_axes(event): return
 
             cur_xlim = ax.get_xlim()
@@ -85,46 +109,45 @@ class EventHandler(QObject):
             ax.set_ylim([y - y_top*scale_factor, y + y_bottom*scale_factor])
             ax.figure.canvas.draw()
 
-        fig = ax.get_figure()
-        id = fig.canvas.mpl_connect('scroll_event', zoom)
-        return [id]
-
-    def pan_factory(self, ax):
         def on_press(event):
             if not ax.in_axes(event): return
             if event.button != 1: return
-            self.cur_xlim = ax.get_xlim()
-            self.cur_ylim = ax.get_ylim()
-            self.x0 = event.xdata
-            self.y0 = event.ydata
+            self.pan_cur_xlim = ax.get_xlim()
+            self.pan_cur_ylim = ax.get_ylim()
+            self.pan_x0 = event.xdata
+            self.pan_y0 = event.ydata
 
         def on_release(event):
-            if event.button != 1: return
-            self.cur_xlim = None
-            self.cur_ylim = None
-            self.x0 = None
-            self.y0 = None
-            ax.figure.canvas.draw()
+            self.pan_cur_xlim = None
+            self.pan_cur_ylim = None
+            self.pan_x0 = None
+            self.pan_y0 = None
 
         def on_motion(event):
             if not ax.in_axes(event): return
-            if event.button != 1: return
-            if self.x0 is None or self.y0 is None: return
+            self.emit_coord(event)
 
-            dx = event.xdata - self.x0
-            dy = event.ydata - self.y0
-            self.cur_xlim -= dx
-            self.cur_ylim -= dy
-            ax.set_xlim(self.cur_xlim)
-            ax.set_ylim(self.cur_ylim)
+            if event.button != 1: return
+            if self.pan_cur_xlim is None: return
+            if self.pan_cur_ylim is None: return
+            if self.pan_x0 is None or self.pan_y0 is None: return
+
+            dx = event.xdata - self.pan_x0
+            dy = event.ydata - self.pan_y0
+            self.pan_cur_xlim -= dx
+            self.pan_cur_ylim -= dy
+            ax.set_xlim(self.pan_cur_xlim)
+            ax.set_ylim(self.pan_cur_ylim)
             ax.figure.canvas.draw()
 
         fig = ax.get_figure()
-        id1 = fig.canvas.mpl_connect('button_press_event', on_press)
-        id2 = fig.canvas.mpl_connect('button_release_event', on_release)
-        id3 = fig.canvas.mpl_connect('motion_notify_event', on_motion)
+        return [
+            fig.canvas.mpl_connect('scroll_event', on_scroll),
+            fig.canvas.mpl_connect('button_press_event', on_press),
+            fig.canvas.mpl_connect('button_release_event', on_release),
+            fig.canvas.mpl_connect('motion_notify_event', on_motion)
+        ]
 
-        return [id1, id2, id3]
 
     def _find_closest_rect(self, x, y):
         min_key = -1
@@ -170,6 +193,9 @@ class EventHandler(QObject):
         self.rect_count = rect_count
         self.rect_selected_key = rect_count - 1
 
+    # create roi handler with mouse dragging
+    # - action is overlapped with pan handler
+    # - must select one of handlers between pan and roi
     def roi_factory(self, ax):
         def on_press(event):
             if not ax.in_axes(event): return
@@ -194,6 +220,8 @@ class EventHandler(QObject):
 
         def on_motion(event):
             if not ax.in_axes(event): return
+            self.emit_coord(event)
+
             if event.button != 1: return
             if self.rect_x0 is None or self.rect_y0 is None: return
 
@@ -225,91 +253,76 @@ class EventHandler(QObject):
 
         return [id1, id2, id3]
 
-    def monitor_factory(self, ax, image_handler):
-
-        def _find_closest_rect(x, y):
-            min_key = -1
-            min_dist = 9999999.
-            for key, rect in self.all_rect.items():
-                rect.set_edgecolor('gray')
-                xy = rect.get_xy()
-                width = rect.get_width()
-                height = rect.get_height()
-
-                _x0 = xy[0]
-                _y0 = xy[1]
-                _x1 = _x0 + width
-                _y1 = _y0 + height
-
-                x0, x1 = np.minimum(_x0, _x1), np.maximum(_x0, _x1)
-                y0, y1 = np.minimum(_y0, _y1), np.maximum(_y0, _y1)
-                if x <= x0 or x >= x1 or y <= y0 or y >= y1: continue
-
-                dist = np.min(np.abs([x0 - x, x1 - x, y0 - y, y1 - y]))
-                if dist < min_dist:
-                    min_key = key
-                    min_dist = dist
-
-            return min_key
+    # create monitor handler
+    # - mouse moving: pick x, y coordinate and corresponding value, if available
+    # - left mouse button:
+    #       - around roi edges: change color
+    # - right click:
+    #       - pick a pixel
+    def monitor_factory(self, ax):
 
         def on_press(event):
             if not ax.in_axes(event): return
+            print('on_press')
 
-            x = event.xdata
-            y = event.ydata
-            self.x0 = x
-            self.y0 = y
-            if self.rect_count:
-                selected_key = _find_closest_rect(x, y)
-                if event.button == 1:
-                    if selected_key >= 0:
-                        self.all_rect[selected_key].set_edgecolor('red')
-                        self.rect_selected_key = selected_key
-                    else:
-                        self.all_rect[self.rect_count-1].set_edgecolor('red')
-                        self.rect_selected_key = self.rect_count-1
-                    x1, y1 = self.all_rect[self.rect_selected_key].get_xy()
-                    self.x1 = x1
-                    self.y1 = y1
-                elif event.button == 3 and selected_key >= 0:
-                    self.all_rect[selected_key].remove()
-                    del self.all_rect[selected_key]
-                    all_rect = {}
-                    rect_count = 0
-                    for _, value in self.all_rect.items():
-                        all_rect[rect_count] = value
-                        rect_count += 1
-
-                    if rect_count:
-                        all_rect[rect_count-1].set_edgecolor('red')
-
-                    self.all_rect = all_rect
-                    self.rect_count = rect_count
-                    self.rect_selected_key = rect_count-1
-
-                ax.figure.canvas.draw()
+            # x = event.xdata
+            # y = event.ydata
+            # self.x0 = x
+            # self.y0 = y
+            # if self.rect_count:
+            #     selected_key = _find_closest_rect(x, y)
+            #     if event.button == 1:
+            #         if selected_key >= 0:
+            #             self.all_rect[selected_key].set_edgecolor('red')
+            #             self.rect_selected_key = selected_key
+            #         else:
+            #             self.all_rect[self.rect_count-1].set_edgecolor('red')
+            #             self.rect_selected_key = self.rect_count-1
+            #         x1, y1 = self.all_rect[self.rect_selected_key].get_xy()
+            #         self.x1 = x1
+            #         self.y1 = y1
+            #     elif event.button == 3 and selected_key >= 0:
+            #         self.all_rect[selected_key].remove()
+            #         del self.all_rect[selected_key]
+            #         all_rect = {}
+            #         rect_count = 0
+            #         for _, value in self.all_rect.items():
+            #             all_rect[rect_count] = value
+            #             rect_count += 1
+            #
+            #         if rect_count:
+            #             all_rect[rect_count-1].set_edgecolor('red')
+            #
+            #         self.all_rect = all_rect
+            #         self.rect_count = rect_count
+            #         self.rect_selected_key = rect_count-1
+            #
+            #     ax.figure.canvas.draw()
 
         def on_release(event):
-            self.x0 = None
-            self.y0 = None
-            self.x1 = None
-            self.y1 = None
-            self.rect = None
+            print('on_release')
+            pass
+            # self.x0 = None
+            # self.y0 = None
+            # self.x1 = None
+            # self.y1 = None
+            # self.rect = None
 
         def on_motion(event):
             if not ax.in_axes(event): return
-            if event.button != 1: return
+            self.emit_coord(event)
 
-            x, y = event.xdata, event.ydata
-            #value = image_handler.get_cursor_data(event)
-
-            dx = x - self.x0
-            dy = y - self.y0
-            if self.rect_selected_key >= 0:
-                xy = self.x1 + dx, self.y1 + dy
-                self.all_rect[self.rect_selected_key].set_xy(xy)
-
-                ax.figure.canvas.draw()
+            # if event.button != 1: return
+            #
+            # #value = image_handler.get_cursor_data(event)
+            #
+            # dx = x - self.x0
+            # dy = y - self.y0
+            # if self.rect_selected_key >= 0:
+            #     xy = self.x1 + dx, self.y1 + dy
+            #     self.all_rect[self.rect_selected_key].set_xy(xy)
+            #
+            #     ax.figure.canvas.draw()
 
         fig = ax.get_figure()
         id1 = fig.canvas.mpl_connect('button_press_event', on_press)
