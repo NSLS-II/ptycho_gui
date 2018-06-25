@@ -80,7 +80,7 @@ class MplCanvasTool(QtWidgets.QWidget):
         self._roi_all = [self.sp_x0, self.sp_y0, self.sp_w, self.sp_h]
         for sp in self._roi_all:
             sp.setMaximum(9999)
-            sp.setMinimum(-9999)
+            sp.setMinimum(0)
             sp.setValue(0)
             sp.valueChanged.connect(self._update_roi_canvas)
 
@@ -123,15 +123,11 @@ class MplCanvasTool(QtWidgets.QWidget):
         for sp in self._roi_all: sp.valueChanged.connect(self._update_roi_canvas)
 
     def _update_roi_canvas(self):
-        print('_update_roi_canvas')
         x0 = self.sp_x0.value()
         y0 = self.sp_y0.value()
         w = self.sp_w.value()
         h = self.sp_h.value()
-
-        if x0 <= 0 or y0 <= 0 or w <= 0 or h <= 0:
-            return
-
+        if w <= 0 or h <= 0: return
         self._eventHandler.set_curr_roi(self.ax, (x0, y0), w, h)
 
     def _update_buttons(self, op_name):
@@ -175,41 +171,24 @@ class MplCanvasTool(QtWidgets.QWidget):
         if h <= 0: h = self.image.shape[0]
 
         cropped_image = self.image[y0:(y0+h), x0:(x0+w)]
-        _x0, _y0, _w, _h = estimate_roi(cropped_image)
+        _x0, _y0, _w, _h = estimate_roi(cropped_image, threshold=1.0)
         cx = np.int(np.round(x0 + _x0 + _w//2))
         cy = np.int(np.round(y0 + _y0 + _h//2))
 
-        print(_x0, _y0, _w, _h)
-        x0 = _x0
-        y0 = _y0
-        w = _w
-        h = _h
+        side = 32 * (np.maximum(_w, _h) // 32)
+        x0 = np.int(np.maximum(cx - side//2, 0))
+        y0 = np.int(np.maximum(cy - side//2, 0))
+        x1 = x0 + side
+        y1 = y0 + side
 
-        # # maybe need to filter ref_roi_side so that all values are less than the image side??
-        # def _adjust_side(side):
-        #     idx = np.int(np.argmin(np.abs(np.array(self.ref_roi_side) - side)))
-        #     return self.ref_roi_side[idx]
-        # w = np.minimum(_adjust_side(_w), self.image.shape[1]-1)
-        # h = np.minimum(_adjust_side(_h), self.image.shape[0]-1)
-        # print(w, h)
-        #
-        # x0 = np.int(np.maximum(cx - w//2, 0))
-        # y0 = np.int(np.maximum(cy - h//2, 0))
-        # x1 = x0 + w
-        # y1 = y0 + h
-        #
-        # offset_x = np.maximum(x1 - self.image.shape[1], 0)
-        # x0 = np.maximum(x0 - offset_x, 0)
-        # x1 = x1 - offset_x
-        #
-        # offset_y = np.maximum(y1 - self.image.shape[0], 0)
-        # y0 = np.maximum(y0 - offset_y, 0)
-        # y1 = y1 - offset_y
-        #
-        # h = y1 - y0
-        # w = x1 - x0
-        #
-        # print(x0, y0, w, h)
+        offset_x = np.maximum(x1 - self.image.shape[1] + 1, 0)
+        x1 = x1 - offset_x
+
+        offset_y = np.maximum(y1 - self.image.shape[0] + 1, 0)
+        y1 = y1 - offset_y
+
+        h = y1 - y0
+        w = x1 - x0
 
         self._eventHandler.set_curr_roi(self.ax, (x0, y0), w, h)
         self._update_roi(x0, y0, w, h)
@@ -234,8 +213,8 @@ class MplCanvasTool(QtWidgets.QWidget):
             self.image_handler.set_data(image)
         self.image = image
 
-        # if init_roi:
-        #     self._on_adjust_roi()
+        if init_roi:
+            self._on_adjust_roi()
 
         if len(self._ids) == 0:
             self._ids = self._eventHandler.monitor_factory(self.ax)

@@ -119,10 +119,10 @@ def find_start_end(arr, threshold_weight=0.3):
     diff = np.abs(arr[:-1] - arr[1:])
     diff = diff < threshold_weight * np.mean(diff)
     start = np.argmin(diff)
-    end = len(arr) - np.argmin(diff[::-1]) -1
+    end = len(arr) - np.argmin(diff[::-1]) - 1
     return start, end
 
-def estimate_roi(image, threshold=0.3):
+def estimate_roi(image, threshold=0.1):
     height, width = image.shape
     _image = (image - np.min(image)) / np.ptp(image)
 

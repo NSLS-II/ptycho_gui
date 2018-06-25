@@ -73,37 +73,38 @@ class EventHandler(QObject):
 
 
     #### ROI related ####
-    def get_roi(self):
-        if self.rect_count:
-            rect = self.all_rect[self.rect_selected_key]
-            return rect.get_xy(), rect.get_width(), rect.get_height()
-        else:
-            return None, None, None
+    # def get_roi(self):
+    #     if self.rect_count:
+    #         rect = self.all_rect[self.rect_selected_key]
+    #         return rect.get_xy(), rect.get_width(), rect.get_height()
+    #     else:
+    #         return None, None, None
 
-    def set_roi(self, ax, xy, width, height):
-        if self.rect_selected_key >= 0:
-            self.all_rect[self.rect_selected_key].set_edgecolor('red')
-
-        rect = Rectangle(xy, width, height, linewidth=1, edgecolor='red', facecolor='none')
-        ax.add_patch(rect)
-        self.all_rect[self.rect_count] = rect
-        self.rect_selected_key = self.rect_count
-        self.rect_count += 1
-
-        ax.figure.canvas.draw()
+    # def set_roi(self, ax, xy, width, height):
+    #     if self.rect_selected_key >= 0:
+    #         self.all_rect[self.rect_selected_key].set_edgecolor('red')
+    #
+    #     rect = Rectangle(xy, width, height, linewidth=1, edgecolor='red', facecolor='none')
+    #     ax.add_patch(rect)
+    #     self.all_rect[self.rect_count] = rect
+    #     self.rect_selected_key = self.rect_count
+    #     self.rect_count += 1
+    #
+    #     ax.figure.canvas.draw()
 
     def set_curr_roi(self, ax, xy, width, height):
-        if self.rect_selected_key >= 0:
-            rect = self.all_rect[self.rect_selected_key]
-            rect.set_xy(xy)
-            rect.set_width(width)
-            rect.set_height(height)
-        else:
-            rect = Rectangle(xy, width, height, linewidth=1, edgecolor='red', facecolor='none')
+        if self.ref_rect is None:
+            rect = Rectangle(xy, width, height, linewidth=1, linestyle='dashed',
+                             edgecolor=RED_EDGECOLOR, facecolor='none')
             ax.add_patch(rect)
-            self.all_rect[self.rect_count] = rect
-            self.rect_selected_key = self.rect_count
-            self.rect_count += 1
+            self.all_rect.append(rect)
+            self.ref_rect = rect
+            self.ref_idx = len(self.all_rect) - 1
+        else:
+            self.ref_rect.set_xy(xy)
+            self.ref_rect.set_width(width)
+            self.ref_rect.set_height(height)
+
         ax.figure.canvas.draw()
 
     def _find_closest_rect(self, x, y, delta=2.):
