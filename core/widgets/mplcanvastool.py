@@ -79,12 +79,14 @@ class MplCanvasTool(QtWidgets.QWidget):
         self.sp_h = QtWidgets.QSpinBox(self)
         self._roi_all = [self.sp_x0, self.sp_y0, self.sp_w, self.sp_h]
         for sp in self._roi_all:
-            sp.setMaximum(9999.)
-            sp.setMinimum(-9999.)
-            sp.setValue(0.)
+            sp.setMaximum(9999)
+            sp.setMinimum(-9999)
+            sp.setValue(0)
             sp.valueChanged.connect(self._update_roi_canvas)
 
-        self.coord_label = QtWidgets.QLabel('coord labels')
+        self.coord_label = QtWidgets.QLabel('(x, y), value')
+        self.btn_toggle_label = QtWidgets.QPushButton('COLOR')
+        self.btn_toggle_label.setDisabled(True)
 
         self._eventHandler.roi_changed.connect(self._update_roi)
         self._eventHandler.coord_changed.connect(self._update_coord)
@@ -98,6 +100,7 @@ class MplCanvasTool(QtWidgets.QWidget):
         layout.addWidget(self.sp_w)
         layout.addWidget(QtWidgets.QLabel('h'))
         layout.addWidget(self.sp_h)
+        layout.addWidget(self.btn_toggle_label)
         layout.addWidget(self.coord_label)
         spacerItem = QtWidgets.QSpacerItem(0,0,QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Preferred)
         layout.addItem(spacerItem)
@@ -150,13 +153,9 @@ class MplCanvasTool(QtWidgets.QWidget):
         if self._active == 'pan/zoom':
             self._ids = self._eventHandler.zoom_pan_factory(self.ax)
         elif self._active == 'roi':
-            roi_ids = self._eventHandler.roi_factory(self.ax)
-            self._ids = roi_ids
+            self._ids = self._eventHandler.roi_factory(self.ax)
         else:
             self._ids = self._eventHandler.monitor_factory(self.ax)
-            pass
-            # if self.image_handler:
-            #     self._ids = self._eventHandler.monitor_factory(self.ax, self.image_handler)
 
     def _on_reset(self):
         if self.image_handler:
