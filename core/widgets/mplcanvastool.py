@@ -85,8 +85,6 @@ class MplCanvasTool(QtWidgets.QWidget):
             sp.valueChanged.connect(self._update_roi_canvas)
 
         self.coord_label = QtWidgets.QLabel('(x, y), value')
-        self.btn_toggle_label = QtWidgets.QPushButton('COLOR')
-        self.btn_toggle_label.setDisabled(True)
 
         self._eventHandler.roi_changed.connect(self._update_roi)
         self._eventHandler.coord_changed.connect(self._update_coord)
@@ -100,7 +98,6 @@ class MplCanvasTool(QtWidgets.QWidget):
         layout.addWidget(self.sp_w)
         layout.addWidget(QtWidgets.QLabel('h'))
         layout.addWidget(self.sp_h)
-        layout.addWidget(self.btn_toggle_label)
         layout.addWidget(self.coord_label)
         spacerItem = QtWidgets.QSpacerItem(0,0,QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Preferred)
         layout.addItem(spacerItem)
