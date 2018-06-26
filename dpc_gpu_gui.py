@@ -190,6 +190,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         p.beta = float(self.sp_beta.value())
 
         p.display_interval = int(self.sp_display_interval.value())
+        p.preview_flag = self.ck_preview_flag.isChecked()
 
 
     def update_gui_from_param(self):
@@ -250,6 +251,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.sp_beta.setValue(p.beta)
 
         self.sp_display_interval.setValue(p.display_interval)
+        self.ck_preview_flag.setChecked(p.preview_flag)
 
 
     def start(self):
@@ -272,6 +274,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
                 self.reconStepWindow.reset_window(iterations=self.param.n_iterations,
                                                   slider_interval=self.param.display_interval)
                 self.reconStepWindow.show()
+            else:
+                if self.reconStepWindow is not None:
+                    # TODO: maybe a thorough cleanup???
+                    self.reconStepWindow.close()
 
             if not _TEST:
                 thread = self._dpc_gpu_thread = DPCReconWorker(self.param)
@@ -303,7 +309,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         if self.reconStepWindow is not None:
             self.reconStepWindow.update_iter(it)
 
-            if not _TEST:
+            if not _TEST and self.ck_preview_flag.isChecked():
                 try:
                     if it == 1:
                         # the two npy are created by ptycho by this time

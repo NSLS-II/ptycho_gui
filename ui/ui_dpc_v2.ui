@@ -777,7 +777,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="sp_pha_min">
+           <widget class="QDoubleSpinBox" name="sp_amp_min">
             <property name="prefix">
              <string/>
             </property>
@@ -785,10 +785,10 @@
              <number>3</number>
             </property>
             <property name="minimum">
-             <double>-99.000000000000000</double>
+             <double>0.000000000000000</double>
             </property>
             <property name="value">
-             <double>-0.600000000000000</double>
+             <double>0.000000000000000</double>
             </property>
            </widget>
           </item>
@@ -800,7 +800,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="sp_amp_min">
+           <widget class="QDoubleSpinBox" name="sp_amp_max">
             <property name="prefix">
              <string/>
             </property>
@@ -840,12 +840,18 @@
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="sp_pha_max">
+           <widget class="QDoubleSpinBox" name="sp_pha_min">
             <property name="prefix">
              <string/>
             </property>
             <property name="decimals">
              <number>3</number>
+            </property>
+            <property name="minimum">
+             <double>-4.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>4.000000000000000</double>
             </property>
             <property name="value">
              <double>0.010000000000000</double>
@@ -860,7 +866,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="sp_amp_max">
+           <widget class="QDoubleSpinBox" name="sp_pha_max">
             <property name="prefix">
              <string/>
             </property>
@@ -868,7 +874,10 @@
              <number>3</number>
             </property>
             <property name="minimum">
-             <double>-3.000000000000000</double>
+             <double>-4.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>4.000000000000000</double>
             </property>
             <property name="value">
              <double>1.000000000000000</double>
