@@ -150,6 +150,8 @@ class DPCReconWorker(QtCore.QThread):
         finally:
             # clean up temp file
             os.remove(param.working_directory + '.dpc_param.pkl')
+            if os.path.isfile(param.working_directory + ".dpc_param.txt"):
+                os.remove(param.working_directory + ".dpc_param.txt")
 
     def run(self):
         print('DPC thread started')

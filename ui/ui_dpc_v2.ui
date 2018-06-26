@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>758</width>
-    <height>871</height>
+    <width>760</width>
+    <height>880</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1818,6 +1818,37 @@
     </item>
    </layout>
   </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>758</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="nativeMenuBar">
+    <bool>false</bool>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="menu_import_config"/>
+    <addaction name="menu_export_config"/>
+   </widget>
+   <addaction name="menuFile"/>
+  </widget>
+  <action name="menu_import_config">
+   <property name="text">
+    <string>Import config from txt</string>
+   </property>
+  </action>
+  <action name="menu_export_config">
+   <property name="text">
+    <string>Export config to txt</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

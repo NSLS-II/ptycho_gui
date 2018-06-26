@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui_dpc_v2.ui'
+# Form implementation generated from reading ui file 'ui/ui_dpc_v2.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(758, 871)
+        MainWindow.resize(760, 880)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.centralwidget)
@@ -781,6 +781,20 @@ class Ui_MainWindow(object):
         self.recon_bar.setObjectName("recon_bar")
         self.verticalLayout_5.addWidget(self.recon_bar)
         MainWindow.setCentralWidget(self.centralwidget)
+        self.menuBar = QtWidgets.QMenuBar(MainWindow)
+        self.menuBar.setGeometry(QtCore.QRect(0, 0, 758, 22))
+        self.menuBar.setNativeMenuBar(False)
+        self.menuBar.setObjectName("menuBar")
+        self.menuFile = QtWidgets.QMenu(self.menuBar)
+        self.menuFile.setObjectName("menuFile")
+        MainWindow.setMenuBar(self.menuBar)
+        self.menu_import_config = QtWidgets.QAction(MainWindow)
+        self.menu_import_config.setObjectName("menu_import_config")
+        self.menu_export_config = QtWidgets.QAction(MainWindow)
+        self.menu_export_config.setObjectName("menu_export_config")
+        self.menuFile.addAction(self.menu_import_config)
+        self.menuFile.addAction(self.menu_export_config)
+        self.menuBar.addAction(self.menuFile.menuAction())
 
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(0)
@@ -904,4 +918,7 @@ class Ui_MainWindow(object):
         self.le_batch_items.setToolTip(_translate("MainWindow", "Set scan numbers and ranges. Example: 2, 3-5, 7-15, 23, 30-55"))
         self.label_53.setText(_translate("MainWindow", "Process every n-th scan"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("MainWindow", "Batch mode"))
+        self.menuFile.setTitle(_translate("MainWindow", "File"))
+        self.menu_import_config.setText(_translate("MainWindow", "Import config from txt"))
+        self.menu_export_config.setText(_translate("MainWindow", "Export config to txt"))
 

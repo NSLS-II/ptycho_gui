@@ -58,8 +58,11 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
         self.btn_recon_start.clicked.connect(self.start)
         self.btn_recon_stop.clicked.connect(self.stop)
-        self.btn_recon_batch_start.clicked.connect(self.batch_start)
-        self.btn_recon_batch_stop.clicked.connect(self.batch_stop)
+        self.btn_recon_batch_start.clicked.connect(self.batchStart)
+        self.btn_recon_batch_stop.clicked.connect(self.batchStop)
+
+        self.menu_import_config.triggered.connect(self.importConfig)
+        self.menu_export_config.triggered.connect(self.exportConfig)
 
         self.btn_MPI_file.clicked.connect(self.setMPIfile)
         self.btn_gpu_all = [self.btn_gpu_0, self.btn_gpu_1, self.btn_gpu_2, self.btn_gpu_3]
@@ -335,7 +338,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
 
     def loadProbe(self):
-        filename, _ = QFileDialog.getOpenFileName(self, 'Open probe file', filter="(*.npy)")
+        filename, _ = QFileDialog.getOpenFileName(self, 'Open probe file', directory=self.param.working_directory, filter="(*.npy)")
         if filename is not None and len(filename) > 0:
             prb_filename = os.path.basename(filename)
             prb_dir = filename[:(len(filename)-len(prb_filename))]
@@ -352,7 +355,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
 
     def loadObject(self):
-        filename, _ = QFileDialog.getOpenFileName(self, 'Open object file', filter="(*.npy)")
+        filename, _ = QFileDialog.getOpenFileName(self, 'Open object file', directory=self.param.working_directory, filter="(*.npy)")
         if filename is not None and len(filename) > 0:
             obj_filename = os.path.basename(filename)
             obj_dir = filename[:(len(filename)-len(obj_filename))]
@@ -422,7 +425,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
 
     def setMPIfile(self):
-        filename, _ = QFileDialog.getOpenFileName(self, 'Open MPI machine file')
+        filename, _ = QFileDialog.getOpenFileName(self, 'Open MPI machine file', directory=self.param.working_directory)
         if filename is not None and len(filename) > 0:
             mpi_filename = os.path.basename(filename)
             mpi_dir = filename[:(len(filename)-len(mpi_filename))]
@@ -448,10 +451,14 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         '''
         scan_range = []
         scan_numbers = []
+        batch_items = self.le_batch_items.text()
         every_nth_scan = self.sp_batch_step.value()
 
+        if batch_items == '':
+            raise ValueError("No item list is given for batch processing.")
+
         # first parse items and separate them into two catogories
-        slist = self.le_batch_items.text().split(',')
+        slist = batch_items.split(',')
         for item in slist:
             if '-' in item:
                 sublist = item.split('-')
@@ -468,24 +475,27 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         return scan_numbers
 
 
-    def batch_start(self):
+    def batchStart(self):
         '''
         Currently only support load from h5. 
         '''
         if self.cb_dataloader.currentText() == "Load from databroker":
             print("[WARNING] Batch mode with databroker is not yet supported. Abort.", file=sys.stderr)
             return
+        
+        try:
+            self._scan_numbers = self.parse_scan_range()
+            # TODO: is there a way to lock all widgets to prevent accidental parameter changes in the middle?
 
-        self._scan_numbers = self.parse_scan_range()
-        # TODO: is there a way to lock all widgets to prevent accidental parameter changes in the middle?
+            # fire up
+            self._batch_manager() # serve as linked list's head
+            self.btn_recon_batch_start.setEnabled(False)
+            self.btn_recon_batch_stop.setEnabled(True)
+        except Exception as ex:
+            self.exception_handler(ex)
 
-        # fire up
-        self._batch_manager() # serve as linked list's head
-        self.btn_recon_batch_start.setEnabled(False)
-        self.btn_recon_batch_stop.setEnabled(True)
 
-
-    def batch_stop(self):
+    def batchStop(self):
         '''
         Brute-force abortion of the entire batch. No resumption is possible.
         '''
@@ -716,6 +726,25 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             self.sp_num_points.setValue(nz)
             # read the detector name and set it in GUI??
             print("done")
+
+
+    def importConfig(self):
+        print("import")
+
+
+    def exportConfig(self):
+        filename, _ = QFileDialog.getSaveFileName(self, 'Save GUI config to txt', directory=self.param.working_directory, filter="(*.txt)")
+        if filename is not None and len(filename) > 0:
+            if filename[-4:] != ".txt":
+                filename += ".txt"
+            with open(filename, 'w') as f:
+                f.write("[GUI]\n")
+                for key in self.param.__dict__:
+                    # skip a few items related to databroker
+                    if key == 'points' or key == 'ic' or key == 'mds_table':
+                        continue
+                    f.write(key+" = "+str(self.param.__dict__[key])+"\n")
+                print("config saved to " + filename)
 
 
     def resetExperimentalParameters(self):
