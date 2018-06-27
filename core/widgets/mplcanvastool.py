@@ -44,6 +44,7 @@ class MplCanvasTool(QtWidgets.QWidget):
         self._eventHandler.brush_changed.connect(self.update_overlay)
 
         self.image = None
+        self.image_data = None
         self.overlay = None
         self.image_handler = None
         self.overlay_handler = None
@@ -161,6 +162,11 @@ class MplCanvasTool(QtWidgets.QWidget):
             self.canvas.draw()
 
     def _on_adjust_roi(self):
+        '''
+        Always use original image data (i.e. not log scaled one) for roi prediction.
+        Also, currently, it ignores user selected (red-colored) roi
+        todo: adjust based on user selected roi
+        '''
         if self.image is None:
             return
 
@@ -189,23 +195,30 @@ class MplCanvasTool(QtWidgets.QWidget):
     def reset(self):
         self.image_handler = None
         self.image = None
+        self.image_data = None
         self.overlay = None
         self.overlay_handler = None
         self.ax.clear()
         self.ax.set_axis_off()
         self.canvas.draw()
 
-    def draw_image(self, image, cmap='gray', vmin=None, vmax=None, init_roi=True):
-        if self.image_handler is None:
-            if vmin is None: vmin = np.min(image)
-            if vmax is None: vmax = np.max(image)
-            self.image_handler = self.ax.imshow(image, cmap=cmap, vmin=vmin, vmax=vmax)
+    def draw_image(self, image, cmap='gray', init_roi=False, use_log=False):
+        print(cmap, init_roi, use_log)
+        if use_log:
+            print('log scale')
+            image_data = np.nan_to_num(np.log(image + 1.))
         else:
-            if vmin is None: vmin = np.min(image)
-            if vmax is None: vmax = np.max(image)
-            self.image_handler.set_data(image)
+            image_data = image
+
+        if self.image_handler is None:
+            self.image_handler = self.ax.imshow(image_data, cmap=cmap)
+        else:
+            self.image_handler.set_data(image_data)
             # todo: update data min, max (maybe not needed)
+        self.image_handler.set_clim(vmin=np.min(self.image_data), vmax=np.max(self.image_data))
+
         self.image = image
+        self.image_data = image_data
 
         if init_roi:
             self._on_adjust_roi()
@@ -262,6 +275,16 @@ class MplCanvasTool(QtWidgets.QWidget):
     def show_overlay(self, state):
         if self.overlay_handler is None: return
         self.overlay_handler.set_visible(state)
+        self.canvas.draw()
+
+    def use_logscale(self, state):
+        if self.image is None: return
+        if state:
+            self.image_data = np.nan_to_num(np.log(self.image + 1.))
+        else:
+            self.image_data = self.image
+        self.image_handler.set_data(self.image_data)
+        self.image_handler.set_clim(vmin=np.min(self.image_data), vmax=np.max(self.image_data))
         self.canvas.draw()
 
     def get_red_roi(self):
