@@ -19,6 +19,7 @@ from roi_gui import RoiWindow
 
 import h5py
 import numpy as np
+from numpy import pi
 from numpy.lib.format import open_memmap
 import matplotlib.pyplot as plt
 import traceback
@@ -37,15 +38,16 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         # connect
         self.btn_load_probe.clicked.connect(self.loadProbe)
         self.btn_load_object.clicked.connect(self.loadObject)
-        self.ck_init_prb_flag.clicked.connect(self.updateProbeFlg)
-        self.ck_init_obj_flag.clicked.connect(self.updateObjectFlg)
+        self.ck_init_prb_flag.clicked.connect(self.resetProbeFlg)
+        self.ck_init_obj_flag.clicked.connect(self.resetObjectFlg)
 
         self.btn_choose_cwd.clicked.connect(self.setWorkingDirectory)
         self.cb_dataloader.currentTextChanged.connect(self.setLoadButton)
         self.btn_load_scan.clicked.connect(self.loadExpParam)
         self.btn_view_frame.clicked.connect(self.viewDataFrame)
 
-        self.le_scan_num.editingFinished.connect(self.forceLoad)
+        #self.le_scan_num.editingFinished.connect(self.forceLoad) # too sensitive, why?
+        self.le_scan_num.textChanged.connect(self.forceLoad)
         self.cb_dataloader.currentTextChanged.connect(self.forceLoad)
         self.cb_detectorkind.currentTextChanged.connect(self.forceLoad)
 
@@ -67,7 +69,13 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.btn_MPI_file.clicked.connect(self.setMPIfile)
         self.btn_gpu_all = [self.btn_gpu_0, self.btn_gpu_1, self.btn_gpu_2, self.btn_gpu_3]
         for btn in self.btn_gpu_all:
-            btn.clicked.connect(self.updateMPIFlg)
+            btn.clicked.connect(self.resetMPIFlg)
+
+        # setup
+        self.sp_pha_max.setMaximum(pi)
+        self.sp_pha_max.setMinimum(-pi)
+        self.sp_pha_min.setMaximum(pi)
+        self.sp_pha_min.setMinimum(-pi)
 
         # init.
         if param is None:
@@ -134,43 +142,48 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
     def update_param_from_gui(self):
         p = self.param
-        p.scan_num = str(self.le_scan_num.text())
-        p.sign = str(self.le_sign.text())
-        p.detectorkind = str(self.cb_detectorkind.currentText())
-        # p.frame_num = int(self.sp_fram_num.value()) # do we need this one?
 
-        # p.xray_energy = float(self.sp_xray_energy.value()) # do we need this one?
+        # data group
+        p.scan_num = str(self.le_scan_num.text())
+        p.detectorkind = str(self.cb_detectorkind.currentText())
+        p.frame_num = int(self.sp_fram_num.value())
+        # p.working_directory set by setWorkingDirectory()
+
+        # Exp param group
+        p.xray_energy_kev = float(self.sp_xray_energy.value())
         p.lambda_nm = 1.2398/self.sp_xray_energy.value()
         p.z_m = float(self.sp_detector_distance.value())
-        #p.x_arr_size = float(self.sp_x_arr_size.value()) # can get from diffamp
+        p.nx = int(self.sp_x_arr_size.value()) # bookkeeping
         p.dr_x = float(self.sp_x_step_size.value())
         p.x_range = float(self.sp_x_scan_range.value())
-        #p.y_arr_size = float(self.sp_y_arr_size.value()) # can get from diffamp
+        p.ny = int(self.sp_y_arr_size.value()) # bookkeeping
         p.dr_y = float(self.sp_y_step_size.value())
         p.y_range = float(self.sp_y_scan_range.value())
         #p.scan_type = str(self.cb_scan_type.currentText()) # do we need this one?
-        #p.num_points = int(self.sp_num_points.value()) # can get from diffamp
+        p.nz = int(self.sp_num_points.value()) # bookkeeping
 
+        # recon param group 
         p.n_iterations = int(self.sp_n_iterations.value())
         p.alg_flag = str(self.cb_alg_flag.currentText())
         p.alg2_flag = str(self.cb_alg2_flag.currentText())
         p.alg_percentage = float(self.sp_alg_percentage.value())
+        p.sign = str(self.le_sign.text())
 
         p.init_prb_flag = self.ck_init_prb_flag.isChecked()
         p.init_obj_flag = self.ck_init_obj_flag.isChecked()
+        # prb and obj path already set 
 
         p.mode_flag = self.ck_mode_flag.isChecked()
         p.prb_mode_num = self.sp_prb_mode_num.value()
         p.obj_mode_num = self.sp_obj_mode_num.value()
-        if p.mode_flag:
+        if p.mode_flag and "_mode" not in p.sign:
             p.sign = p.sign + "_mode"
 
         p.multislice_flag = self.ck_multislice_flag.isChecked()
         p.slice_num = int(self.sp_slice_num.value())
         p.slice_spacing_m = float(self.sp_slice_spacing_m.value() * 1e-6)
-        if p.multislice_flag:
+        if p.multislice_flag and "_ms" not in p.sign:
             p.sign = p.sign + "_ms"
-        p.distance = float(self.sp_distance.value())
 
         p.amp_min = float(self.sp_amp_min.value())
         p.amp_max = float(self.sp_amp_max.value())
@@ -184,48 +197,87 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
                 gpus.append(id)
         p.gpus = gpus
 
+        # adv param group
+        #p.ccd_pixel_um = 
+        p.distance = float(self.sp_distance.value())
         p.angle_correction_flag = self.ck_angle_correction_flag.isChecked()
         p.x_direction = float(self.sp_x_direction.value())
         p.y_direction = float(self.sp_y_direction.value())
         p.angle = self.sp_angle.value()
 
+        p.start_update_probe = self.sp_start_update_probe.value()
+        p.start_update_object = self.sp_start_update_object.value()
+        p.ml_mode = self.cb_ml_mode.currentText()
+        p.dm_version = self.sp_dm_version.value()
+        p.cal_scan_pattern_flag = self.ck_cal_scal_pattern_flag.isChecked()
+        p.nth = self.sp_nth.value()
+        p.start_ave = self.sp_start_ave.value()
+        p.processes = self.sp_processes.value()
+
+        p.bragg_flag = self.ck_bragg_flag.isChecked()
+        p.bragg_theta = self.sp_bragg_theta.value()
+        p.bragg_gamma = self.sp_bragg_gamma.value()
+        p.bragg_delta = self.sp_bragg_delta.value() 
+
+        p.pc_flag = self.ck_pc_flag.isChecked()
+        p.pc_sigma = self.sp_pc_sigma.value()
+        p.pc_alg = self.cb_pc_alg.currentText()
+        p.pc_kernel_n = self.sp_pc_kernel_n.value()
+
+        p.position_correction_flag = self.ck_position_correction_flag.isChecked()
+        p.position_correction_start = self.sp_position_correction_start.value()
+        p.position_correction_step = self.sp_position_correction_step.value()  
+
         p.alpha = float(self.sp_alpha.value()*1.e-8)
         p.beta = float(self.sp_beta.value())
-
         p.display_interval = int(self.sp_display_interval.value())
         p.preview_flag = self.ck_preview_flag.isChecked()
+
+        # TODO: organize them
+        #self.ck_init_obj_dpc_flag.setChecked(p.init_obj_dpc_flag) 
+        #self.ck_prb_center_flag.setChecked(p.prb_center_flag)
+        #self.ck_mask_prb_flag.setChecked(p.mask_prb_flag)
+        #self.ck_weak_obj_flag.setChecked(p.weak_obj_flag)
+        #self.ck_mesh_flag.setChecked(p.mesh_flag)
+        #self.ck_ms_pie_flag.setChecked(p.ms_pie_flag)
+        #self.ck_sf_flag.setChecked(p.sf_flag)
+
+        # batch param group, necessary?
 
 
     def update_gui_from_param(self):
         p = self.param
+
+        # Data group
         self.le_scan_num.setText(p.scan_num)
-        self.le_sign.setText(p.sign)
+        self.le_working_directory.setText(str(p.working_directory or ''))
         self.cb_detectorkind.setCurrentIndex(p.get_detector_kind_index())
         self.sp_fram_num.setValue(int(p.frame_num))
 
+        # Exp param group
         self.sp_xray_energy.setValue(1.2398/float(p.lambda_nm) if 'lambda_nm' in p.__dict__ else 0.)
         self.sp_detector_distance.setValue(float(p.z_m) if 'z_m' in p.__dict__ else 0)
-        self.sp_x_arr_size.setValue(float(p.x_arr_size))
-        self.sp_x_step_size.setValue(float(p.x_step_size))
-        self.sp_x_scan_range.setValue(float(p.x_scan_range))
-        self.sp_y_arr_size.setValue(float(p.y_arr_size))
-        self.sp_y_step_size.setValue(float(p.y_step_size))
-        self.sp_y_scan_range.setValue(float(p.y_scan_range))
+        self.sp_x_arr_size.setValue(float(p.nx))
+        self.sp_x_step_size.setValue(float(p.dr_x))
+        self.sp_x_scan_range.setValue(float(p.x_range))
+        self.sp_y_arr_size.setValue(float(p.ny))
+        self.sp_y_step_size.setValue(float(p.dr_y))
+        self.sp_y_scan_range.setValue(float(p.y_range))
         self.cb_scan_type.setCurrentIndex(p.get_scan_type_index())
-        self.sp_num_points.setValue(int(p.num_points))
+        self.sp_num_points.setValue(int(p.nz))
 
+        # recon param group
         self.sp_n_iterations.setValue(int(p.n_iterations))
         self.cb_alg_flag.setCurrentIndex(p.get_alg_flg_index())
         self.cb_alg2_flag.setCurrentIndex(p.get_alg2_flg_index())
         self.sp_alg_percentage.setValue(float(p.alg_percentage))
+        self.le_sign.setText(p.sign)
 
         self.ck_init_prb_flag.setChecked(p.init_prb_flag)
         self.le_prb_path.setText(str(p.prb_filename or ''))
 
         self.ck_init_obj_flag.setChecked(p.init_obj_flag)
         self.le_obj_path.setText(str(p.obj_filename or ''))
-
-        self.le_working_directory.setText(str(p.working_directory or ''))
 
         self.ck_mode_flag.setChecked(p.mode_flag)
         self.sp_prb_mode_num.setValue(int(p.prb_mode_num))
@@ -234,7 +286,6 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.ck_multislice_flag.setChecked(p.multislice_flag)
         self.sp_slice_num.setValue(int(p.slice_num))
         self.sp_slice_spacing_m.setValue(p.get_slice_spacing_m())
-        self.sp_distance.setValue(float(p.distance))
 
         self.sp_amp_max.setValue(float(p.amp_max))
         self.sp_amp_min.setValue(float(p.amp_min))
@@ -244,17 +295,53 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.ck_gpu_flag.setChecked(p.gpu_flag)
         for btn_gpu, id in zip(self.btn_gpu_all, range(len(self.btn_gpu_all))):
             btn_gpu.setChecked(id in p.gpus)
+        # TODO: set MPI file path from param    
 
+        # adv param group
+        self.sp_ccd_pixel_um.setValue(p.ccd_pixel_um)
+        self.sp_distance.setValue(float(p.distance))
         self.ck_angle_correction_flag.setChecked(p.angle_correction_flag)
         self.sp_x_direction.setValue(p.x_direction)
         self.sp_y_direction.setValue(p.y_direction)
         self.sp_angle.setValue(p.angle)
 
+        self.sp_start_update_probe.setValue(p.start_update_probe)
+        self.sp_start_update_object.setValue(p.start_update_object)
+        self.cb_ml_mode.setCurrentText(p.ml_mode)
+        self.sp_dm_version.setValue(p.dm_version)
+        self.ck_cal_scal_pattern_flag.setChecked(p.cal_scan_pattern_flag)
+        self.sp_nth.setValue(p.nth)
+        self.sp_start_ave.setValue(p.start_ave)
+        self.sp_processes.setValue(p.processes)
+
+        self.ck_bragg_flag.setChecked(p.bragg_flag)
+        self.sp_bragg_theta.setValue(p.bragg_theta)
+        self.sp_bragg_gamma.setValue(p.bragg_gamma)
+        self.sp_bragg_delta.setValue(p.bragg_delta)
+
+        self.ck_pc_flag.setChecked(p.pc_flag)
+        self.sp_pc_sigma.setValue(p.pc_sigma)
+        self.cb_pc_alg.setCurrentText(p.pc_alg)
+        self.sp_pc_kernel_n.setValue(p.pc_kernel_n)
+
+        self.ck_position_correction_flag.setChecked(p.position_correction_flag)
+        self.sp_position_correction_start.setValue(p.position_correction_start)
+        self.sp_position_correction_step.setValue(p.position_correction_step)
+
         self.sp_alpha.setValue(p.alpha * 1e+8)
         self.sp_beta.setValue(p.beta)
-
         self.sp_display_interval.setValue(p.display_interval)
         self.ck_preview_flag.setChecked(p.preview_flag)
+
+        self.ck_init_obj_dpc_flag.setChecked(p.init_obj_dpc_flag) 
+        self.ck_prb_center_flag.setChecked(p.prb_center_flag)
+        self.ck_mask_prb_flag.setChecked(p.mask_prb_flag)
+        self.ck_weak_obj_flag.setChecked(p.weak_obj_flag)
+        self.ck_mesh_flag.setChecked(p.mesh_flag)
+        self.ck_ms_pie_flag.setChecked(p.ms_pie_flag)
+        self.ck_sf_flag.setChecked(p.sf_flag)
+
+        # batch param group, necessary?
 
 
     def start(self):
@@ -347,7 +434,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             self.ck_init_prb_flag.setChecked(False)
 
 
-    def updateProbeFlg(self):
+    def resetProbeFlg(self):
         # called when "estimate from data" is clicked
         self.param.set_prb_path('', '')
         self.le_prb_path.setText('')
@@ -364,7 +451,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             self.ck_init_obj_flag.setChecked(False)
 
 
-    def updateObjectFlg(self):
+    def resetObjectFlg(self):
         # called when "random start" is clicked
         self.param.set_obj_path('', '')
         self.le_obj_path.setText('')
@@ -437,7 +524,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
                 btn.setChecked(False)
 
 
-    def updateMPIFlg(self):
+    def resetMPIFlg(self):
         # called when any gpu button is clicked
         self.param.mpi_file_path = ''
         self.le_MPI_file_path.setText('')
@@ -678,7 +765,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self._mds_table = metadata['mds_table']
 
         # update experimental parameters
-        self.sp_xray_energy.setValue(metadata['energy_kev'])
+        self.sp_xray_energy.setValue(metadata['xray_energy_kev'])
         #self.sp_detector_distance.setValue(f['z_m'].value) # don't know how to handle this...
         self.sp_x_arr_size.setValue(metadata['nx'])
         self.sp_y_arr_size.setValue(metadata['ny'])
@@ -729,10 +816,131 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
 
     def importConfig(self):
-        print("import")
+        filename, _ = QFileDialog.getOpenFileName(self, 'Select GUI config file', directory=self.param.working_directory, filter="(*.txt)")
+        if filename is not None and len(filename) > 0:
+            try:
+                import configparser
+                config = configparser.ConfigParser(inline_comment_prefixes=('#',))
+                config.read(filename)
+                p = self.param
 
+                # checks (bools)
+                p.init_prb_flag             = config.getboolean('GUI', 'init_prb_flag')
+                p.init_obj_flag             = config.getboolean('GUI', 'init_obj_flag')
+                p.mode_flag                 = config.getboolean('GUI', 'mode_flag')
+                p.multislice_flag           = config.getboolean('GUI', 'multislice_flag')
+                p.gpu_flag                  = config.getboolean('GUI', 'gpu_flag')
+                p.init_obj_dpc_flag         = config.getboolean('GUI', 'init_obj_dpc_flag')
+                p.prb_center_flag           = config.getboolean('GUI', 'prb_center_flag')
+                p.mask_prb_flag             = config.getboolean('GUI', 'mask_prb_flag')
+                p.mesh_flag                 = config.getboolean('GUI', 'mesh_flag')
+                p.cal_scan_pattern_flag     = config.getboolean('GUI', 'cal_scan_pattern_flag')
+                p.bragg_flag                = config.getboolean('GUI', 'bragg_flag')
+                p.pc_flag                   = config.getboolean('GUI', 'pc_flag')
+                p.save_tmp_pic_flag         = config.getboolean('GUI', 'save_tmp_pic_flag')
+                p.position_correction_flag  = config.getboolean('GUI', 'position_correction_flag')
+                p.angle_correction_flag     = config.getboolean('GUI', 'angle_correction_flag')
+                p.sf_flag                   = config.getboolean('GUI', 'sf_flag')
+                p.ms_pie_flag               = config.getboolean('GUI', 'ms_pie_flag')
+                p.weak_obj_flag             = config.getboolean('GUI', 'weak_obj_flag')
+                p.preview_flag              = config.getboolean('GUI', 'preview_flag')
+
+                # integers
+                p.frame_num                 = config.getint('GUI', 'frame_num')
+                p.n_iterations              = config.getint('GUI', 'n_iterations')
+                p.prb_mode_num              = config.getint('GUI', 'prb_mode_num')
+                p.obj_mode_num              = config.getint('GUI', 'obj_mode_num')
+                p.slice_num                 = config.getint('GUI', 'slice_num')
+                p.nth                       = config.getint('GUI', 'nth')
+                p.dm_version                = config.getint('GUI', 'dm_version')
+                p.processes                 = config.getint('GUI', 'processes')
+                p.display_interval          = config.getint('GUI', 'display_interval')
+                p.nz                        = config.getint('GUI', 'nz')
+                p.nx                        = config.getint('GUI', 'nx')
+                p.ny                        = config.getint('GUI', 'ny')
+
+                p.pc_kernel_n               = config.getint('GUI', 'pc_kernel_n')
+                p.position_correction_start = config.getint('GUI', 'position_correction_start')
+                p.position_correction_step  = config.getint('GUI', 'position_correction_step')
+                p.start_update_probe        = config.getint('GUI', 'start_update_probe')
+                p.start_update_object       = config.getint('GUI', 'start_update_object')
+
+                # floats
+                p.lambda_nm                 = config.getfloat('GUI', 'lambda_nm') if 'lambda_nm' in config['GUI'] else \
+                                              1.2398/config.getfloat('GUI', 'xray_energy_kev')
+                p.xray_energy_kev           = 1.2398/p.lambda_nm
+                p.z_m                       = config.getfloat('GUI', 'z_m')
+                p.x_arr_size                = config.getfloat('GUI', 'nx')
+                p.dr_x                      = config.getfloat('GUI', 'dr_x')
+                p.x_range                   = config.getfloat('GUI', 'x_range')
+                p.y_arr_size                = config.getfloat('GUI', 'ny')
+                p.dr_y                      = config.getfloat('GUI', 'dr_y')
+                p.y_range                   = config.getfloat('GUI', 'y_range')
+                p.alg_percentage            = config.getfloat('GUI', 'alg_percentage')
+                p.amp_max                   = config.getfloat('GUI', 'amp_max')
+                p.amp_min                   = config.getfloat('GUI', 'amp_min')
+                p.pha_max                   = config.getfloat('GUI', 'pha_max')
+                p.pha_min                   = config.getfloat('GUI', 'pha_min')
+                p.slice_spacing_m           = config.getfloat('GUI', 'slice_spacing_m')
+                p.distance                  = config.getfloat('GUI', 'distance')
+                p.ccd_pixel_um              = config.getfloat('GUI', 'ccd_pixel_um')
+                p.start_ave                 = config.getfloat('GUI', 'start_ave')
+                p.x_direction               = config.getfloat('GUI', 'x_direction')
+                p.y_direction               = config.getfloat('GUI', 'y_direction')
+                p.angle                     = config.getfloat('GUI', 'angle')
+                p.alpha                     = config.getfloat('GUI', 'alpha')
+                p.beta                      = config.getfloat('GUI', 'beta')
+
+                p.bragg_theta               = config.getfloat('GUI', 'bragg_theta')
+                p.bragg_gamma               = config.getfloat('GUI', 'bragg_gamma')
+                p.bragg_delta               = config.getfloat('GUI', 'bragg_delta')
+                p.pc_sigma                  = config.getfloat('GUI', 'pc_sigma')
+
+                # strings
+                p.scan_num                  = config['GUI']['scan_num']
+                p.prb_filename              = config['GUI']['prb_filename']
+                p.prb_dir                   = config['GUI']['prb_dir']
+                p.prb_path                  = config['GUI']['prb_path']
+                p.obj_filename              = config['GUI']['obj_filename']
+                p.obj_dir                   = config['GUI']['obj_dir']
+                p.obj_path                  = config['GUI']['obj_path']
+                p.working_directory         = config['GUI']['working_directory']
+                p.mpi_file_path             = config['GUI']['mpi_file_path']
+                p.sign                      = config['GUI']['sign']
+                p.alg_flag                  = config['GUI']['alg_flag']  # drop off box
+                p.alg2_flag                 = config['GUI']['alg2_flag'] # drop off box
+                p.ml_mode                   = config['GUI']['ml_mode']   # drop off box
+                p.pc_alg                    = config['GUI']['pc_alg']    # drop off box
+
+                ## special cases:
+                #p.gpus                      = config['GUI']['gpus']
+                #p.gui                       = config['GUI']['gui']
+                #p.detectorkind              = config['GUI']['detectorkind']
+                #p.scan_type                 = config['GUI']['scan_type']
+                #
+                ## update exp parameters since this is supposed to be handled by "Load"
+                #self.sp_xray_energy.setValue(p.xray_energy_kev)
+                #self.sp_detector_distance.setValue(p.z_m)
+                #self.sp_x_arr_size.setValue(p.nx)
+                #self.sp_y_arr_size.setValue(p.ny)
+                #self.sp_x_step_size.setValue(p.dr_x)
+                #self.sp_y_step_size.setValue(p.dr_y)
+                #self.sp_x_scan_range.setValue(p.x_range)
+                #self.sp_y_scan_range.setValue(p.y_range)
+                #self.sp_angle.setValue(p.angle)
+                ##self.cb_scan_type = ...
+                #self.sp_num_points.setValue(p.nz)
+
+                self.update_gui_from_param()
+            except Exception as ex:
+                self.exception_handler(ex)
+            else:
+                print("config loaded from " + filename)
+                self._loaded = True
+                
 
     def exportConfig(self):
+        self.update_param_from_gui()
         filename, _ = QFileDialog.getSaveFileName(self, 'Save GUI config to txt', directory=self.param.working_directory, filter="(*.txt)")
         if filename is not None and len(filename) > 0:
             if filename[-4:] != ".txt":

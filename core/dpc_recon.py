@@ -10,6 +10,7 @@ import subprocess # call mpirun from shell
 from fcntl import fcntl, F_GETFL, F_SETFL
 from os import O_NONBLOCK
 import numpy as np
+import traceback
 try:
     from core.HXN_databroker import load_metadata, save_data
 except ImportError as ex:
@@ -191,8 +192,13 @@ class HardWorker(QtCore.QThread):
             # from _fetch_data(), print it and quit
             print(ex, file=sys.stderr)
             print("[ERROR] possible reason: no image available for the selected detector/scan", file=sys.stderr)
-        except:
-            raise
+        except Exception as ex:
+            # same as MainWindow's exception handler
+            formatted_lines = traceback.format_exc().splitlines()
+            for line in formatted_lines:
+                print("[ERROR] " + line, file=sys.stderr) 
+            print("[ERROR] " + str(ex), file=sys.stderr)
+            #raise
 
     def kill(self):
         pass
