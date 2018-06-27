@@ -41,6 +41,8 @@ class MplCanvasTool(QtWidgets.QWidget):
         layout.addLayout(self._get_roi_bar())
         self.setLayout(layout)
 
+        self._eventHandler.brush_changed.connect(self.update_overlay)
+
         self.image = None
         self.overlay = None
         self.image_handler = None
@@ -162,18 +164,9 @@ class MplCanvasTool(QtWidgets.QWidget):
         if self.image is None:
             return
 
-        x0 = self.sp_x0.value()
-        y0 = self.sp_y0.value()
-        w = self.sp_w.value()
-        h = self.sp_h.value()
-
-        if w <= 0: w = self.image.shape[1]
-        if h <= 0: h = self.image.shape[0]
-
-        cropped_image = self.image[y0:(y0+h), x0:(x0+w)]
-        _x0, _y0, _w, _h = estimate_roi(cropped_image, threshold=1.0)
-        cx = np.int(np.round(x0 + _x0 + _w//2))
-        cy = np.int(np.round(y0 + _y0 + _h//2))
+        _x0, _y0, _w, _h = estimate_roi(self.image, threshold=1.0)
+        cx = np.int(np.round(_x0 + _w//2))
+        cy = np.int(np.round(_y0 + _h//2))
 
         side = 32 * (np.maximum(_w, _h) // 32)
         x0 = np.int(np.maximum(cx - side//2, 0))
@@ -219,6 +212,28 @@ class MplCanvasTool(QtWidgets.QWidget):
         if len(self._ids) == 0:
             self._ids = self._eventHandler.monitor_factory(self.ax)
 
+        self.canvas.draw()
+
+    def update_overlay(self, pixel):
+        '''
+        Update overlay image from brushed pixels
+        '''
+        if self.image is None: return
+        if self.overlay is None or self.overlay.shape[:2] != self.image.shape:
+            self.overlay = np.zeros(self.image.shape + (4,), dtype=np.float32)
+
+        highlight = (1., 0., 0., .5)
+        x, y = pixel
+        if self.overlay[y, x, 0] == 1.:
+            self.overlay[y, x] = (0., 0., 0., 0.)
+        else:
+            self.overlay[y, x] = highlight
+
+        if self.overlay_handler is None:
+            self.overlay_handler = self.ax.imshow(self.overlay)
+        else:
+            self.overlay_handler.set_data(self.overlay)
+            self.overlay_handler.set_visible(True)
         self.canvas.draw()
 
     def set_overlay(self, rows, cols, highlight=(1,0,0,.5)):

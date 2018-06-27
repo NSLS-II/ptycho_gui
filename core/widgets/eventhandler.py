@@ -17,6 +17,9 @@ class EventHandler(QObject):
     # x, y: xy-coordinate of the mouse pointer on the axis
     coord_changed = pyqtSignal(int, int, name='coordChanged')
 
+    # signal for brushed pixels ==> (x, y)
+    brush_changed = pyqtSignal(tuple, name='brushChanged')
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -40,6 +43,10 @@ class EventHandler(QObject):
         self.ref_idx = -1         # index of currently selected roi
         self.all_rect = []        # list of roi
 
+        # variable for picking pixels (brush by mouse pointer)
+        self.pixel_visited = None
+        self.on_brush = False
+
 
     # coord related -- common actionc for all
     def emit_coord(self, event):
@@ -47,6 +54,9 @@ class EventHandler(QObject):
         ix = np.int(np.floor(event.xdata + 0.5))
         iy = np.int(np.floor(event.ydata + 0.5))
         self.coord_changed.emit(ix, iy)
+
+    def emit_brush(self, item):
+        self.brush_changed.emit(item)
 
     def emit_roi(self, rect):
         if rect is None:
@@ -349,20 +359,43 @@ class EventHandler(QObject):
 
     # create monitor handler
     def monitor_factory(self, ax):
+        def _make_pixel_item(x, y):
+            _x = np.int(np.floor(x + 0.5))
+            _y = np.int(np.floor(y + 0.5))
+            _str = '{:d},{:d}'.format(_x, _y)
+            return _str, (_x, _y)
+
         def on_press(event):
             if not ax.in_axes(event): return
-            # print('on_press')
+
+            if event.button == 1:
+                key, item = _make_pixel_item(event.xdata, event.ydata)
+                self.emit_brush(item)
+                self.on_brush = True
+                self.pixel_visited = key
 
         def on_release(event):
-            # print('on_release')
-            pass
+            if event.button == 1 and self.on_brush:
+                self.on_brush = False
 
         def on_motion(event):
             if not ax.in_axes(event): return
             self.emit_coord(event)
+
+            if self.on_brush:
+                key, item = _make_pixel_item(event.xdata, event.ydata)
+                if key != self.pixel_visited:
+                    self.emit_brush(item)
+                self.pixel_visited = key
+
+
 
         fig = ax.get_figure()
         id1 = fig.canvas.mpl_connect('button_press_event', on_press)
         id2 = fig.canvas.mpl_connect('motion_notify_event', on_motion)
         id3 = fig.canvas.mpl_connect('button_release_event', on_release)
         return [id1, id2, id3]
+
+
+
+
