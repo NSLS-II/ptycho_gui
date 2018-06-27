@@ -747,6 +747,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
                = HardWorker("fetch_data", self.db, scan_id, det_name)
         thread.update_signal.connect(self._setExpParamBroker)
         thread.finished.connect(lambda: self.btn_load_scan.setEnabled(True))
+        thread.exception_handler = self.exception_handler
         self.btn_load_scan.setEnabled(False)
         thread.start()
 

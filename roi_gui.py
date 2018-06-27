@@ -175,6 +175,7 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
                = HardWorker("save_h5", master.db, p, int(p.scan_num), self.roi_width, self.roi_height, 
                                        self.cx, self.cy, threshold, badpixels)
         thread.finished.connect(lambda: self.btn_save_to_h5.setEnabled(True))
+        thread.exception_handler = master.exception_handler
         self.btn_save_to_h5.setEnabled(False)
         thread.start()
 

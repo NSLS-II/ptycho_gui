@@ -178,6 +178,7 @@ class HardWorker(QtCore.QThread):
         super().__init__(parent)
         self.task = task
         self.args = args
+        self.exception_handler = None
         #self.update_signal = QtCore.pyqtSignal(int, object) # connect to MainWindow???
 
     def run(self):
@@ -193,12 +194,9 @@ class HardWorker(QtCore.QThread):
             print(ex, file=sys.stderr)
             print("[ERROR] possible reason: no image available for the selected detector/scan", file=sys.stderr)
         except Exception as ex:
-            # same as MainWindow's exception handler
-            formatted_lines = traceback.format_exc().splitlines()
-            for line in formatted_lines:
-                print("[ERROR] " + line, file=sys.stderr) 
-            print("[ERROR] " + str(ex), file=sys.stderr)
-            #raise
+            # use MainWindow's exception handler
+            if self.exception_handler is not None:
+                self.exception_handler(ex)
 
     def kill(self):
         pass
