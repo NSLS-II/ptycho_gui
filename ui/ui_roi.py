@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_roi.ui'
 #
-# Created by: PyQt5 UI code generator 5.10.1
+# Created by: PyQt5 UI code generator 5.6
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(543, 600)
+        MainWindow.resize(543, 676)
         MainWindow.setMinimumSize(QtCore.QSize(452, 600))
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -77,6 +77,18 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.groupBox)
         self.verticalLayout_2.addLayout(self.verticalLayout)
         MainWindow.setCentralWidget(self.centralwidget)
+        self.menuBar = QtWidgets.QMenuBar(MainWindow)
+        self.menuBar.setGeometry(QtCore.QRect(0, 0, 543, 23))
+        self.menuBar.setDefaultUp(False)
+        self.menuBar.setNativeMenuBar(False)
+        self.menuBar.setObjectName("menuBar")
+        self.menuTools = QtWidgets.QMenu(self.menuBar)
+        self.menuTools.setObjectName("menuTools")
+        MainWindow.setMenuBar(self.menuBar)
+        self.actionBadpixels = QtWidgets.QAction(MainWindow)
+        self.actionBadpixels.setObjectName("actionBadpixels")
+        self.menuTools.addAction(self.actionBadpixels)
+        self.menuBar.addAction(self.menuTools.menuAction())
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -92,5 +104,7 @@ class Ui_MainWindow(object):
         self.ck_show_badpixels.setText(_translate("MainWindow", "show bad pixels"))
         self.btn_badpixels_correct.setText(_translate("MainWindow", "Correct"))
         self.btn_save_to_h5.setText(_translate("MainWindow", "save to h5"))
+        self.menuTools.setTitle(_translate("MainWindow", "Tools"))
+        self.actionBadpixels.setText(_translate("MainWindow", "show badpixel list"))
 
 from core.widgets.mplcanvastool import MplCanvasTool

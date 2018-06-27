@@ -4,6 +4,8 @@ from ui import ui_roi
 
 import numpy as np
 from core.widgets.imgTools import find_outlier_pixels, find_brightest_pixels, rm_outlier_pixels
+from core.widgets.badpixel_dialog import BadPixelDialog
+
 try:
     from core.HXN_databroker import save_data
 except ImportError as ex:
@@ -41,6 +43,8 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         self.ck_show_badpixels.clicked.connect(self.show_badpixels)
         self.btn_save_to_h5.clicked.connect(self.save_to_h5)
 
+        self.actionBadpixels.triggered.connect(self.open_badpixel_dialog)
+
         # badpixels
         # : to compute indices w.r.t original image
         # rows = badpixels[0] + offset_y
@@ -57,6 +61,12 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         self.cx = None
         self.cy = None
         self.sp_threshold.setValue(1.0)
+
+    def open_badpixel_dialog(self):
+        print('open badpixel dialog')
+        badpixels = self.canvas.get_badpixels()
+        self.badpixel_dialog = BadPixelDialog(self, badpixels)
+        self.badpixel_dialog.show()
 
     def find_badpixels(self, op_name):
         img = self.canvas.image

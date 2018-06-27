@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>543</width>
-    <height>600</height>
+    <height>676</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -173,6 +173,34 @@
     </item>
    </layout>
   </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>543</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="defaultUp">
+    <bool>false</bool>
+   </property>
+   <property name="nativeMenuBar">
+    <bool>false</bool>
+   </property>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="actionBadpixels"/>
+   </widget>
+   <addaction name="menuTools"/>
+  </widget>
+  <action name="actionBadpixels">
+   <property name="text">
+    <string>show badpixel list</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
