@@ -89,18 +89,27 @@ class EventHandler(QObject):
     #         return rect.get_xy(), rect.get_width(), rect.get_height()
     #     else:
     #         return None, None, None
+    def get_red_roi(self):
+        roi = []
+        for rect in self.all_rect:
+            if rect.get_edgecolor() == RED_EDGECOLOR:
+               roi.append((
+                   rect.get_xy(),
+                   rect.get_width(),
+                   rect.get_height()
+               ))
+        return roi
 
-    # def set_roi(self, ax, xy, width, height):
-    #     if self.rect_selected_key >= 0:
-    #         self.all_rect[self.rect_selected_key].set_edgecolor('red')
-    #
-    #     rect = Rectangle(xy, width, height, linewidth=1, edgecolor='red', facecolor='none')
-    #     ax.add_patch(rect)
-    #     self.all_rect[self.rect_count] = rect
-    #     self.rect_selected_key = self.rect_count
-    #     self.rect_count += 1
-    #
-    #     ax.figure.canvas.draw()
+    def get_blue_roi(self):
+        roi = []
+        for rect in self.all_rect:
+            if rect.get_edgecolor() == BLUE_EDGECOLOR:
+               roi.append((
+                   rect.get_xy(),
+                   rect.get_width(),
+                   rect.get_height()
+               ))
+        return roi
 
     def set_curr_roi(self, ax, xy, width, height):
         if self.ref_rect is None:
@@ -222,7 +231,7 @@ class EventHandler(QObject):
             self.coord_x_ratio = event.xdata / event.x
             self.coord_y_ratio = (ax.get_ylim()[0] - event.ydata) / event.y
 
-            ref_rect, ref_idx = self._find_closest_rect(event.xdata, event.ydata, delta=0.5)
+            ref_rect, ref_idx = self._find_closest_rect(event.xdata, event.ydata, delta=2.)
             self.rect_x0 = None
             self.rect_y0 = None
 
@@ -280,7 +289,10 @@ class EventHandler(QObject):
             # event end for deleting a roi
             elif event.button == 3 and self.ref_rect is not None and self.ref_idx >= 0:
                 self.ref_rect.remove()
-                del self.all_rect[self.ref_idx]
+                try:
+                    del self.all_rect[self.ref_idx]
+                except IndexError as ex:
+                    print('[!] ROI index out of range, ignore delete event')
                 self.ref_rect = None
                 self.ref_idx = -1
                 if len(self.all_rect):

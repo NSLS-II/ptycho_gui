@@ -204,6 +204,7 @@ class MplCanvasTool(QtWidgets.QWidget):
             if vmin is None: vmin = np.min(image)
             if vmax is None: vmax = np.max(image)
             self.image_handler.set_data(image)
+            # todo: update data min, max (maybe not needed)
         self.image = image
 
         if init_roi:
@@ -234,19 +235,28 @@ class MplCanvasTool(QtWidgets.QWidget):
         else:
             self.overlay_handler.set_data(self.overlay)
             self.overlay_handler.set_visible(True)
+            # todo: set show badpixel flag
         self.canvas.draw()
 
-    def set_overlay(self, rows, cols, highlight=(1,0,0,.5)):
+    def set_overlay(self, rows, cols):
         if self.image is None: return
         if len(rows) != len(cols): return
 
-        self.overlay = np.zeros(self.image.shape + (4,), dtype=np.float32)
+        highlight = (1, 0, 0, .5)
+        if self.overlay is None:
+            self.overlay = np.zeros(self.image.shape + (4,), dtype=np.float32)
+
         self.overlay[rows, cols] = highlight
         if self.overlay_handler is None:
             self.overlay_handler = self.ax.imshow(self.overlay)
         else:
             self.overlay_handler.set_data(self.overlay)
-            self.overlay_handler.set_visible(True)
+        self.overlay_handler.set_visible(True)
+        self.canvas.draw()
+
+    def clear_overlay(self):
+        if self.overlay is None: return
+        self.overlay[:,:,0] = 0
         self.canvas.draw()
 
     def show_overlay(self, state):
@@ -254,11 +264,47 @@ class MplCanvasTool(QtWidgets.QWidget):
         self.overlay_handler.set_visible(state)
         self.canvas.draw()
 
-    def get_curr_roi(self):
-        return self._eventHandler.get_roi()
+    def get_red_roi(self):
+        '''
+        Return red colored ROI.
+        If there are multiple, return the largest area one
+        '''
+        all_roi = self._eventHandler.get_red_roi()
 
-    def set_roi(self, xy, width, height):
-        self._eventHandler.set_roi(self.ax, xy, width, height)
+        largest_roi = None
+        largest_area = 0.
 
-    def set_curr_roi(self, xy, width, height):
-        self._eventHandler.set_curr_roi(self.ax, xy, width, height)
+        for roi in all_roi:
+            xy, width, height = roi
+            area = width * height
+            if area > largest_area:
+                largest_area = area
+                largest_roi = (
+                    np.int(np.floor(xy[0] + 0.5)),
+                    np.int(np.floor(xy[1] + 0.5)),
+                    np.int(np.round(width)),
+                    np.int(np.round(height))
+                )
+
+        return largest_roi
+
+    def get_blue_roi(self):
+        '''
+        Return blue colored ROI
+        '''
+        all_roi = []
+        for roi in self._eventHandler.get_blue_roi():
+            xy, width, height = roi
+            all_roi.append((
+                np.int(np.floor(xy[0] + 0.5)),
+                np.int(np.floor(xy[1] + 0.5)),
+                np.int(np.round(width)),
+                np.int(np.round(height))
+            ))
+
+        return all_roi
+
+    def get_badpixels(self):
+        if self.overlay is None: return None
+        return np.where(self.overlay[:,:,0])
+
