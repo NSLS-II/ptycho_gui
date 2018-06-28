@@ -5,9 +5,15 @@ from ui import ui_roi
 import numpy as np
 from core.widgets.imgTools import find_outlier_pixels, find_brightest_pixels, rm_outlier_pixels
 from core.dpc_recon import HardWorker
+from core.widgets.badpixel_dialog import BadPixelDialog
 
-BADPIX_BRIGHTEST = 0
-BADPIX_OUTLIERS = 1
+
+try:
+    from core.HXN_databroker import save_data
+except ImportError as ex:
+    print('[!] Unable to import core.HXN_databroker packages some features will '
+          'be unavailable')
+    print('[!] (import error: {})'.format(ex))
 
 
 class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
@@ -17,31 +23,26 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         self.setupUi(self)
         QtWidgets.QApplication.setStyle('Plastique')
 
-        #from core.widgets.mplcanvas import load_image_pil
-        #img = load_image_pil('./test.tif')
-        #self.canvas.draw_image(img)
+        # img = np.load('./34784_frame0.npy')
+        # self.canvas.draw_image(img, cmap='viridis', init_roi=True, use_log=False)
         if image is not None:
-            self.canvas.draw_image(image)
+            self.canvas.draw_image(image, cmap='gray', init_roi=True, use_log=False)
 
         # signal
         self.roi_changed = self.canvas.roi_changed
         #self.reset = self.canvas.reset
 
         # connect
-        self.btn_badpixels_brightest.clicked.connect(lambda: self.find_badpixels(BADPIX_BRIGHTEST))
-        self.btn_badpixels_outliers.clicked.connect(lambda : self.find_badpixels(BADPIX_OUTLIERS))
+        self.btn_badpixels_outliers.clicked.connect(self.find_badpixels)
         self.btn_badpixels_correct.clicked.connect(self.correct_badpixels)
         self.ck_show_badpixels.clicked.connect(self.show_badpixels)
         self.btn_save_to_h5.clicked.connect(self.save_to_h5)
+        self.ck_logscale.clicked.connect(self.use_logscale)
+        self.actionBadpixels.triggered.connect(self.open_badpixel_dialog)
 
         # badpixels
-        # : to compute indices w.r.t original image
-        # rows = badpixels[0] + offset_y
-        # cols = badpixels[1] + offset_x
-        self.badpixels_method = BADPIX_BRIGHTEST # method applied to get the badpixels
-        self.badpixels = None # indice w.r.t roi
-        self.offset_x = None  # offset x to convert indice w.r.t frame (original image)
-        self.offset_y = None  # offset y to convert indice w.r.t frame (original image)
+        self.badpixel_dialog = None
+        #self.badpixels_method = BADPIX_OUTLIERS # method applied to get the badpixels
 
         # for h5 operation
         self.main_window = main_window # need to know the caller
@@ -77,70 +78,68 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         self.ck_show_badpixels.setChecked(False)
         self.btn_badpixels_correct.setChecked(False)
        
-    def find_badpixels(self, op_name):
+    def open_badpixel_dialog(self):
+        badpixels = self.canvas.get_badpixels()
+        self.badpixel_dialog = BadPixelDialog(self, badpixels)
+        #todo: signal-slot for interactive list view
+        self.badpixel_dialog.show()
+
+    def find_badpixels(self):
+        # always find badpixels over original image data
         img = self.canvas.image
         if img is None:
             return
 
-        if op_name == BADPIX_BRIGHTEST:
-            self.btn_badpixels_brightest.setChecked(True)
-            self.btn_badpixels_outliers.setChecked(False)
-        else:
-            self.btn_badpixels_brightest.setChecked(False)
-            self.btn_badpixels_outliers.setChecked(True)
-        self.badpixels_method = op_name
-
         height, width = img.shape
-        roi = self.canvas.get_curr_roi()
-        if roi[0] is None or roi[1] is None or roi[2] is None:
+        roi = self.canvas.get_red_roi()
+        if roi is None:
             roi_img = img
-            self.offset_x = 0
-            self.offset_y = 0
+            x0 = 0
+            y0 = 0
+            roi_width = width
+            roi_height = height
         else:
-            xy = roi[0]
-            roi_width = np.int(np.round(roi[1]))
-            roi_height = np.int(np.round(roi[2]))
-            self.roi_width = roi_width
-            self.roi_height = roi_height
+            x0 = np.clip([roi[0]], 0, width-1)[0]
+            y0 = np.clip([roi[1]], 0, height-1)[0]
+            roi_width = roi[2]
+            roi_height = roi[3]
 
-            x0 = np.maximum(np.int(np.round(xy[0])), 0)
-            y0 = np.maximum(np.int(np.round(xy[1])), 0)
-            x1 = np.minimum(x0 + roi_width, width)
-            y1 = np.minimum(y0 + roi_height, height)
-            # TEST: ROI center
-            self.cx = x0 + roi_width//2
-            self.cy = y0 + roi_height//2
+            region = (
+                slice(y0, y0 + roi_height),
+                slice(x0, x0 + roi_width)
+            )
+            roi_img = img[region]
 
-            roi_img = img[y0:y1, x0:x1]
-            self.offset_x = x0
-            self.offset_y = y0
+        badpixels = find_outlier_pixels(roi_img)
 
-        if op_name == BADPIX_BRIGHTEST:
-            self.badpixels = find_brightest_pixels(roi_img)
-        elif op_name == BADPIX_OUTLIERS:
-            self.badpixels = find_outlier_pixels(roi_img)
-        else:
-            self.badpixels = find_brightest_pixels(roi_img)
+        self.roi_width = roi_width
+        self.roi_height = roi_height
+        # TEST: ROI center
+        self.cx = x0 + roi_width // 2
+        self.cy = y0 + roi_height // 2
 
-        self.canvas.set_overlay(self.badpixels[0] + self.offset_y, self.badpixels[1] + self.offset_x)
+        self.canvas.set_overlay(badpixels[0] + y0, badpixels[1] + x0)
+        #todo: update badpixel_dialog if it is opened
         self.ck_show_badpixels.setChecked(True)
         self.btn_badpixels_correct.setEnabled(True)
 
     def correct_badpixels(self):
-        if self.badpixels is None: return
+        badpixels = self.canvas.get_badpixels()
+        if badpixels is None: return
 
         img = self.canvas.image
-        img = rm_outlier_pixels(img,
-                                self.badpixels[0] + self.offset_y,
-                                self.badpixels[1] + self.offset_x,
-                                self.badpixels_method==BADPIX_BRIGHTEST)
+        img = rm_outlier_pixels(img, badpixels[0], badpixels[1])
 
         self.canvas.draw_image(img)
-        # update badpixels with corrected one????????
-        self.find_badpixels(self.badpixels_method)
+        self.canvas.clear_overlay()
+        # update badpixels with corrected one
+        self.find_badpixels()
 
     def show_badpixels(self, state):
         self.canvas.show_overlay(state)
+
+    def use_logscale(self, state):
+        self.canvas.use_logscale(state)
 
     def save_to_h5(self):
         master = self.main_window
@@ -158,15 +157,20 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         threshold = self.sp_threshold.value()
 
         # get bad pixels
-        # TODO: need a better foolproof way 
-        if self.badpixels is None or self.offset_x is None or self.offset_y is None:
-            self.find_badpixels(BADPIX_OUTLIERS) 
+        # TODO: need a better foolproof way
+        # to update roi_width, roi_height, cx, cy
+        # if correction is made internally, correct button should be deprecated
+        # because after correction bad pixels are updated according to corrected image.
+        self.find_badpixels()
+        badpixels = self.canvas.get_badpixels()
         # TODO: separate this part to another function?
-        if len(self.badpixels) == 2 and len(self.badpixels[0]) == len(self.badpixels[1]) > 0:
-            badpixels = [self.badpixels[0] + self.offset_y, self.badpixels[1] + self.offset_x]
+
+        if len(badpixels) == 2 and len(badpixels[0]) == len(badpixels[1]) > 0:
+            pass
             #print("bad pixels:")
-            #for y, x in zip(badpixels[0], badpixels[1]):
+            #for x, y in zip(badpixels[0], badpixels[1]):
             #    print("  (x, y) = ({0}, {1})".format(x, y))
+
         else:
             badpixels = None
             print("no bad pixels")
