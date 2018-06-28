@@ -10,7 +10,6 @@ from core.dpc_qt_utils import DPCStream
 from core.widgets.mplcanvas import load_image_pil
 
 # databroker related
-# TODO: a try-except for ImportError??
 try:
     from core.HXN_databroker import db1, db2, db_old, load_metadata
     from hxntools.scan_info import ScanInfo
@@ -707,11 +706,11 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
 
     def loadExpParam(self): 
-        scan_num = int(self.le_scan_num.text())
+        scan_num = self.le_scan_num.text()
 
         try:
             if self.cb_dataloader.currentText() == "Load from databroker":
-                self._loadExpParamBroker(scan_num)
+                self._loadExpParamBroker(int(scan_num))
 
             if self.cb_dataloader.currentText() == "Load from h5":
                 self._loadExpParamH5(scan_num)
@@ -799,10 +798,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
 
     #@profile
-    def _loadExpParamH5(self, scan_num:int):
+    def _loadExpParamH5(self, scan_num:str):
         # load the parameters from the h5 in the working directory
         working_dir = str(self.le_working_directory.text()) # self.param.working_directory
-        with h5py.File(working_dir+'/scan_'+str(scan_num)+'.h5','r') as f:
+        with h5py.File(working_dir+'/scan_'+scan_num+'.h5','r') as f:
             # this code is not robust enough as certain keys may not be present...
             print("h5 loaded, parsing experimental parameters...", end='')
             self.sp_xray_energy.setValue(1.2398/f['lambda_nm'].value)
