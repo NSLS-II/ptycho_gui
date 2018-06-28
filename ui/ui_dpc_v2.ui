@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>758</width>
-    <height>871</height>
+    <width>760</width>
+    <height>880</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -777,7 +777,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="sp_pha_min">
+           <widget class="QDoubleSpinBox" name="sp_amp_min">
             <property name="prefix">
              <string/>
             </property>
@@ -785,10 +785,10 @@
              <number>3</number>
             </property>
             <property name="minimum">
-             <double>-99.000000000000000</double>
+             <double>0.000000000000000</double>
             </property>
             <property name="value">
-             <double>-0.600000000000000</double>
+             <double>0.000000000000000</double>
             </property>
            </widget>
           </item>
@@ -800,7 +800,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="sp_amp_min">
+           <widget class="QDoubleSpinBox" name="sp_amp_max">
             <property name="prefix">
              <string/>
             </property>
@@ -840,12 +840,18 @@
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="sp_pha_max">
+           <widget class="QDoubleSpinBox" name="sp_pha_min">
             <property name="prefix">
              <string/>
             </property>
             <property name="decimals">
              <number>3</number>
+            </property>
+            <property name="minimum">
+             <double>-4.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>4.000000000000000</double>
             </property>
             <property name="value">
              <double>0.010000000000000</double>
@@ -860,7 +866,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="sp_amp_max">
+           <widget class="QDoubleSpinBox" name="sp_pha_max">
             <property name="prefix">
              <string/>
             </property>
@@ -868,7 +874,10 @@
              <number>3</number>
             </property>
             <property name="minimum">
-             <double>-3.000000000000000</double>
+             <double>-4.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>4.000000000000000</double>
             </property>
             <property name="value">
              <double>1.000000000000000</double>
@@ -1809,6 +1818,37 @@
     </item>
    </layout>
   </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>758</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="nativeMenuBar">
+    <bool>false</bool>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="menu_import_config"/>
+    <addaction name="menu_export_config"/>
+   </widget>
+   <addaction name="menuFile"/>
+  </widget>
+  <action name="menu_import_config">
+   <property name="text">
+    <string>Import config from txt</string>
+   </property>
+  </action>
+  <action name="menu_export_config">
+   <property name="text">
+    <string>Export config to txt</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

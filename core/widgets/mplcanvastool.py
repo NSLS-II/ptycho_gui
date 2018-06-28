@@ -193,6 +193,8 @@ class MplCanvasTool(QtWidgets.QWidget):
         self._update_roi(x0, y0, w, h)
 
     def reset(self):
+        for sp in self._roi_all:
+            sp.setValue(0.)
         self.image_handler = None
         self.image = None
         self.image_data = None

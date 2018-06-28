@@ -86,7 +86,7 @@ def load_metadata(db, scan_num:int, det_name:str):
     # get energy_kev
     dcm_th = bl.dcm_th[1]
     energy_kev = 12.39842 / (2.*3.1355893 * np.sin(dcm_th * np.pi / 180.))
-    metadata['energy_kev'] = energy_kev
+    metadata['xray_energy_kev'] = energy_kev
 
     # get scan_type, x_range, y_range, dr_x, dr_y
     if scan_type == 'FlyPlan2D':

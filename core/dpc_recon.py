@@ -10,6 +10,13 @@ import subprocess # call mpirun from shell
 from fcntl import fcntl, F_GETFL, F_SETFL
 from os import O_NONBLOCK
 import numpy as np
+import traceback
+try:
+    from core.HXN_databroker import load_metadata, save_data
+except ImportError as ex:
+    print('[!] Unable to import core.HXN_databroker packages some features will '
+          'be unavailable')
+    print('[!] (import error: {})'.format(ex))
 
 
 class DPCReconWorker(QtCore.QThread):
@@ -144,6 +151,8 @@ class DPCReconWorker(QtCore.QThread):
         finally:
             # clean up temp file
             os.remove(param.working_directory + '.dpc_param.pkl')
+            if os.path.isfile(param.working_directory + ".dpc_param.txt"):
+                os.remove(param.working_directory + ".dpc_param.txt")
 
     def run(self):
         print('DPC thread started')
@@ -160,6 +169,65 @@ class DPCReconWorker(QtCore.QThread):
         print('killing the subprocess...')
         self.process.terminate()
         self.process.wait()
+
+
+# a worker that does the rest of hard work for us
+class HardWorker(QtCore.QThread):
+    update_signal = QtCore.pyqtSignal(int, object) # connect to MainWindow???
+    def __init__(self, task=None, *args, parent=None):
+        super().__init__(parent)
+        self.task = task
+        self.args = args
+        self.exception_handler = None
+        #self.update_signal = QtCore.pyqtSignal(int, object) # connect to MainWindow???
+
+    def run(self):
+        try:
+            if self.task == "save_h5":
+                self._save_h5(self.update_signal.emit)
+            elif self.task == "fetch_data":
+                self._fetch_data(self.update_signal.emit)
+            # TODO: put other heavy lifting works here
+            # TODO: consider merge other worker threads to this one?
+        except ValueError as ex:
+            # from _fetch_data(), print it and quit
+            print(ex, file=sys.stderr)
+            print("[ERROR] possible reason: no image available for the selected detector/scan", file=sys.stderr)
+        except Exception as ex:
+            # use MainWindow's exception handler
+            if self.exception_handler is not None:
+                self.exception_handler(ex)
+
+    def kill(self):
+        pass
+
+    def _save_h5(self, update_fcn=None):
+        '''
+        args = [db, param, scan_num, roi_width, roi_height, cx, cy, threshold, bad_pixels]
+        '''
+        print("saving data to h5, this may take a while...")
+        save_data(*self.args)
+        print("h5 saved.")
+
+    def _fetch_data(self, update_fcn=None):
+        '''
+        args = [db, scan_id, det_name]
+        '''
+        if update_fcn is not None:
+            print("loading begins, this may take a while...", end='')
+            metadata = load_metadata(*self.args)
+
+            # sanity checks
+            if metadata['nz'] == 0:
+                raise ValueError("nz = 0")
+            #print("databroker connected, parsing experimental parameters...", end='')
+            # get nx and ny by looking at the first image
+            img = self.args[0].reg.retrieve(metadata['mds_table'].iat[0])[0]
+            nx, ny = img.shape # can also give a ValueError; TODO: come up a better way!
+            metadata['nx'] = nx
+            metadata['ny'] = ny
+
+            update_fcn(0, metadata) # 0 is just a placeholder
 
 
 class DPCReconFakeWorker(QtCore.QThread):
@@ -238,8 +306,3 @@ class DPCReconFakeWorker(QtCore.QThread):
 
     def kill(self):
         pass
-
-
-
-
-

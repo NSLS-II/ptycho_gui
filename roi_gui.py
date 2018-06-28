@@ -4,7 +4,9 @@ from ui import ui_roi
 
 import numpy as np
 from core.widgets.imgTools import find_outlier_pixels, find_brightest_pixels, rm_outlier_pixels
+from core.dpc_recon import HardWorker
 from core.widgets.badpixel_dialog import BadPixelDialog
+
 
 try:
     from core.HXN_databroker import save_data
@@ -28,7 +30,7 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
 
         # signal
         self.roi_changed = self.canvas.roi_changed
-        self.reset = self.canvas.reset
+        #self.reset = self.canvas.reset
 
         # connect
         self.btn_badpixels_outliers.clicked.connect(self.find_badpixels)
@@ -49,7 +51,33 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         self.cx = None
         self.cy = None
         self.sp_threshold.setValue(1.0)
+        self._worker_thread = None
 
+    def reset_window(self, image=None, main_window=None):
+        '''
+        called from outside 
+        '''
+        self.canvas.reset()
+        if image is not None:
+            self.canvas.draw_image(image)
+
+        self.badpixels = None
+        self.offset_x = None
+        self.offset_y = None
+
+        self.main_window = main_window
+        self.roi_width = None
+        self.roi_height = None
+        self.cx = None
+        self.cy = None
+        self.sp_threshold.setValue(1.0)
+        self._worker_thread = None
+
+        self.btn_badpixels_brightest.setChecked(False)
+        self.btn_badpixels_outliers.setChecked(False)
+        self.ck_show_badpixels.setChecked(False)
+        self.btn_badpixels_correct.setChecked(False)
+       
     def open_badpixel_dialog(self):
         badpixels = self.canvas.get_badpixels()
         self.badpixel_dialog = BadPixelDialog(self, badpixels)
@@ -136,19 +164,28 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         self.find_badpixels()
         badpixels = self.canvas.get_badpixels()
         # TODO: separate this part to another function?
+
         if len(badpixels) == 2 and len(badpixels[0]) == len(badpixels[1]) > 0:
-            print("bad pixels:")
-            for x, y in zip(badpixels[0], badpixels[1]):
-                print("  (x, y) = ({0}, {1})".format(x, y))
+            pass
+            #print("bad pixels:")
+            #for x, y in zip(badpixels[0], badpixels[1]):
+            #    print("  (x, y) = ({0}, {1})".format(x, y))
+
         else:
             badpixels = None
             print("no bad pixels")
 
-        #TODO: ask a QThread to do the work
-        #print("center: {0} {1} ".format(self.cx, self.cy), file=sys.stderr)
-        save_data(master.db, p, int(p.scan_num), self.roi_width, self.roi_height, cx=self.cx, cy=self.cy,
-                  threshold=threshold, bad_pixels=badpixels)
-        print("h5 saved.")
+        thread = self._worker_thread \
+               = HardWorker("save_h5", master.db, p, int(p.scan_num), self.roi_width, self.roi_height, 
+                                       self.cx, self.cy, threshold, badpixels)
+        thread.finished.connect(lambda: self.btn_save_to_h5.setEnabled(True))
+        thread.exception_handler = master.exception_handler
+        self.btn_save_to_h5.setEnabled(False)
+        thread.start()
+
+        # update Exp parameters. Note that there's a np.rot90 to the images in save_h5!!!
+        master.sp_x_arr_size.setValue(self.roi_height)
+        master.sp_y_arr_size.setValue(self.roi_width)
 
 
 if __name__ == '__main__':

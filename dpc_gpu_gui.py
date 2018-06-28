@@ -4,8 +4,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog
 
 from ui import ui_dpc
-from core.dpc_param import Param
-from core.dpc_recon import DPCReconWorker, DPCReconFakeWorker
+from core.dpc_param import Param, parse_config
+from core.dpc_recon import DPCReconWorker, DPCReconFakeWorker, HardWorker
 from core.dpc_qt_utils import DPCStream
 from core.widgets.mplcanvas import load_image_pil
 
@@ -24,6 +24,7 @@ from roi_gui import RoiWindow
 
 import h5py
 import numpy as np
+from numpy import pi
 from numpy.lib.format import open_memmap
 import matplotlib.pyplot as plt
 import traceback
@@ -42,31 +43,44 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         # connect
         self.btn_load_probe.clicked.connect(self.loadProbe)
         self.btn_load_object.clicked.connect(self.loadObject)
-        self.ck_init_prb_flag.clicked.connect(self.updateProbeFlg)
-        self.ck_init_obj_flag.clicked.connect(self.updateObjectFlg)
+        self.ck_init_prb_flag.clicked.connect(self.resetProbeFlg)
+        self.ck_init_obj_flag.clicked.connect(self.resetObjectFlg)
 
         self.btn_choose_cwd.clicked.connect(self.setWorkingDirectory)
         self.cb_dataloader.currentTextChanged.connect(self.setLoadButton)
         self.btn_load_scan.clicked.connect(self.loadExpParam)
         self.btn_view_frame.clicked.connect(self.viewDataFrame)
 
-        self.le_scan_num.editingFinished.connect(self.forceLoad)
+        #self.le_scan_num.editingFinished.connect(self.forceLoad) # too sensitive, why?
+        self.le_scan_num.textChanged.connect(self.forceLoad)
         self.cb_dataloader.currentTextChanged.connect(self.forceLoad)
         self.cb_detectorkind.currentTextChanged.connect(self.forceLoad)
 
         self.ck_mode_flag.clicked.connect(self.updateModeFlg)
         self.ck_multislice_flag.clicked.connect(self.updateMultiSliceFlg)
         self.ck_gpu_flag.clicked.connect(self.updateGpuFlg)
+        self.ck_bragg_flag.clicked.connect(self.updateBraggFlg)
+        self.ck_pc_flag.clicked.connect(self.updatePcFlg)
+        self.ck_position_correction_flag.clicked.connect(self.updateCorrFlg)
 
         self.btn_recon_start.clicked.connect(self.start)
         self.btn_recon_stop.clicked.connect(self.stop)
-        self.btn_recon_batch_start.clicked.connect(self.batch_start)
-        self.btn_recon_batch_stop.clicked.connect(self.batch_stop)
+        self.btn_recon_batch_start.clicked.connect(self.batchStart)
+        self.btn_recon_batch_stop.clicked.connect(self.batchStop)
+
+        self.menu_import_config.triggered.connect(self.importConfig)
+        self.menu_export_config.triggered.connect(self.exportConfig)
 
         self.btn_MPI_file.clicked.connect(self.setMPIfile)
         self.btn_gpu_all = [self.btn_gpu_0, self.btn_gpu_1, self.btn_gpu_2, self.btn_gpu_3]
         for btn in self.btn_gpu_all:
-            btn.clicked.connect(self.updateMPIFlg)
+            btn.clicked.connect(self.resetMPIFlg)
+
+        # setup
+        self.sp_pha_max.setMaximum(pi)
+        self.sp_pha_max.setMinimum(-pi)
+        self.sp_pha_min.setMaximum(pi)
+        self.sp_pha_min.setMinimum(-pi)
 
         # init.
         if param is None:
@@ -76,12 +90,14 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self._prb = None
         self._obj = None
         self._dpc_gpu_thread = None
+        self._worker_thread = None
         self._db = None             # hold the Broker instance that contains the info of the given scan id
         self._mds_table = None      # hold a Pandas.dataframe instance
         self._loaded = False        # whether the user has loaded metadata or not (from either databroker or h5)
         self._scan_numbers = None   # a list of scan numbers for batch mode
 
         self.reconStepWindow = None
+        self.roiWindow = None
 
         self.update_gui_from_param()
         self.updateModeFlg()
@@ -131,43 +147,48 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
     def update_param_from_gui(self):
         p = self.param
-        p.scan_num = str(self.le_scan_num.text())
-        p.sign = str(self.le_sign.text())
-        p.detectorkind = str(self.cb_detectorkind.currentText())
-        # p.frame_num = int(self.sp_fram_num.value()) # do we need this one?
 
-        # p.xray_energy = float(self.sp_xray_energy.value()) # do we need this one?
+        # data group
+        p.scan_num = str(self.le_scan_num.text())
+        p.detectorkind = str(self.cb_detectorkind.currentText())
+        p.frame_num = int(self.sp_fram_num.value())
+        # p.working_directory set by setWorkingDirectory()
+
+        # Exp param group
+        p.xray_energy_kev = float(self.sp_xray_energy.value())
         p.lambda_nm = 1.2398/self.sp_xray_energy.value()
         p.z_m = float(self.sp_detector_distance.value())
-        #p.x_arr_size = float(self.sp_x_arr_size.value()) # can get from diffamp
+        p.nx = int(self.sp_x_arr_size.value()) # bookkeeping
         p.dr_x = float(self.sp_x_step_size.value())
         p.x_range = float(self.sp_x_scan_range.value())
-        #p.y_arr_size = float(self.sp_y_arr_size.value()) # can get from diffamp
+        p.ny = int(self.sp_y_arr_size.value()) # bookkeeping
         p.dr_y = float(self.sp_y_step_size.value())
         p.y_range = float(self.sp_y_scan_range.value())
         #p.scan_type = str(self.cb_scan_type.currentText()) # do we need this one?
-        #p.num_points = int(self.sp_num_points.value()) # can get from diffamp
+        p.nz = int(self.sp_num_points.value()) # bookkeeping
 
+        # recon param group 
         p.n_iterations = int(self.sp_n_iterations.value())
         p.alg_flag = str(self.cb_alg_flag.currentText())
         p.alg2_flag = str(self.cb_alg2_flag.currentText())
         p.alg_percentage = float(self.sp_alg_percentage.value())
+        p.sign = str(self.le_sign.text())
 
         p.init_prb_flag = self.ck_init_prb_flag.isChecked()
         p.init_obj_flag = self.ck_init_obj_flag.isChecked()
+        # prb and obj path already set 
 
         p.mode_flag = self.ck_mode_flag.isChecked()
         p.prb_mode_num = self.sp_prb_mode_num.value()
         p.obj_mode_num = self.sp_obj_mode_num.value()
-        if p.mode_flag:
+        if p.mode_flag and "_mode" not in p.sign:
             p.sign = p.sign + "_mode"
 
         p.multislice_flag = self.ck_multislice_flag.isChecked()
         p.slice_num = int(self.sp_slice_num.value())
         p.slice_spacing_m = float(self.sp_slice_spacing_m.value() * 1e-6)
-        if p.multislice_flag:
+        if p.multislice_flag and "_ms" not in p.sign:
             p.sign = p.sign + "_ms"
-        p.distance = float(self.sp_distance.value())
 
         p.amp_min = float(self.sp_amp_min.value())
         p.amp_max = float(self.sp_amp_max.value())
@@ -181,47 +202,87 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
                 gpus.append(id)
         p.gpus = gpus
 
+        # adv param group
+        #p.ccd_pixel_um = 
+        p.distance = float(self.sp_distance.value())
         p.angle_correction_flag = self.ck_angle_correction_flag.isChecked()
         p.x_direction = float(self.sp_x_direction.value())
         p.y_direction = float(self.sp_y_direction.value())
         p.angle = self.sp_angle.value()
 
+        p.start_update_probe = self.sp_start_update_probe.value()
+        p.start_update_object = self.sp_start_update_object.value()
+        p.ml_mode = self.cb_ml_mode.currentText()
+        p.dm_version = self.sp_dm_version.value()
+        p.cal_scan_pattern_flag = self.ck_cal_scal_pattern_flag.isChecked()
+        p.nth = self.sp_nth.value()
+        p.start_ave = self.sp_start_ave.value()
+        p.processes = self.sp_processes.value()
+
+        p.bragg_flag = self.ck_bragg_flag.isChecked()
+        p.bragg_theta = self.sp_bragg_theta.value()
+        p.bragg_gamma = self.sp_bragg_gamma.value()
+        p.bragg_delta = self.sp_bragg_delta.value() 
+
+        p.pc_flag = self.ck_pc_flag.isChecked()
+        p.pc_sigma = self.sp_pc_sigma.value()
+        p.pc_alg = self.cb_pc_alg.currentText()
+        p.pc_kernel_n = self.sp_pc_kernel_n.value()
+
+        p.position_correction_flag = self.ck_position_correction_flag.isChecked()
+        p.position_correction_start = self.sp_position_correction_start.value()
+        p.position_correction_step = self.sp_position_correction_step.value()  
+
         p.alpha = float(self.sp_alpha.value()*1.e-8)
         p.beta = float(self.sp_beta.value())
-
         p.display_interval = int(self.sp_display_interval.value())
+        p.preview_flag = self.ck_preview_flag.isChecked()
+
+        # TODO: organize them
+        #self.ck_init_obj_dpc_flag.setChecked(p.init_obj_dpc_flag) 
+        #self.ck_prb_center_flag.setChecked(p.prb_center_flag)
+        #self.ck_mask_prb_flag.setChecked(p.mask_prb_flag)
+        #self.ck_weak_obj_flag.setChecked(p.weak_obj_flag)
+        #self.ck_mesh_flag.setChecked(p.mesh_flag)
+        #self.ck_ms_pie_flag.setChecked(p.ms_pie_flag)
+        #self.ck_sf_flag.setChecked(p.sf_flag)
+
+        # batch param group, necessary?
 
 
     def update_gui_from_param(self):
         p = self.param
+
+        # Data group
         self.le_scan_num.setText(p.scan_num)
-        self.le_sign.setText(p.sign)
+        self.le_working_directory.setText(str(p.working_directory or ''))
         self.cb_detectorkind.setCurrentIndex(p.get_detector_kind_index())
         self.sp_fram_num.setValue(int(p.frame_num))
 
+        # Exp param group
         self.sp_xray_energy.setValue(1.2398/float(p.lambda_nm) if 'lambda_nm' in p.__dict__ else 0.)
         self.sp_detector_distance.setValue(float(p.z_m) if 'z_m' in p.__dict__ else 0)
-        self.sp_x_arr_size.setValue(float(p.x_arr_size))
-        self.sp_x_step_size.setValue(float(p.x_step_size))
-        self.sp_x_scan_range.setValue(float(p.x_scan_range))
-        self.sp_y_arr_size.setValue(float(p.y_arr_size))
-        self.sp_y_step_size.setValue(float(p.y_step_size))
-        self.sp_y_scan_range.setValue(float(p.y_scan_range))
+        self.sp_x_arr_size.setValue(float(p.nx))
+        self.sp_x_step_size.setValue(float(p.dr_x))
+        self.sp_x_scan_range.setValue(float(p.x_range))
+        self.sp_y_arr_size.setValue(float(p.ny))
+        self.sp_y_step_size.setValue(float(p.dr_y))
+        self.sp_y_scan_range.setValue(float(p.y_range))
         self.cb_scan_type.setCurrentIndex(p.get_scan_type_index())
-        self.sp_num_points.setValue(int(p.num_points))
+        self.sp_num_points.setValue(int(p.nz))
 
+        # recon param group
         self.sp_n_iterations.setValue(int(p.n_iterations))
         self.cb_alg_flag.setCurrentIndex(p.get_alg_flg_index())
         self.cb_alg2_flag.setCurrentIndex(p.get_alg2_flg_index())
         self.sp_alg_percentage.setValue(float(p.alg_percentage))
+        self.le_sign.setText(p.sign)
 
         self.ck_init_prb_flag.setChecked(p.init_prb_flag)
         self.le_prb_path.setText(str(p.prb_filename or ''))
 
         self.ck_init_obj_flag.setChecked(p.init_obj_flag)
         self.le_obj_path.setText(str(p.obj_filename or ''))
-
-        self.le_working_directory.setText(str(p.working_directory or ''))
 
         self.ck_mode_flag.setChecked(p.mode_flag)
         self.sp_prb_mode_num.setValue(int(p.prb_mode_num))
@@ -230,7 +291,6 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.ck_multislice_flag.setChecked(p.multislice_flag)
         self.sp_slice_num.setValue(int(p.slice_num))
         self.sp_slice_spacing_m.setValue(p.get_slice_spacing_m())
-        self.sp_distance.setValue(float(p.distance))
 
         self.sp_amp_max.setValue(float(p.amp_max))
         self.sp_amp_min.setValue(float(p.amp_min))
@@ -240,16 +300,53 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.ck_gpu_flag.setChecked(p.gpu_flag)
         for btn_gpu, id in zip(self.btn_gpu_all, range(len(self.btn_gpu_all))):
             btn_gpu.setChecked(id in p.gpus)
+        # TODO: set MPI file path from param    
 
+        # adv param group
+        self.sp_ccd_pixel_um.setValue(p.ccd_pixel_um)
+        self.sp_distance.setValue(float(p.distance))
         self.ck_angle_correction_flag.setChecked(p.angle_correction_flag)
         self.sp_x_direction.setValue(p.x_direction)
         self.sp_y_direction.setValue(p.y_direction)
         self.sp_angle.setValue(p.angle)
 
+        self.sp_start_update_probe.setValue(p.start_update_probe)
+        self.sp_start_update_object.setValue(p.start_update_object)
+        self.cb_ml_mode.setCurrentText(p.ml_mode)
+        self.sp_dm_version.setValue(p.dm_version)
+        self.ck_cal_scal_pattern_flag.setChecked(p.cal_scan_pattern_flag)
+        self.sp_nth.setValue(p.nth)
+        self.sp_start_ave.setValue(p.start_ave)
+        self.sp_processes.setValue(p.processes)
+
+        self.ck_bragg_flag.setChecked(p.bragg_flag)
+        self.sp_bragg_theta.setValue(p.bragg_theta)
+        self.sp_bragg_gamma.setValue(p.bragg_gamma)
+        self.sp_bragg_delta.setValue(p.bragg_delta)
+
+        self.ck_pc_flag.setChecked(p.pc_flag)
+        self.sp_pc_sigma.setValue(p.pc_sigma)
+        self.cb_pc_alg.setCurrentText(p.pc_alg)
+        self.sp_pc_kernel_n.setValue(p.pc_kernel_n)
+
+        self.ck_position_correction_flag.setChecked(p.position_correction_flag)
+        self.sp_position_correction_start.setValue(p.position_correction_start)
+        self.sp_position_correction_step.setValue(p.position_correction_step)
+
         self.sp_alpha.setValue(p.alpha * 1e+8)
         self.sp_beta.setValue(p.beta)
-
         self.sp_display_interval.setValue(p.display_interval)
+        self.ck_preview_flag.setChecked(p.preview_flag)
+
+        self.ck_init_obj_dpc_flag.setChecked(p.init_obj_dpc_flag) 
+        self.ck_prb_center_flag.setChecked(p.prb_center_flag)
+        self.ck_mask_prb_flag.setChecked(p.mask_prb_flag)
+        self.ck_weak_obj_flag.setChecked(p.weak_obj_flag)
+        self.ck_mesh_flag.setChecked(p.mesh_flag)
+        self.ck_ms_pie_flag.setChecked(p.ms_pie_flag)
+        self.ck_sf_flag.setChecked(p.sf_flag)
+
+        # batch param group, necessary?
 
 
     def start(self):
@@ -272,6 +369,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
                 self.reconStepWindow.reset_window(iterations=self.param.n_iterations,
                                                   slider_interval=self.param.display_interval)
                 self.reconStepWindow.show()
+            else:
+                if self.reconStepWindow is not None:
+                    # TODO: maybe a thorough cleanup???
+                    self.reconStepWindow.close()
 
             if not _TEST:
                 thread = self._dpc_gpu_thread = DPCReconWorker(self.param)
@@ -303,7 +404,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         if self.reconStepWindow is not None:
             self.reconStepWindow.update_iter(it)
 
-            if not _TEST:
+            if not _TEST and self.ck_preview_flag.isChecked():
                 try:
                     if it == 1:
                         # the two npy are created by ptycho by this time
@@ -329,7 +430,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
 
     def loadProbe(self):
-        filename, _ = QFileDialog.getOpenFileName(self, 'Open probe file', filter="(*.npy)")
+        filename, _ = QFileDialog.getOpenFileName(self, 'Open probe file', directory=self.param.working_directory, filter="(*.npy)")
         if filename is not None and len(filename) > 0:
             prb_filename = os.path.basename(filename)
             prb_dir = filename[:(len(filename)-len(prb_filename))]
@@ -338,7 +439,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             self.ck_init_prb_flag.setChecked(False)
 
 
-    def updateProbeFlg(self):
+    def resetProbeFlg(self):
         # called when "estimate from data" is clicked
         self.param.set_prb_path('', '')
         self.le_prb_path.setText('')
@@ -346,7 +447,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
 
     def loadObject(self):
-        filename, _ = QFileDialog.getOpenFileName(self, 'Open object file', filter="(*.npy)")
+        filename, _ = QFileDialog.getOpenFileName(self, 'Open object file', directory=self.param.working_directory, filter="(*.npy)")
         if filename is not None and len(filename) > 0:
             obj_filename = os.path.basename(filename)
             obj_dir = filename[:(len(filename)-len(obj_filename))]
@@ -355,7 +456,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             self.ck_init_obj_flag.setChecked(False)
 
 
-    def updateObjectFlg(self):
+    def resetObjectFlg(self):
         # called when "random start" is clicked
         self.param.set_obj_path('', '')
         self.le_obj_path.setText('')
@@ -392,8 +493,31 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.btn_gpu_3.setEnabled(flag)
 
 
+    def updateBraggFlg(self):
+        flag = self.ck_bragg_flag.isChecked()
+        self.sp_bragg_theta.setEnabled(flag)
+        self.sp_bragg_gamma.setEnabled(flag)
+        self.sp_bragg_delta.setEnabled(flag)
+        self.param.bragg_flag = flag
+
+
+    def updatePcFlg(self):
+        flag = self.ck_pc_flag.isChecked()
+        self.sp_pc_sigma.setEnabled(flag)
+        self.sp_pc_kernel_n.setEnabled(flag)
+        self.cb_pc_alg.setEnabled(flag)
+        self.param.pc_flag = flag
+
+
+    def updateCorrFlg(self):
+        flag = self.ck_position_correction_flag.isChecked()
+        self.sp_position_correction_start.setEnabled(flag)
+        self.sp_position_correction_step.setEnabled(flag)
+        self.param.position_correction_flag = flag
+
+
     def setMPIfile(self):
-        filename, _ = QFileDialog.getOpenFileName(self, 'Open MPI machine file')
+        filename, _ = QFileDialog.getOpenFileName(self, 'Open MPI machine file', directory=self.param.working_directory)
         if filename is not None and len(filename) > 0:
             mpi_filename = os.path.basename(filename)
             mpi_dir = filename[:(len(filename)-len(mpi_filename))]
@@ -405,7 +529,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
                 btn.setChecked(False)
 
 
-    def updateMPIFlg(self):
+    def resetMPIFlg(self):
         # called when any gpu button is clicked
         self.param.mpi_file_path = ''
         self.le_MPI_file_path.setText('')
@@ -419,10 +543,14 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         '''
         scan_range = []
         scan_numbers = []
+        batch_items = self.le_batch_items.text()
         every_nth_scan = self.sp_batch_step.value()
 
+        if batch_items == '':
+            raise ValueError("No item list is given for batch processing.")
+
         # first parse items and separate them into two catogories
-        slist = self.le_batch_items.text().split(',')
+        slist = batch_items.split(',')
         for item in slist:
             if '-' in item:
                 sublist = item.split('-')
@@ -439,24 +567,27 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         return scan_numbers
 
 
-    def batch_start(self):
+    def batchStart(self):
         '''
         Currently only support load from h5. 
         '''
         if self.cb_dataloader.currentText() == "Load from databroker":
             print("[WARNING] Batch mode with databroker is not yet supported. Abort.", file=sys.stderr)
             return
+        
+        try:
+            self._scan_numbers = self.parse_scan_range()
+            # TODO: is there a way to lock all widgets to prevent accidental parameter changes in the middle?
 
-        self._scan_numbers = self.parse_scan_range()
-        # TODO: is there a way to lock all widgets to prevent accidental parameter changes in the middle?
+            # fire up
+            self._batch_manager() # serve as linked list's head
+            self.btn_recon_batch_start.setEnabled(False)
+            self.btn_recon_batch_stop.setEnabled(True)
+        except Exception as ex:
+            self.exception_handler(ex)
 
-        # fire up
-        self._batch_manager() # serve as linked list's head
-        self.btn_recon_batch_start.setEnabled(False)
-        self.btn_recon_batch_stop.setEnabled(True)
 
-
-    def batch_stop(self):
+    def batchStop(self):
         '''
         Brute-force abortion of the entire batch. No resumption is possible.
         '''
@@ -519,8 +650,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             # don't expect this will happen but if so I'd like to know what
             self.exception_handler(ex)
         else:
-            #img = np.rot90(img, axes=(1,0))
-            self.roiWindow = RoiWindow(image=img, main_window=self)
+            if self.roiWindow is None:
+                self.roiWindow = RoiWindow(image=img, main_window=self)
+            else:
+                self.roiWindow.reset_window(image=img, main_window=self)
             #self.roiWindow.roi_changed.connect(self._get_roi_slot)
             self.roiWindow.show()
 
@@ -591,23 +724,14 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         except OSError: # for h5
             print("[ERROR] h5 not found. Resetting...", file=sys.stderr, end='')
             self.resetExperimentalParameters()
-        except ValueError as ex: # for databroker
-            print()
-            print(ex, file=sys.stderr)
-            print("[ERROR] no image available for the chosen detector.", file=sys.stderr)
         except Exception as ex: # everything unexpected at this time...
             self.exception_handler(ex)
         else:
             self._loaded = True
-        finally:
-            print("done")
 
 
     #@profile
     def _loadExpParamBroker(self, scan_id:int):
-        #doesn't really work...
-        #print("loading begins...may take a while...")
-        #sys.stdout.flush()
         self.db = scan_id # set the correct database
         header = self.db[scan_id]
 
@@ -624,24 +748,34 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             det_name = self.cb_detectorkind.currentText()
 
         # get metadata
-        metadata = load_metadata(self.db, scan_id, det_name)
-        self.param.__dict__ = {**self.param.__dict__, **metadata} # for Python 3.5+ only
-        if metadata['nz'] == 0:
-            raise ValueError
-        else:
-            nz = metadata['nz']
-            # get the mds keys to the image (diffamp) array 
-            self._mds_table = metadata['mds_table']
+        thread = self._worker_thread \
+               = HardWorker("fetch_data", self.db, scan_id, det_name)
+        thread.update_signal.connect(self._setExpParamBroker)
+        thread.finished.connect(lambda: self.btn_load_scan.setEnabled(True))
+        thread.exception_handler = self.exception_handler
+        self.btn_load_scan.setEnabled(False)
+        thread.start()
 
-        print("databroker connected, parsing experimental parameters...", end='')
-        # get nx and ny by looking at the first image
-        img = self.db.reg.retrieve(self._mds_table.iat[0])[0]
-        nx, ny = img.shape # can also give a ValueError; TODO: come up a better way!
-        self.sp_xray_energy.setValue(metadata['energy_kev'])
+
+    def _setExpParamBroker(self, it, metadata:dict):   
+        '''
+        Notes:
+        1. The parameter "it" is just a placeholder for the signal 
+        2. The exceptions are handled in the HardWorker thread, so this function
+           is guaranteed no-throw.
+        '''
+        #metadata = load_metadata(self.db, scan_id, det_name)
+        self.param.__dict__ = {**self.param.__dict__, **metadata} # for Python 3.5+ only
+
+        # get the mds keys to the image (diffamp) array 
+        self._mds_table = metadata['mds_table']
+
+        # update experimental parameters
+        self.sp_xray_energy.setValue(metadata['xray_energy_kev'])
         #self.sp_detector_distance.setValue(f['z_m'].value) # don't know how to handle this...
-        self.sp_x_arr_size.setValue(nx)
-        self.sp_y_arr_size.setValue(ny)
-        self.sp_num_points.setValue(nz)
+        self.sp_x_arr_size.setValue(metadata['nx'])
+        self.sp_y_arr_size.setValue(metadata['ny'])
+        self.sp_num_points.setValue(metadata['nz'])
         self.sp_x_step_size.setValue(metadata['dr_x'])
         self.sp_y_step_size.setValue(metadata['dr_y'])
         self.sp_x_scan_range.setValue(metadata['x_range'])
@@ -650,13 +784,15 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         if self.cb_scan_type.findText(metadata['scan_type']) == -1:
             self.cb_scan_type.addItem(metadata['scan_type'])
         self.cb_scan_type.setCurrentText(metadata['scan_type'])
+        print("done")
 
 
     def setLoadButton(self):
         if self.cb_dataloader.currentText() == "Load from databroker":
             self.cb_detectorkind.setEnabled(True)
             self.cb_scan_type.setEnabled(True)
-            print("[WARNING] Currently detector distance is unavailable in Databroker and must be set manually!", file=sys.stderr)
+            #print("[WARNING] Currently detector distance is unavailable in Databroker and must be set manually!", file=sys.stderr)
+            print("[WARNING] Detector distance is unavailable in Databroker, assumed to be 0.5m", file=sys.stderr)
         if self.cb_dataloader.currentText() == "Load from h5":
             self.cb_detectorkind.setEnabled(False)
             self.cb_scan_type.setEnabled(False) # do we ever write scan type to h5???
@@ -682,11 +818,55 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             #self.cb_scan_type = ...
             self.sp_num_points.setValue(nz)
             # read the detector name and set it in GUI??
+            print("done")
+
+
+    def importConfig(self):
+        filename, _ = QFileDialog.getOpenFileName(self, 'Select GUI config file', directory=self.param.working_directory, filter="(*.txt)")
+        if filename is not None and len(filename) > 0:
+            try:
+                self.param = parse_config(filename, self.param)
+
+                ## update exp parameters since this is supposed to be handled by "Load"
+                #self.sp_xray_energy.setValue(p.xray_energy_kev)
+                #self.sp_detector_distance.setValue(p.z_m)
+                #self.sp_x_arr_size.setValue(p.nx)
+                #self.sp_y_arr_size.setValue(p.ny)
+                #self.sp_x_step_size.setValue(p.dr_x)
+                #self.sp_y_step_size.setValue(p.dr_y)
+                #self.sp_x_scan_range.setValue(p.x_range)
+                #self.sp_y_scan_range.setValue(p.y_range)
+                #self.sp_angle.setValue(p.angle)
+                ##self.cb_scan_type = ...
+                #self.sp_num_points.setValue(p.nz)
+
+                self.update_gui_from_param()
+            except Exception as ex:
+                self.exception_handler(ex)
+            else:
+                print("config loaded from " + filename)
+                self._loaded = True
+                
+
+    def exportConfig(self):
+        self.update_param_from_gui()
+        filename, _ = QFileDialog.getSaveFileName(self, 'Save GUI config to txt', directory=self.param.working_directory, filter="(*.txt)")
+        if filename is not None and len(filename) > 0:
+            if filename[-4:] != ".txt":
+                filename += ".txt"
+            with open(filename, 'w') as f:
+                f.write("[GUI]\n")
+                for key in self.param.__dict__:
+                    # skip a few items related to databroker
+                    if key == 'points' or key == 'ic' or key == 'mds_table':
+                        continue
+                    f.write(key+" = "+str(self.param.__dict__[key])+"\n")
+                print("config saved to " + filename)
 
 
     def resetExperimentalParameters(self):
         self.sp_xray_energy.setValue(0)
-        self.sp_detector_distance.setValue(0)
+        self.sp_detector_distance.setValue(0.5)
         self.sp_x_arr_size.setValue(0)
         self.sp_y_arr_size.setValue(0)
         self.sp_x_step_size.setValue(0)
