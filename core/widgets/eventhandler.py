@@ -370,7 +370,7 @@ class EventHandler(QObject):
         return [id1, id2, id3]
 
     # create monitor handler
-    def monitor_factory(self, ax):
+    def brush_factory(self, ax):
         def _make_pixel_item(x, y):
             _x = np.int(np.floor(x + 0.5))
             _y = np.int(np.floor(y + 0.5))

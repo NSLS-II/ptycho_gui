@@ -52,26 +52,31 @@ class MplCanvasTool(QtWidgets.QWidget):
 
     def _get_toolbar(self):
         self.btn_home = QtWidgets.QPushButton('RESET')
-        self.btn_pan_zoom = QtWidgets.QPushButton('PAN/ZOOM')
+        #self.btn_pan_zoom = QtWidgets.QPushButton('PAN/ZOOM')
         self.btn_roi = QtWidgets.QPushButton('ROI')
-        self.btn_roi_adjust = QtWidgets.QPushButton('ADJUST')
+        self.btn_brush = QtWidgets.QPushButton('BRUSH')
+        #self.btn_roi_adjust = QtWidgets.QPushButton('ADJUST')
 
-        self.btn_pan_zoom.setCheckable(True)
+        #self.btn_pan_zoom.setCheckable(True)
         self.btn_roi.setCheckable(True)
+        self.btn_brush.setCheckable(True)
 
         self.btn_home.clicked.connect(self._on_reset)
-        self.btn_pan_zoom.clicked.connect(lambda: self._update_buttons('pan/zoom'))
+        #self.btn_pan_zoom.clicked.connect(lambda: self._update_buttons('pan/zoom'))
         self.btn_roi.clicked.connect(lambda: self._update_buttons('roi'))
-        self.btn_roi_adjust.clicked.connect(self._on_adjust_roi)
+        self.btn_brush.clicked.connect(lambda: self._update_buttons('brush'))
+        #self.btn_roi_adjust.clicked.connect(self._on_adjust_roi)
 
-        self._actions['pan/zoom'] = self.btn_pan_zoom
+        #self._actions['pan/zoom'] = self.btn_pan_zoom
         self._actions['roi'] = self.btn_roi
+        self._actions['brush'] = self.btn_brush
 
         layout = QtWidgets.QHBoxLayout()
         layout.addWidget(self.btn_home)
-        layout.addWidget(self.btn_pan_zoom)
+        #layout.addWidget(self.btn_pan_zoom)
         layout.addWidget(self.btn_roi)
-        layout.addWidget(self.btn_roi_adjust)
+        #layout.addWidget(self.btn_roi_adjust)
+        layout.addWidget(self.btn_brush)
         return layout
 
     def _get_roi_bar(self):
@@ -139,19 +144,23 @@ class MplCanvasTool(QtWidgets.QWidget):
         else:
             self._active = op_name
 
-        self._actions['pan/zoom'].setChecked(self._active == 'pan/zoom')
+        #self._actions['pan/zoom'].setChecked(self._active == 'pan/zoom')
         self._actions['roi'].setChecked(self._active == 'roi')
+        self._actions['brush'].setChecked(self._active == 'brush')
 
         for id in self._ids:
             self.canvas.mpl_disconnect(id)
         self._ids = []
 
-        if self._active == 'pan/zoom':
-            self._ids = self._eventHandler.zoom_pan_factory(self.ax)
-        elif self._active == 'roi':
+        #if self._active == 'pan/zoom':
+        #    self._ids = self._eventHandler.zoom_pan_factory(self.ax)
+        #el
+        if self._active == 'roi':
             self._ids = self._eventHandler.roi_factory(self.ax)
+        elif self._active == 'brush':
+            self._ids = self._eventHandler.brush_factory(self.ax)
         else:
-            self._ids = self._eventHandler.monitor_factory(self.ax)
+            self._ids = self._eventHandler.zoom_pan_factory(self.ax)
 
     def _on_reset(self):
         if self.image_handler:
@@ -226,7 +235,7 @@ class MplCanvasTool(QtWidgets.QWidget):
             self._on_adjust_roi()
 
         if len(self._ids) == 0:
-            self._ids = self._eventHandler.monitor_factory(self.ax)
+            self._ids = self._eventHandler.zoom_pan_factory(self.ax)
 
         self.canvas.draw()
 

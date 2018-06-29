@@ -23,8 +23,8 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         self.setupUi(self)
         QtWidgets.QApplication.setStyle('Plastique')
 
-        # img = np.load('./34784_frame0.npy')
-        # self.canvas.draw_image(img, cmap='viridis', init_roi=True, use_log=False)
+        img = np.load('./34784_frame0.npy')
+        self.canvas.draw_image(img, cmap='viridis', init_roi=True, use_log=False)
         if image is not None:
             self.canvas.draw_image(image, cmap='gray', init_roi=True, use_log=False)
 
