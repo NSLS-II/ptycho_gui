@@ -66,6 +66,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.btn_recon_stop.clicked.connect(self.stop)
         self.btn_recon_batch_start.clicked.connect(self.batchStart)
         self.btn_recon_batch_stop.clicked.connect(self.batchStop)
+        self.ck_init_prb_batch_flag.stateChanged.connect(self.switchProbeBatch)
+        self.ck_init_obj_batch_flag.stateChanged.connect(self.switchObjectBatch)
 
         self.menu_import_config.triggered.connect(self.importConfig)
         self.menu_export_config.triggered.connect(self.exportConfig)
@@ -94,6 +96,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self._mds_table = None      # hold a Pandas.dataframe instance
         self._loaded = False        # whether the user has loaded metadata or not (from either databroker or h5)
         self._scan_numbers = None   # a list of scan numbers for batch mode
+        self._batch_prb_filename = None  # probe's filename template for batch mode
+        self._batch_obj_filename = None  # object's filename template for batch mode
 
         self.reconStepWindow = None
         self.roiWindow = None
@@ -348,7 +352,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         # batch param group, necessary?
 
 
-    def start(self):
+    def start(self, batch_mode=False):
         if self._dpc_gpu_thread is not None and self._dpc_gpu_thread.isFinished():
             self._dpc_gpu_thread = None
 
@@ -360,6 +364,30 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             self.update_param_from_gui() # this has to be done first, so all operations depending on param are correct
             self.recon_bar.setValue(0)
             self.recon_bar.setMaximum(self.param.n_iterations)
+
+            # batch mode requires some additional changes to param
+            if batch_mode:
+                if self._batch_prb_filename is not None:
+                    p = self.param
+                    p.init_prb_flag = False
+                    scan_num = str(self.param.scan_num)
+                    sign = self._batch_prb_filename[1].split('probe')[0]
+                    sign = sign.strip('_')
+                    dirname = p.working_directory + "/recon_result/S" + scan_num + "/" + sign + "/recon_data/"
+                    filename = scan_num.join(self._batch_prb_filename)
+                    p.set_prb_path(dirname, filename)
+                    print("[BATCH] will load " + dirname + filename + " as probe")
+
+                if self._batch_obj_filename is not None:
+                    p = self.param
+                    p.init_obj_flag = False
+                    scan_num = str(self.param.scan_num)
+                    sign = self._batch_obj_filename[1].split('object')[0]
+                    sign = sign.strip('_')
+                    dirname = p.working_directory + "/recon_result/S" + scan_num + "/" + sign + "/recon_data/"
+                    filename = scan_num.join(self._batch_obj_filename)
+                    p.set_obj_path(dirname, filename)
+                    print("[BATCH] will load " + dirname + filename " as object")
 
             # init reconStepWindow
             if self.ck_preview_flag.isChecked():
@@ -380,6 +408,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
             thread.update_signal.connect(self.update_recon_step)
             thread.finished.connect(self.resetButtons)
+            if batch_mode:
+                thread.finished.connect(self._batch_manager)
             #thread.finished.connect(self.reconStepWindow.debug)
             thread.start()
 
@@ -387,8 +417,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             self.btn_recon_start.setEnabled(False)
 
 
-    def stop(self):
+    def stop(self, batch_mode=False):
         if self._dpc_gpu_thread is not None and self._dpc_gpu_thread.isRunning():
+            if batch_mode:
+                self._dpc_gpu_thread.finished.disconnect(self._batch_manager)
             self._dpc_gpu_thread.kill() # first kill the mpi processes
             self._dpc_gpu_thread.quit() # then quit QThread gracefully
             self._dpc_gpu_thread = None
@@ -579,6 +611,13 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             # TODO: is there a way to lock all widgets to prevent accidental parameter changes in the middle?
 
             # fire up
+            self.le_scan_num.textChanged.disconnect(self.forceLoad)
+            if self.ck_init_prb_batch_flag.isChecked():
+                filename = self.le_prb_path_batch.text()
+                self._batch_prb_filename = filename.split("*")
+            if self.ck_init_obj_batch_flag.isChecked():
+                filename = self.le_obj_path_batch.text()
+                self._batch_obj_filename = filename.split("*")
             self._batch_manager() # serve as linked list's head
             self.btn_recon_batch_start.setEnabled(False)
             self.btn_recon_batch_stop.setEnabled(True)
@@ -590,9 +629,12 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         '''
         Brute-force abortion of the entire batch. No resumption is possible.
         '''
-        self._dpc_gpu_thread.finished.disconnect(self._batch_manager)
+        #self._dpc_gpu_thread.finished.disconnect(self._batch_manager)
         self._scan_numbers = None
-        self.stop()
+        self.le_scan_num.textChanged.connect(self.forceLoad)
+        self.btn_recon_batch_start.setEnabled(True)
+        self.btn_recon_batch_stop.setEnabled(False)
+        self.stop(True)
 
 
     def _batch_manager(self):
@@ -607,12 +649,32 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             scan_num = self._scan_numbers.pop()
             print("begin processing scan " + str(scan_num) + "...") 
             self.le_scan_num.setText(str(scan_num))
-            self.start()
-            self._dpc_gpu_thread.finished.connect(self._batch_manager)
+            self.start(True) 
         else:
             print("batch processing complete!")
             self._scan_numbers = None
+            self.le_scan_num.textChanged.connect(self.forceLoad)
+            self.btn_recon_batch_start.setEnabled(True)
+            self.btn_recon_batch_stop.setEnabled(False)
             self.resetButtons()
+
+
+    def switchProbeBatch(self):
+        if self.ck_init_prb_batch_flag.isChecked():
+            self.le_prb_path_batch.setEnabled(True)
+        else:
+            self.le_prb_path_batch.setEnabled(False)
+            self.le_prb_path_batch.setText('')
+            self._batch_prb_filename = None
+
+
+    def switchObjectBatch(self):
+        if self.ck_init_obj_batch_flag.isChecked():
+            self.le_obj_path_batch.setEnabled(True)
+        else:
+            self.le_obj_path_batch.setEnabled(False)
+            self.le_obj_path_batch.setText('')
+            self._batch_obj_filename = None
 
 
     def viewDataFrame(self):
@@ -715,9 +777,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             if self.cb_dataloader.currentText() == "Load from h5":
                 self._loadExpParamH5(scan_num)
         except KeyError as ex: # for h5
-            if ex.args[0] == 'angle':
+            if 'angle' in ex.args[0]:
                 self.sp_angle.setValue(15.) # backward compatibility for old datasets
                 print("angle not found, assuming 15...", file=sys.stderr)
+                self._loaded = True
             else: # shouldn't happen, and we'd like to know (ex: old scan data from databroker)
                 self.exception_handler(ex)
         except OSError: # for h5
