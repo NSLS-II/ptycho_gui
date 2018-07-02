@@ -387,7 +387,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
                     dirname = p.working_directory + "/recon_result/S" + scan_num + "/" + sign + "/recon_data/"
                     filename = scan_num.join(self._batch_obj_filename)
                     p.set_obj_path(dirname, filename)
-                    print("[BATCH] will load " + dirname + filename " as object")
+                    print("[BATCH] will load " + dirname + filename + " as object")
 
             # init reconStepWindow
             if self.ck_preview_flag.isChecked():
@@ -619,8 +619,6 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
                 filename = self.le_obj_path_batch.text()
                 self._batch_obj_filename = filename.split("*")
             self._batch_manager() # serve as linked list's head
-            self.btn_recon_batch_start.setEnabled(False)
-            self.btn_recon_batch_stop.setEnabled(True)
         except Exception as ex:
             self.exception_handler(ex)
 
@@ -632,8 +630,6 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         #self._dpc_gpu_thread.finished.disconnect(self._batch_manager)
         self._scan_numbers = None
         self.le_scan_num.textChanged.connect(self.forceLoad)
-        self.btn_recon_batch_start.setEnabled(True)
-        self.btn_recon_batch_stop.setEnabled(False)
         self.stop(True)
 
 
@@ -649,13 +645,14 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             scan_num = self._scan_numbers.pop()
             print("begin processing scan " + str(scan_num) + "...") 
             self.le_scan_num.setText(str(scan_num))
+            self.loadExpParam()
             self.start(True) 
+            self.btn_recon_batch_start.setEnabled(False)
+            self.btn_recon_batch_stop.setEnabled(True)
         else:
             print("batch processing complete!")
             self._scan_numbers = None
             self.le_scan_num.textChanged.connect(self.forceLoad)
-            self.btn_recon_batch_start.setEnabled(True)
-            self.btn_recon_batch_stop.setEnabled(False)
             self.resetButtons()
 
 
