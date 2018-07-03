@@ -166,9 +166,10 @@ class DPCReconWorker(QtCore.QThread):
             print('finally?')
 
     def kill(self):
-        print('killing the subprocess...')
-        self.process.terminate()
-        self.process.wait()
+        if self.process is not None:
+            print('killing the subprocess...')
+            self.process.terminate()
+            self.process.wait()
 
 
 # a worker that does the rest of hard work for us
