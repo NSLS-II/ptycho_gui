@@ -1783,17 +1783,17 @@
          </item>
          <item>
           <widget class="QLineEdit" name="le_obj_path_batch">
-           <property name="toolTip">
-            <string>Set object filename template. Ex: &quot;recon_*_t1_object_ave.npy&quot;, where &quot;*&quot; will be replaced by the scan number.</string>
-           </property>
            <property name="enabled">
             <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Set object filename template. Ex: &quot;recon_*_t1_object_ave.npy&quot;, where &quot;*&quot; will be replaced by the scan number.</string>
            </property>
           </widget>
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>20</x>
@@ -1815,17 +1815,17 @@
          </item>
          <item>
           <widget class="QLineEdit" name="le_prb_path_batch">
-           <property name="toolTip">
-            <string>Set probe filename template. Ex: &quot;recon_*_t1_probe_ave.npy&quot;, where &quot;*&quot; will be replaced by the scan number.</string>
-           </property>
            <property name="enabled">
             <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Set probe filename template. Ex: &quot;recon_*_t1_probe_ave.npy&quot;, where &quot;*&quot; will be replaced by the scan number.</string>
            </property>
           </widget>
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>40</x>
@@ -1911,8 +1911,13 @@
     <property name="title">
      <string>File</string>
     </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
     <addaction name="menu_import_config"/>
     <addaction name="menu_export_config"/>
+    <addaction name="menu_clear_config_history"/>
+    <addaction name="menu_save_config_history"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -1924,6 +1929,25 @@
   <action name="menu_export_config">
    <property name="text">
     <string>Export config to txt</string>
+   </property>
+  </action>
+  <action name="menu_save_config_history">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Save config history</string>
+   </property>
+   <property name="toolTip">
+    <string>The config history is saved to &quot;.ptycho_gui_config&quot; in the user's home directory when the &quot;start&quot; button is clicked</string>
+   </property>
+  </action>
+  <action name="menu_clear_config_history">
+   <property name="text">
+    <string>Clear config history</string>
    </property>
   </action>
  </widget>

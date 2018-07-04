@@ -71,6 +71,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
         self.menu_import_config.triggered.connect(self.importConfig)
         self.menu_export_config.triggered.connect(self.exportConfig)
+        self.menu_clear_config_history.triggered.connect(self.removeConfigHistory)
 
         self.btn_MPI_file.clicked.connect(self.setMPIfile)
         self.btn_gpu_all = [self.btn_gpu_0, self.btn_gpu_1, self.btn_gpu_2, self.btn_gpu_3]
@@ -98,10 +99,13 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self._scan_numbers = None   # a list of scan numbers for batch mode
         self._batch_prb_filename = None  # probe's filename template for batch mode
         self._batch_obj_filename = None  # object's filename template for batch mode
+        self._config_path = os.path.expanduser("~") + "/.ptycho_gui_config"
 
         self.reconStepWindow = None
         self.roiWindow = None
 
+        if self.menu_save_config_history.isChecked(): # TODO: think of a better way...
+            self.retrieveConfigHistory()
         self.update_gui_from_param()
         self.updateModeFlg()
         self.updateMultiSliceFlg()
@@ -146,6 +150,24 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             del self._obj
             self._obj = None
             os.remove(self.param.working_directory + '.mmap_obj.npy')
+
+    
+    # TODO: consider merging this function with importConfig()? 
+    def retrieveConfigHistory(self):
+        if os.path.isfile(self._config_path):
+            param = self.param
+            try:
+                self.param = parse_config(self._config_path, self.param)
+            except Exception as ex:
+                self.exception_handler(ex)
+                self.param = param
+
+
+    def removeConfigHistory(self):
+        if os.path.isfile(self._config_path):
+            self.param = Param() # default
+            os.remove(self._config_path)
+            self.update_gui_from_param()
         
 
     def update_param_from_gui(self):
@@ -388,6 +410,9 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
                     filename = scan_num.join(self._batch_obj_filename)
                     p.set_obj_path(dirname, filename)
                     print("[BATCH] will load " + dirname + filename + " as object")
+
+            #if self.menu_save_config_history.isChecked():
+            self._exportConfigHelper(self._config_path)
 
             # init reconStepWindow
             if self.ck_preview_flag.isChecked():
@@ -913,14 +938,18 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         if filename is not None and len(filename) > 0:
             if filename[-4:] != ".txt":
                 filename += ".txt"
-            with open(filename, 'w') as f:
-                f.write("[GUI]\n")
-                for key in self.param.__dict__:
-                    # skip a few items related to databroker
-                    if key == 'points' or key == 'ic' or key == 'mds_table':
-                        continue
-                    f.write(key+" = "+str(self.param.__dict__[key])+"\n")
+                self._exportConfigHelper(filename)
                 print("config saved to " + filename)
+
+
+    def _exportConfigHelper(self, filename:str):
+        with open(filename, 'w') as f:
+            f.write("[GUI]\n")
+            for key in self.param.__dict__:
+                # skip a few items related to databroker
+                if key == 'points' or key == 'ic' or key == 'mds_table':
+                    continue
+                f.write(key+" = "+str(self.param.__dict__[key])+"\n")
 
 
     def resetExperimentalParameters(self):

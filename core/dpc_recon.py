@@ -3,7 +3,7 @@ from PyQt5 import QtCore
 from datetime import datetime
 from core.dpc_param import Param
 #from .ptycho.recon_ptycho_gui import recon_gui
-#from mpi4py import MPI
+from mpi4py import MPI
 import sys, os
 import pickle     # dump param into disk
 import subprocess # call mpirun from shell
@@ -67,10 +67,6 @@ class DPCReconWorker(QtCore.QThread):
 
 
     def recon_api(self, param:Param, update_fcn=None):
-        config_path = os.path.expanduser("~") + "/.ptycho_gui_config"
-        with open(config_path, "w") as config:
-            config.write("working_directory = "+param.working_directory)
-
         with open(param.working_directory + '.dpc_param.pkl', 'wb') as output:
             # dump param into disk and let children read it back
             pickle.dump(param, output, pickle.HIGHEST_PROTOCOL)
@@ -82,19 +78,39 @@ class DPCReconWorker(QtCore.QThread):
         else:
             num_processes = str(1)
         mpirun_command = ["mpirun", "-n", num_processes, "python", "-W", "ignore", "./core/ptycho/recon_ptycho_gui.py"]
+                
+        if 'MPICH' in MPI.get_vendor()[0]:
+            mpirun_command.insert(-1, "-u") # force flush asap (MPICH is weird...)
 
         # use MPI machine file if available, assuming each line of which is: 
-        # ip_address slots=n max-slots=n
+        # ip_address slots=n max-slots=n   --- Open MPI
+        # ip_address:n                     --- MPICH
         if param.mpi_file_path != '':
             with open(param.mpi_file_path, 'r') as f:
                 node_count = 0
-                for line in f:
-                    line = line.split()
-                    node_count += int(line[1].split('=')[-1])
+                if MPI.get_vendor()[0] == 'Open MPI':
+                    for line in f:
+                        line = line.split()
+                        node_count += int(line[1].split('=')[-1])
+                    mpirun_command.insert(3, "-machinefile")
+                    # use mpirun to find where MPI is installed
+                    import shutil
+                    path = os.path.split(shutil.which('mpirun'))[0] 
+                    if path[-3:] == 'bin':
+                        path = path[:-3]
+                    mpirun_command[4:4] = ["--prefix", path, "-x", "PATH", "-x", "LD_LIBRARY_PATH"]
+                elif 'MPICH' in MPI.get_vendor()[0]:
+                    for line in f:
+                        line = line.split(":")
+                        node_count += int(line[1])
+                    mpirun_command.insert(3, "-f")
+                else:
+                    raise RuntimeError("mpi4py is built on top of unrecognized MPI library. "
+                                       "Only Open MPI and MPICH are tested.")
                 mpirun_command[2] = str(node_count) # use all available nodes
-                mpirun_command.insert(3, "-machinefile")
                 mpirun_command.insert(4, param.mpi_file_path)
                 #param.gpus = range(node_count)
+                #print(" ".join(mpirun_command))
 
         try:
             return_value = None
@@ -127,7 +143,7 @@ class DPCReconWorker(QtCore.QThread):
 
                     if stdout:
                         stdout = stdout.decode('utf-8')
-                        print(stdout)
+                        print(stdout, end='') # because the line already ends with '\n'
                         stdout = stdout.split()
                         if len(stdout) > 0 and stdout[0] == "[INFO]" and update_fcn is not None:
                             it, result = self._parse_message(stdout)
@@ -136,7 +152,7 @@ class DPCReconWorker(QtCore.QThread):
 
                     if stderr:
                         stderr = stderr.decode('utf-8')
-                        print(stderr, file=sys.stderr)
+                        print(stderr, file=sys.stderr, end='')
 
                 # get the return value 
                 return_value = run_ptycho.poll()
@@ -158,10 +174,12 @@ class DPCReconWorker(QtCore.QThread):
         print('DPC thread started')
         try:
             self.recon_api(self.param, self.update_signal.emit)
-        # whatever happened in the MPI processes will always (!) generate traceback,
-        # so do nothing here
-        #except:
-        #    pass
+        except IndexError:
+            print("[ERROR] IndexError --- most likely a wrong MPI machine file is given?", file=sys.stderr)
+        except:
+            # whatever happened in the MPI processes will always (!) generate traceback,
+            # so do nothing here
+            pass
         finally:
             print('finally?')
 
