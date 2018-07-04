@@ -123,6 +123,7 @@ class Param(object):
         self.gui = True
         self.display_interval = 5 # plot every 5 steps
         self.preview_flag = True  # turn on live preview
+        self.save_config_history = True 
 
         self.init_obj_dpc_flag = False
         self.prb_center_flag = True
@@ -198,6 +199,7 @@ def parse_config(filename, param):
     p.ms_pie_flag               = config.getboolean('GUI', 'ms_pie_flag')
     p.weak_obj_flag             = config.getboolean('GUI', 'weak_obj_flag')
     p.preview_flag              = config.getboolean('GUI', 'preview_flag')
+    p.save_config_history       = config.getboolean('GUI', 'save_config_history')
 
     # integers
     p.frame_num                 = config.getint('GUI', 'frame_num')

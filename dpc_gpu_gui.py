@@ -72,6 +72,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.menu_import_config.triggered.connect(self.importConfig)
         self.menu_export_config.triggered.connect(self.exportConfig)
         self.menu_clear_config_history.triggered.connect(self.removeConfigHistory)
+        self.menu_save_config_history.triggered.connect(self.saveConfigHistory)
 
         self.btn_MPI_file.clicked.connect(self.setMPIfile)
         self.btn_gpu_all = [self.btn_gpu_0, self.btn_gpu_1, self.btn_gpu_2, self.btn_gpu_3]
@@ -104,8 +105,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.reconStepWindow = None
         self.roiWindow = None
 
-        if self.menu_save_config_history.isChecked(): # TODO: think of a better way...
-            self.retrieveConfigHistory()
+        #if self.menu_save_config_history.isChecked(): # TODO: think of a better way...
+        self.retrieveConfigHistory()
         self.update_gui_from_param()
         self.updateModeFlg()
         self.updateMultiSliceFlg()
@@ -155,12 +156,17 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
     # TODO: consider merging this function with importConfig()? 
     def retrieveConfigHistory(self):
         if os.path.isfile(self._config_path):
-            param = self.param
             try:
-                self.param = parse_config(self._config_path, self.param)
+                param = parse_config(self._config_path, Param())
+                self.menu_save_config_history.setChecked(param.save_config_history)
+                if param.save_config_history:
+                    self.param = param
             except Exception as ex:
                 self.exception_handler(ex)
-                self.param = param
+
+
+    def saveConfigHistory(self):
+        self.param.save_config_history = self.menu_save_config_history.isChecked()
 
 
     def removeConfigHistory(self):
