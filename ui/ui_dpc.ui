@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>754</width>
-    <height>818</height>
+    <width>786</width>
+    <height>887</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,166 +17,216 @@
    <layout class="QGridLayout" name="gridLayout_2">
     <item row="0" column="1">
      <widget class="QGroupBox" name="groupBox_6">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
       <property name="title">
-       <string/>
+       <string>title</string>
+      </property>
+      <property name="flat">
+       <bool>false</bool>
       </property>
       <widget class="QGroupBox" name="groupBox_7">
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>0</y>
+         <y>30</y>
          <width>721</width>
-         <height>108</height>
+         <height>111</height>
         </rect>
        </property>
        <property name="title">
         <string>Data</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
-        <item row="0" column="0">
-         <widget class="QLabel" name="label">
-          <property name="maximumSize">
-           <size>
-            <width>100</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Scan number</string>
-          </property>
-         </widget>
-        </item>
         <item row="0" column="1">
-         <widget class="QLineEdit" name="le_scan_num">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>80</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>34784</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="3" colspan="2">
-         <widget class="QPushButton" name="btn_choose_cwd">
-          <property name="text">
-           <string>working directory</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0" colspan="2">
-         <widget class="QComboBox" name="cb_dataloader">
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
-           <property name="text">
-            <string>Load from h5</string>
-           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <widget class="QLabel" name="label">
+              <property name="maximumSize">
+               <size>
+                <width>100</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Scan number</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="le_scan_num">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>80</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>34784</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>60</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btn_choose_cwd">
+              <property name="text">
+               <string>working directory</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="le_working_directory">
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
-           <property name="text">
-            <string>Load from databroker</string>
-           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <widget class="QComboBox" name="cb_dataloader">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <item>
+               <property name="text">
+                <string>Load from h5</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Load from databroker</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btn_load_scan">
+              <property name="text">
+               <string>Load</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_26">
+              <property name="text">
+               <string>detector</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cb_detectorkind">
+              <item>
+               <property name="text">
+                <string>merlin1</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>merlin2</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>timepix1</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>timepix2</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_36">
+              <property name="maximumSize">
+               <size>
+                <width>70</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Frame #</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="sp_fram_num">
+              <property name="maximumSize">
+               <size>
+                <width>70</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="maximum">
+               <number>1000000</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btn_view_frame">
+              <property name="minimumSize">
+               <size>
+                <width>121</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>150</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>View data frame</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QPushButton" name="btn_load_scan">
-          <property name="text">
-           <string>Load</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="3">
-         <widget class="QLabel" name="label_26">
-          <property name="text">
-           <string>detector</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="4">
-         <widget class="QComboBox" name="cb_detectorkind">
-          <item>
-           <property name="text">
-            <string>merlin1</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>merlin2</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>timepix1</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>timepix2</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item row="1" column="5">
-         <widget class="QLabel" name="label_36">
-          <property name="maximumSize">
-           <size>
-            <width>70</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Frame #</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="6">
-         <widget class="QSpinBox" name="sp_fram_num">
-          <property name="maximumSize">
-           <size>
-            <width>70</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="maximum">
-           <number>1000000</number>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="7">
-         <widget class="QPushButton" name="btn_view_frame">
-          <property name="minimumSize">
-           <size>
-            <width>121</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>150</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>View data frame</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="5" colspan="3">
-         <widget class="QLineEdit" name="le_working_directory"/>
+         </layout>
         </item>
        </layout>
       </widget>
@@ -184,7 +234,7 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>110</y>
+         <y>150</y>
          <width>711</width>
          <height>201</height>
         </rect>
@@ -200,8 +250,8 @@
          <rect>
           <x>19</x>
           <y>30</y>
-          <width>681</width>
-          <height>165</height>
+          <width>762</width>
+          <height>198</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout_9">
@@ -240,20 +290,6 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_41">
-           <property name="text">
-            <string>X step size (nm)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QDoubleSpinBox" name="sp_x_scan_range">
-           <property name="decimals">
-            <number>4</number>
-           </property>
-          </widget>
-         </item>
          <item row="4" column="1">
           <widget class="QComboBox" name="cb_scan_type">
            <item>
@@ -273,6 +309,20 @@
            </item>
           </widget>
          </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_41">
+           <property name="text">
+            <string>X step size (nm)</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QDoubleSpinBox" name="sp_x_scan_range">
+           <property name="decimals">
+            <number>4</number>
+           </property>
+          </widget>
+         </item>
          <item row="4" column="2">
           <widget class="QLabel" name="label_46">
            <property name="text">
@@ -287,6 +337,13 @@
            </property>
           </widget>
          </item>
+         <item row="4" column="3">
+          <widget class="QSpinBox" name="sp_num_points">
+           <property name="maximum">
+            <number>1000000</number>
+           </property>
+          </widget>
+         </item>
          <item row="2" column="3">
           <widget class="QDoubleSpinBox" name="sp_y_step_size">
            <property name="decimals">
@@ -298,13 +355,6 @@
           <widget class="QLabel" name="label_44">
            <property name="text">
             <string>Y scan range (um)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="3">
-          <widget class="QSpinBox" name="sp_num_points">
-           <property name="maximum">
-            <number>1000000</number>
            </property>
           </widget>
          </item>
@@ -329,24 +379,17 @@
            </property>
           </widget>
          </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_43">
-           <property name="text">
-            <string>X scan range (um)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_45">
-           <property name="text">
-            <string>Scan type: </string>
-           </property>
-          </widget>
-         </item>
          <item row="1" column="1">
           <widget class="QSpinBox" name="sp_x_arr_size">
            <property name="maximum">
             <number>1000000</number>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_43">
+           <property name="text">
+            <string>X scan range (um)</string>
            </property>
           </widget>
          </item>
@@ -357,6 +400,13 @@
            </property>
           </widget>
          </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_45">
+           <property name="text">
+            <string>Scan type: </string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
       </widget>
@@ -364,7 +414,7 @@
        <property name="geometry">
         <rect>
          <x>18</x>
-         <y>320</y>
+         <y>360</y>
          <width>700</width>
          <height>351</height>
         </rect>
@@ -1511,7 +1561,7 @@
        <property name="geometry">
         <rect>
          <x>18</x>
-         <y>780</y>
+         <y>830</y>
          <width>700</width>
          <height>25</height>
         </rect>
@@ -1524,7 +1574,7 @@
        <property name="geometry">
         <rect>
          <x>18</x>
-         <y>680</y>
+         <y>720</y>
          <width>700</width>
          <height>100</height>
         </rect>
@@ -1538,6 +1588,7 @@
       <zorder>recon_bar</zorder>
       <zorder>console_info</zorder>
       <zorder>tabWidget</zorder>
+      <zorder>horizontalLayoutWidget</zorder>
      </widget>
     </item>
    </layout>
