@@ -1706,44 +1706,6 @@
        <attribute name="title">
         <string>Batch mode</string>
        </attribute>
-       <widget class="QPushButton" name="btn_recon_batch_start">
-        <property name="geometry">
-         <rect>
-          <x>560</x>
-          <y>280</y>
-          <width>70</width>
-          <height>32</height>
-         </rect>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>80</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>start</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="btn_recon_batch_stop">
-        <property name="geometry">
-         <rect>
-          <x>630</x>
-          <y>280</y>
-          <width>69</width>
-          <height>32</height>
-         </rect>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>80</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>stop</string>
-        </property>
-       </widget>
        <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
@@ -1799,6 +1761,121 @@
          </item>
         </layout>
        </widget>
+       <widget class="QWidget" name="layoutWidget_2">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>120</y>
+          <width>491</width>
+          <height>28</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_13">
+         <item>
+          <widget class="QCheckBox" name="ck_init_obj_batch_flag">
+           <property name="layoutDirection">
+            <enum>Qt::LeftToRight</enum>
+           </property>
+           <property name="text">
+            <string>Load existing object for each scan:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="le_obj_path_batch">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Set object filename template. Ex: &quot;recon_*_t1_object_ave.npy&quot;, where &quot;*&quot; will be replaced by the scan number.</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="layoutWidget">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>90</y>
+          <width>491</width>
+          <height>28</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_12">
+         <item>
+          <widget class="QCheckBox" name="ck_init_prb_batch_flag">
+           <property name="layoutDirection">
+            <enum>Qt::LeftToRight</enum>
+           </property>
+           <property name="text">
+            <string>Load existing probe for each scan:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="le_prb_path_batch">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Set probe filename template. Ex: &quot;recon_*_t1_probe_ave.npy&quot;, where &quot;*&quot; will be replaced by the scan number.</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="layoutWidget">
+        <property name="geometry">
+         <rect>
+          <x>40</x>
+          <y>250</y>
+          <width>668</width>
+          <height>32</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_11">
+         <item>
+          <spacer name="horizontalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>518</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_recon_batch_start">
+           <property name="maximumSize">
+            <size>
+             <width>80</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>start</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_recon_batch_stop">
+           <property name="maximumSize">
+            <size>
+             <width>80</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>stop</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </widget>
      </widget>
     </item>
@@ -1834,8 +1911,13 @@
     <property name="title">
      <string>File</string>
     </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
     <addaction name="menu_import_config"/>
     <addaction name="menu_export_config"/>
+    <addaction name="menu_clear_config_history"/>
+    <addaction name="menu_save_config_history"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -1847,6 +1929,25 @@
   <action name="menu_export_config">
    <property name="text">
     <string>Export config to txt</string>
+   </property>
+  </action>
+  <action name="menu_save_config_history">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Save config history</string>
+   </property>
+   <property name="toolTip">
+    <string>The config history is saved to &quot;.ptycho_gui_config&quot; in the user's home directory when the &quot;start&quot; button is clicked</string>
+   </property>
+  </action>
+  <action name="menu_clear_config_history">
+   <property name="text">
+    <string>Clear config history</string>
    </property>
   </action>
  </widget>

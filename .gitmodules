@@ -1,4 +1,4 @@
 [submodule "core/ptycho"]
 	path = core/ptycho
 	url = https://github.com/leofang/ptycho
-	branch = mode
+	branch = gui

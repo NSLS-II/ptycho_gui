@@ -148,7 +148,7 @@ def load_metadata(db, scan_num:int, det_name:str):
     return metadata
 
 
-def save_data(db, param, scan_num:int, n:int, nn:int, cx=110, cy=160, threshold=1., bad_pixels=None):
+def save_data(db, param, scan_num:int, n:int, nn:int, cx=110, cy=160, threshold=1., bad_pixels=None, zero_out=None):
     '''
     Save metadata and diffamp for the given scan number to a HDF5 file.
 
@@ -171,6 +171,8 @@ def save_data(db, param, scan_num:int, n:int, nn:int, cx=110, cy=160, threshold=
             the threshold of raw image, below which the data is removed
         - bad_pixels: list of two lists, optional
             the data structure is [[x1, x2, ...], [y1, y2, ...]]. If given, they will be removed from the images.
+        - zero_out: list of tuples, optional
+            zero out the given rois [(x0, y0, w0, h0), (x1, y1, w1, h1), ...]
 
     Notes:
     1. the detector distance is assumed existent as param.z_m
@@ -205,7 +207,15 @@ def save_data(db, param, scan_num:int, n:int, nn:int, cx=110, cy=160, threshold=
 
         if bad_pixels is not None:
             img = rm_outlier_pixels(img, bad_pixels[0], bad_pixels[1])
-        
+
+        if zero_out is not None:
+            for blue_roi in zero_out:
+                x0 = blue_roi[0]
+                y0 = blue_roi[1]
+                w = blue_roi[2]
+                h = blue_roi[3]
+                img[y0:y0+h, x0:x0+w] = 0.
+
         if n < nx:
             # assuming n=nn???
             #print(nx, ny, file=sys.stderr)
@@ -213,12 +223,19 @@ def save_data(db, param, scan_num:int, n:int, nn:int, cx=110, cy=160, threshold=
             #tmptmp = img[cx-n//2:cx+n//2, cy-nn//2:cy+nn//2]
             tmptmp = img[cy-nn//2:cy+nn//2, cx-n//2:cx+n//2]
             #print(tmptmp.shape, file=sys.stderr)
-        else:
-            # is this part necessary???
-            #tmptmp = t
-            tmptmp = np.zeros((n, n))
-            #tmptmp[3:-3,:] = t[:,cy-n//2:cy+n//2]
-            tmptmp[4:-8, :] = img[:, cy-n//2:cy+n//2]
+        else: 
+            raise Exception("zero padding not completed yet")
+            # # is this part necessary???
+            # #tmptmp = t
+            # tmptmp = np.zeros((n, n))
+            # #tmptmp[3:-3,:] = t[:,cy-n//2:cy+n//2]
+            # tmptmp[4:-8, :] = img[:, cy-n//2:cy+n//2]
+
+        #if i == 0:
+        #    import matplotlib.pyplot as plt
+        #    plt.imshow(tmptmp, vmin=np.min(img), vmax=np.max(img))
+        #    plt.savefig("ttttt.png")
+        #    return
         
         tmptmp = np.rot90(tmptmp, axes=(1,0)) #equivalent to np.flipud(tmptmp).T
         data[i] = np.fft.fftshift(tmptmp)

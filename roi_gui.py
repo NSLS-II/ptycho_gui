@@ -58,12 +58,13 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         called from outside 
         '''
         self.canvas.reset()
+        # TODO: reset bad pixels stored in canvas
         if image is not None:
             self.canvas.draw_image(image)
 
-        self.badpixels = None
-        self.offset_x = None
-        self.offset_y = None
+        #self.badpixels = None
+        #self.offset_x = None
+        #self.offset_y = None
 
         self.main_window = main_window
         self.roi_width = None
@@ -73,7 +74,7 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         self.sp_threshold.setValue(1.0)
         self._worker_thread = None
 
-        self.btn_badpixels_brightest.setChecked(False)
+        #self.btn_badpixels_brightest.setChecked(False)
         self.btn_badpixels_outliers.setChecked(False)
         self.ck_show_badpixels.setChecked(False)
         self.btn_badpixels_correct.setChecked(False)
@@ -175,9 +176,13 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
             badpixels = None
             print("no bad pixels")
 
+        # get blue rois
+        blue_rois = self.canvas.get_blue_roi()
+        #print(blue_rois)
+
         thread = self._worker_thread \
                = HardWorker("save_h5", master.db, p, int(p.scan_num), self.roi_width, self.roi_height, 
-                                       self.cx, self.cy, threshold, badpixels)
+                                       self.cx, self.cy, threshold, badpixels, blue_rois)
         thread.finished.connect(lambda: self.btn_save_to_h5.setEnabled(True))
         thread.exception_handler = master.exception_handler
         self.btn_save_to_h5.setEnabled(False)
