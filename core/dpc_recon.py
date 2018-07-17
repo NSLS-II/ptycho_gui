@@ -3,13 +3,20 @@ from PyQt5 import QtCore
 from datetime import datetime
 from core.dpc_param import Param
 #from .ptycho.recon_ptycho_gui import recon_gui
-#from mpi4py import MPI
+from mpi4py import MPI
 import sys, os
 import pickle     # dump param into disk
 import subprocess # call mpirun from shell
 from fcntl import fcntl, F_GETFL, F_SETFL
 from os import O_NONBLOCK
 import numpy as np
+import traceback
+try:
+    from core.HXN_databroker import load_metadata, save_data
+except ImportError as ex:
+    print('[!] Unable to import core.HXN_databroker packages some features will '
+          'be unavailable')
+    print('[!] (import error: {})'.format(ex))
 
 
 class DPCReconWorker(QtCore.QThread):
@@ -59,11 +66,7 @@ class DPCReconWorker(QtCore.QThread):
         return it, result
 
 
-    def recon_api(self, param:Param, update_fcn=None, signals=None):
-        config_path = os.path.expanduser("~") + "/.ptycho_gui_config"
-        with open(config_path, "w") as config:
-            config.write("working_directory = "+param.working_directory)
-
+    def recon_api(self, param:Param, update_fcn=None):
         with open(param.working_directory + '.dpc_param.pkl', 'wb') as output:
             # dump param into disk and let children read it back
             pickle.dump(param, output, pickle.HIGHEST_PROTOCOL)
@@ -75,22 +78,39 @@ class DPCReconWorker(QtCore.QThread):
         else:
             num_processes = str(1)
         mpirun_command = ["mpirun", "-n", num_processes, "python", "-W", "ignore", "./core/ptycho/recon_ptycho_gui.py"]
+                
+        if 'MPICH' in MPI.get_vendor()[0]:
+            mpirun_command.insert(-1, "-u") # force flush asap (MPICH is weird...)
 
         # use MPI machine file if available, assuming each line of which is: 
-        # ip_address slots=n max-slots=n
+        # ip_address slots=n max-slots=n   --- Open MPI
+        # ip_address:n                     --- MPICH
         if param.mpi_file_path != '':
             with open(param.mpi_file_path, 'r') as f:
                 node_count = 0
-                while True:
-                    line = f.readline()
-                    if line == '':
-                        break
-                    line = line.split()
-                    node_count += int(line[1].split('=')[-1])
-                mpirun_command[2] = str(node_count)
-                mpirun_command.insert(3, "-machinefile")
+                if MPI.get_vendor()[0] == 'Open MPI':
+                    for line in f:
+                        line = line.split()
+                        node_count += int(line[1].split('=')[-1])
+                    mpirun_command.insert(3, "-machinefile")
+                    # use mpirun to find where MPI is installed
+                    import shutil
+                    path = os.path.split(shutil.which('mpirun'))[0] 
+                    if path[-3:] == 'bin':
+                        path = path[:-3]
+                    mpirun_command[4:4] = ["--prefix", path, "-x", "PATH", "-x", "LD_LIBRARY_PATH"]
+                elif 'MPICH' in MPI.get_vendor()[0]:
+                    for line in f:
+                        line = line.split(":")
+                        node_count += int(line[1])
+                    mpirun_command.insert(3, "-f")
+                else:
+                    raise RuntimeError("mpi4py is built on top of unrecognized MPI library. "
+                                       "Only Open MPI and MPICH are tested.")
+                mpirun_command[2] = str(node_count) # use all available nodes
                 mpirun_command.insert(4, param.mpi_file_path)
                 #param.gpus = range(node_count)
+                #print(" ".join(mpirun_command))
 
         try:
             return_value = None
@@ -123,7 +143,7 @@ class DPCReconWorker(QtCore.QThread):
 
                     if stdout:
                         stdout = stdout.decode('utf-8')
-                        print(stdout)
+                        print(stdout, end='') # because the line already ends with '\n'
                         stdout = stdout.split()
                         if len(stdout) > 0 and stdout[0] == "[INFO]" and update_fcn is not None:
                             it, result = self._parse_message(stdout)
@@ -132,7 +152,7 @@ class DPCReconWorker(QtCore.QThread):
 
                     if stderr:
                         stderr = stderr.decode('utf-8')
-                        print(stderr, file=sys.stderr)
+                        print(stderr, file=sys.stderr, end='')
 
                 # get the return value 
                 return_value = run_ptycho.poll()
@@ -147,22 +167,86 @@ class DPCReconWorker(QtCore.QThread):
         finally:
             # clean up temp file
             os.remove(param.working_directory + '.dpc_param.pkl')
+            if os.path.isfile(param.working_directory + ".dpc_param.txt"):
+                os.remove(param.working_directory + ".dpc_param.txt")
 
     def run(self):
         print('DPC thread started')
         try:
             self.recon_api(self.param, self.update_signal.emit)
-        # whatever happened in the MPI processes will always (!) generate traceback,
-        # so do nothing here
-        #except:
-        #    pass
+        except IndexError:
+            print("[ERROR] IndexError --- most likely a wrong MPI machine file is given?", file=sys.stderr)
+        except:
+            # whatever happened in the MPI processes will always (!) generate traceback,
+            # so do nothing here
+            pass
         finally:
             print('finally?')
 
     def kill(self):
-        print('killing the subprocess...')
-        self.process.terminate()
-        self.process.wait()
+        if self.process is not None:
+            print('killing the subprocess...')
+            self.process.terminate()
+            self.process.wait()
+
+
+# a worker that does the rest of hard work for us
+class HardWorker(QtCore.QThread):
+    update_signal = QtCore.pyqtSignal(int, object) # connect to MainWindow???
+    def __init__(self, task=None, *args, parent=None):
+        super().__init__(parent)
+        self.task = task
+        self.args = args
+        self.exception_handler = None
+        #self.update_signal = QtCore.pyqtSignal(int, object) # connect to MainWindow???
+
+    def run(self):
+        try:
+            if self.task == "save_h5":
+                self._save_h5(self.update_signal.emit)
+            elif self.task == "fetch_data":
+                self._fetch_data(self.update_signal.emit)
+            # TODO: put other heavy lifting works here
+            # TODO: consider merge other worker threads to this one?
+        except ValueError as ex:
+            # from _fetch_data(), print it and quit
+            print(ex, file=sys.stderr)
+            print("[ERROR] possible reason: no image available for the selected detector/scan", file=sys.stderr)
+        except Exception as ex:
+            # use MainWindow's exception handler
+            if self.exception_handler is not None:
+                self.exception_handler(ex)
+
+    def kill(self):
+        pass
+
+    def _save_h5(self, update_fcn=None):
+        '''
+        args = [db, param, scan_num, roi_width, roi_height, cx, cy, threshold, bad_pixels]
+        '''
+        print("saving data to h5, this may take a while...")
+        save_data(*self.args)
+        print("h5 saved.")
+
+    def _fetch_data(self, update_fcn=None):
+        '''
+        args = [db, scan_id, det_name]
+        '''
+        if update_fcn is not None:
+            print("loading begins, this may take a while...", end='')
+            metadata = load_metadata(*self.args)
+
+            # sanity checks
+            if metadata['nz'] == 0:
+                raise ValueError("nz = 0")
+            #print("databroker connected, parsing experimental parameters...", end='')
+            # get nx and ny by looking at the first image
+            img = self.args[0].reg.retrieve(metadata['mds_table'].iat[0])[0]
+            nx, ny = img.shape # can also give a ValueError; TODO: come up a better way!
+            metadata['nx'] = nx
+            metadata['ny'] = ny
+
+            update_fcn(0, metadata) # 0 is just a placeholder
 
 
 class DPCReconFakeWorker(QtCore.QThread):
@@ -241,8 +325,3 @@ class DPCReconFakeWorker(QtCore.QThread):
 
     def kill(self):
         pass
-
-
-
-
-
