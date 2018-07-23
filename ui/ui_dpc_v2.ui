@@ -1087,7 +1087,11 @@
            </widget>
           </item>
           <item row="0" column="7">
-           <widget class="QSpinBox" name="sp_start_update_probe"/>
+           <widget class="QSpinBox" name="sp_start_update_probe">
+            <property name="maximum">
+             <number>1000000</number>
+            </property>
+           </widget>
           </item>
           <item row="2" column="9">
            <widget class="QSpinBox" name="sp_nth">
@@ -1103,6 +1107,12 @@
            <widget class="QDoubleSpinBox" name="sp_start_ave">
             <property name="decimals">
              <number>1</number>
+            </property>
+            <property name="maximum">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.100000000000000</double>
             </property>
             <property name="value">
              <double>0.800000000000000</double>
@@ -1246,7 +1256,11 @@
            </widget>
           </item>
           <item row="1" column="7">
-           <widget class="QSpinBox" name="sp_start_update_object"/>
+           <widget class="QSpinBox" name="sp_start_update_object">
+            <property name="maximum">
+             <number>1000000</number>
+            </property>
+           </widget>
           </item>
           <item row="1" column="9">
            <widget class="QSpinBox" name="sp_dm_version">
@@ -1299,6 +1313,9 @@
             </property>
             <property name="decimals">
              <number>3</number>
+            </property>
+            <property name="maximum">
+             <double>1000.000000000000000</double>
             </property>
             <property name="value">
              <double>55.000000000000000</double>
@@ -1572,7 +1589,10 @@
                  <number>2</number>
                 </property>
                 <property name="maximum">
-                 <double>96.989999999999995</double>
+                 <double>2.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.100000000000000</double>
                 </property>
                 <property name="value">
                  <double>0.900000000000000</double>
@@ -1766,7 +1786,7 @@
          <rect>
           <x>20</x>
           <y>120</y>
-          <width>491</width>
+          <width>701</width>
           <height>28</height>
          </rect>
         </property>
@@ -1798,7 +1818,7 @@
          <rect>
           <x>20</x>
           <y>90</y>
-          <width>491</width>
+          <width>701</width>
           <height>28</height>
          </rect>
         </property>

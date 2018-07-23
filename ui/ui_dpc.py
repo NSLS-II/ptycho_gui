@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui/ui_dpc_v2.ui'
+# Form implementation generated from reading ui file 'ui_dpc_v2.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -457,6 +457,7 @@ class Ui_MainWindow(object):
         self.sp_x_direction.setObjectName("sp_x_direction")
         self.gridLayout_3.addWidget(self.sp_x_direction, 2, 2, 1, 1)
         self.sp_start_update_probe = QtWidgets.QSpinBox(self.tab_2)
+        self.sp_start_update_probe.setMaximum(1000000)
         self.sp_start_update_probe.setObjectName("sp_start_update_probe")
         self.gridLayout_3.addWidget(self.sp_start_update_probe, 0, 7, 1, 1)
         self.sp_nth = QtWidgets.QSpinBox(self.tab_2)
@@ -468,6 +469,8 @@ class Ui_MainWindow(object):
         self.gridLayout_3.addWidget(self.sp_processes, 3, 9, 1, 1)
         self.sp_start_ave = QtWidgets.QDoubleSpinBox(self.tab_2)
         self.sp_start_ave.setDecimals(1)
+        self.sp_start_ave.setMaximum(1.0)
+        self.sp_start_ave.setSingleStep(0.1)
         self.sp_start_ave.setProperty("value", 0.8)
         self.sp_start_ave.setObjectName("sp_start_ave")
         self.gridLayout_3.addWidget(self.sp_start_ave, 3, 7, 1, 1)
@@ -531,6 +534,7 @@ class Ui_MainWindow(object):
         self.cb_ml_mode.addItem("")
         self.gridLayout_3.addWidget(self.cb_ml_mode, 0, 9, 1, 1)
         self.sp_start_update_object = QtWidgets.QSpinBox(self.tab_2)
+        self.sp_start_update_object.setMaximum(1000000)
         self.sp_start_update_object.setObjectName("sp_start_update_object")
         self.gridLayout_3.addWidget(self.sp_start_update_object, 1, 7, 1, 1)
         self.sp_dm_version = QtWidgets.QSpinBox(self.tab_2)
@@ -558,6 +562,7 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.sp_ccd_pixel_um.sizePolicy().hasHeightForWidth())
         self.sp_ccd_pixel_um.setSizePolicy(sizePolicy)
         self.sp_ccd_pixel_um.setDecimals(3)
+        self.sp_ccd_pixel_um.setMaximum(1000.0)
         self.sp_ccd_pixel_um.setProperty("value", 55.0)
         self.sp_ccd_pixel_um.setObjectName("sp_ccd_pixel_um")
         self.gridLayout_3.addWidget(self.sp_ccd_pixel_um, 0, 4, 1, 2)
@@ -675,7 +680,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_6.addWidget(self.label_21)
         self.sp_beta = QtWidgets.QDoubleSpinBox(self.tab_2)
         self.sp_beta.setDecimals(2)
-        self.sp_beta.setMaximum(96.99)
+        self.sp_beta.setMaximum(2.0)
+        self.sp_beta.setSingleStep(0.1)
         self.sp_beta.setProperty("value", 0.9)
         self.sp_beta.setObjectName("sp_beta")
         self.horizontalLayout_6.addWidget(self.sp_beta)
@@ -763,7 +769,7 @@ class Ui_MainWindow(object):
         self.sp_batch_step.setObjectName("sp_batch_step")
         self.horizontalLayout_9.addWidget(self.sp_batch_step)
         self.layoutWidget_2 = QtWidgets.QWidget(self.tab_3)
-        self.layoutWidget_2.setGeometry(QtCore.QRect(20, 120, 491, 28))
+        self.layoutWidget_2.setGeometry(QtCore.QRect(20, 120, 701, 28))
         self.layoutWidget_2.setObjectName("layoutWidget_2")
         self.horizontalLayout_13 = QtWidgets.QHBoxLayout(self.layoutWidget_2)
         self.horizontalLayout_13.setContentsMargins(0, 0, 0, 0)
@@ -777,7 +783,7 @@ class Ui_MainWindow(object):
         self.le_obj_path_batch.setObjectName("le_obj_path_batch")
         self.horizontalLayout_13.addWidget(self.le_obj_path_batch)
         self.layoutWidget2 = QtWidgets.QWidget(self.tab_3)
-        self.layoutWidget2.setGeometry(QtCore.QRect(20, 90, 491, 28))
+        self.layoutWidget2.setGeometry(QtCore.QRect(20, 90, 701, 28))
         self.layoutWidget2.setObjectName("layoutWidget2")
         self.horizontalLayout_12 = QtWidgets.QHBoxLayout(self.layoutWidget2)
         self.horizontalLayout_12.setContentsMargins(0, 0, 0, 0)
