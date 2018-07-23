@@ -268,6 +268,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         p.beta = float(self.sp_beta.value())
         p.display_interval = int(self.sp_display_interval.value())
         p.preview_flag = self.ck_preview_flag.isChecked()
+        p.cal_error_flag = self.ck_cal_error_flag.isChecked()
 
         # TODO: organize them
         #self.ck_init_obj_dpc_flag.setChecked(p.init_obj_dpc_flag) 
@@ -368,6 +369,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.sp_beta.setValue(p.beta)
         self.sp_display_interval.setValue(p.display_interval)
         self.ck_preview_flag.setChecked(p.preview_flag)
+        #self.ck_cal_error_flag.setChecked(p.cal_error_flag)
 
         self.ck_init_obj_dpc_flag.setChecked(p.init_obj_dpc_flag) 
         self.ck_prb_center_flag.setChecked(p.prb_center_flag)
