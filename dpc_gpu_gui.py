@@ -1,7 +1,7 @@
 import sys
 import os
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtWidgets import QFileDialog, QAction
 
 from ui import ui_dpc
 from core.dpc_param import Param, parse_config
@@ -187,7 +187,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
         # Exp param group
         p.xray_energy_kev = float(self.sp_xray_energy.value())
-        p.lambda_nm = 1.2398/self.sp_xray_energy.value()
+        if self.sp_xray_energy.value() != 0.:
+            p.lambda_nm = 1.2398/self.sp_xray_energy.value()
         p.z_m = float(self.sp_detector_distance.value())
         p.nx = int(self.sp_x_arr_size.value()) # bookkeeping
         p.dr_x = float(self.sp_x_step_size.value())
@@ -419,7 +420,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
                     p.set_obj_path(dirname, filename)
                     print("[BATCH] will load " + dirname + filename + " as object")
 
-            #if self.menu_save_config_history.isChecked():
+            # this is needed because MPI processes need to know the working directory...
             self._exportConfigHelper(self._config_path)
 
             # init reconStepWindow
@@ -988,11 +989,26 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         print("[ERROR] " + str(ex), file=sys.stderr)
 
 
+    # reimplementing __del__ is useless, so use the signal QApplication.aboutToQuit
+    def destructor(self):
+        try:
+            sys.stdout = sys.__stdout__
+            sys.stderr = sys.__stderr__
+            if self.menu_save_config_history.isChecked():
+                self.update_param_from_gui()
+                self._exportConfigHelper(self._config_path)
+                #print("config file was written to " + self._config_path)
+        except:
+            traceback.print_exc()
+            raise
+
+
     @QtCore.pyqtSlot(str, QtGui.QColor)
     def on_stdout_message(self, message, color):
         self.console_info.moveCursor(QtGui.QTextCursor.End)
         self.console_info.setTextColor(color)
         self.console_info.insertPlainText(message)
+
 
 
 def main():
@@ -1006,6 +1022,8 @@ def main():
     console_stderr = DPCStream(color = "red")
     console_stdout.message.connect(w.on_stdout_message)
     console_stderr.message.connect(w.on_stdout_message)
+
+    app.aboutToQuit.connect(w.destructor)
 
     sys.stdout = console_stdout
     sys.stderr = console_stderr

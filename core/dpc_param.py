@@ -222,9 +222,9 @@ def parse_config(filename, param):
     p.start_update_object       = config.getint('GUI', 'start_update_object')
 
     # floats
-    p.lambda_nm                 = config.getfloat('GUI', 'lambda_nm') if 'lambda_nm' in config['GUI'] else \
-                                  1.2398/config.getfloat('GUI', 'xray_energy_kev')
-    p.xray_energy_kev           = 1.2398/p.lambda_nm
+    if 'lambda_nm' in config['GUI']:
+        p.lambda_nm             = config.getfloat('GUI', 'lambda_nm') 
+    p.xray_energy_kev           = config.getfloat('GUI', 'xray_energy_kev')
     p.z_m                       = config.getfloat('GUI', 'z_m')
     p.x_arr_size                = config.getfloat('GUI', 'nx')
     p.dr_x                      = config.getfloat('GUI', 'dr_x')
