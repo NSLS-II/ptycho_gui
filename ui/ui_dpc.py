@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui_dpc_v2.ui'
+# Form implementation generated from reading ui file 'ui/ui_dpc_v2.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -116,6 +116,7 @@ class Ui_MainWindow(object):
         self.gridLayout_9.addWidget(self.label_46, 4, 3, 1, 1)
         self.sp_y_scan_range = QtWidgets.QDoubleSpinBox(self.groupBox_8)
         self.sp_y_scan_range.setDecimals(4)
+        self.sp_y_scan_range.setMaximum(1000000.0)
         self.sp_y_scan_range.setObjectName("sp_y_scan_range")
         self.gridLayout_9.addWidget(self.sp_y_scan_range, 3, 4, 1, 1)
         self.label_37 = QtWidgets.QLabel(self.groupBox_8)
@@ -165,6 +166,7 @@ class Ui_MainWindow(object):
         self.gridLayout_9.addWidget(self.label_44, 3, 3, 1, 1)
         self.sp_y_step_size = QtWidgets.QDoubleSpinBox(self.groupBox_8)
         self.sp_y_step_size.setDecimals(4)
+        self.sp_y_step_size.setMaximum(1000000.0)
         self.sp_y_step_size.setObjectName("sp_y_step_size")
         self.gridLayout_9.addWidget(self.sp_y_step_size, 2, 4, 1, 1)
         self.label_42 = QtWidgets.QLabel(self.groupBox_8)
@@ -175,7 +177,7 @@ class Ui_MainWindow(object):
         self.sp_y_arr_size.setObjectName("sp_y_arr_size")
         self.gridLayout_9.addWidget(self.sp_y_arr_size, 1, 4, 1, 1)
         self.sp_num_points = QtWidgets.QSpinBox(self.groupBox_8)
-        self.sp_num_points.setMaximum(1000000)
+        self.sp_num_points.setMaximum(10000000)
         self.sp_num_points.setObjectName("sp_num_points")
         self.gridLayout_9.addWidget(self.sp_num_points, 4, 4, 1, 1)
         self.label_45 = QtWidgets.QLabel(self.groupBox_8)
@@ -186,10 +188,12 @@ class Ui_MainWindow(object):
         self.gridLayout_9.addWidget(self.label_39, 1, 0, 1, 1)
         self.sp_x_step_size = QtWidgets.QDoubleSpinBox(self.groupBox_8)
         self.sp_x_step_size.setDecimals(4)
+        self.sp_x_step_size.setMaximum(1000000.0)
         self.sp_x_step_size.setObjectName("sp_x_step_size")
         self.gridLayout_9.addWidget(self.sp_x_step_size, 2, 1, 1, 1)
         self.sp_x_scan_range = QtWidgets.QDoubleSpinBox(self.groupBox_8)
         self.sp_x_scan_range.setDecimals(4)
+        self.sp_x_scan_range.setMaximum(1000000.0)
         self.sp_x_scan_range.setObjectName("sp_x_scan_range")
         self.gridLayout_9.addWidget(self.sp_x_scan_range, 3, 1, 1, 1)
         spacerItem = QtWidgets.QSpacerItem(60, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
@@ -299,6 +303,7 @@ class Ui_MainWindow(object):
         self.gridLayout_11.addWidget(self.sp_obj_mode_num, 0, 8, 1, 1)
         self.sp_slice_spacing_m = QtWidgets.QDoubleSpinBox(self.tab)
         self.sp_slice_spacing_m.setEnabled(False)
+        self.sp_slice_spacing_m.setMaximum(10000.0)
         self.sp_slice_spacing_m.setProperty("value", 5.0)
         self.sp_slice_spacing_m.setObjectName("sp_slice_spacing_m")
         self.gridLayout_11.addWidget(self.sp_slice_spacing_m, 1, 8, 1, 1)
@@ -314,6 +319,7 @@ class Ui_MainWindow(object):
         self.gridLayout_11.addWidget(self.ck_mode_flag, 0, 0, 1, 1)
         self.sp_slice_num = QtWidgets.QSpinBox(self.tab)
         self.sp_slice_num.setEnabled(False)
+        self.sp_slice_num.setMaximum(10000)
         self.sp_slice_num.setProperty("value", 2)
         self.sp_slice_num.setObjectName("sp_slice_num")
         self.gridLayout_11.addWidget(self.sp_slice_num, 1, 4, 1, 1)
@@ -465,6 +471,7 @@ class Ui_MainWindow(object):
         self.sp_nth.setObjectName("sp_nth")
         self.gridLayout_3.addWidget(self.sp_nth, 2, 9, 1, 1)
         self.sp_processes = QtWidgets.QSpinBox(self.tab_2)
+        self.sp_processes.setMaximum(1000000)
         self.sp_processes.setObjectName("sp_processes")
         self.gridLayout_3.addWidget(self.sp_processes, 3, 9, 1, 1)
         self.sp_start_ave = QtWidgets.QDoubleSpinBox(self.tab_2)

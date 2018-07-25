@@ -261,6 +261,9 @@
            <property name="decimals">
             <number>4</number>
            </property>
+           <property name="maximum">
+            <double>1000000.000000000000000</double>
+           </property>
           </widget>
          </item>
          <item row="0" column="0">
@@ -375,6 +378,9 @@
            <property name="decimals">
             <number>4</number>
            </property>
+           <property name="maximum">
+            <double>1000000.000000000000000</double>
+           </property>
           </widget>
          </item>
          <item row="2" column="3">
@@ -394,7 +400,7 @@
          <item row="4" column="4">
           <widget class="QSpinBox" name="sp_num_points">
            <property name="maximum">
-            <number>1000000</number>
+            <number>10000000</number>
            </property>
           </widget>
          </item>
@@ -417,12 +423,18 @@
            <property name="decimals">
             <number>4</number>
            </property>
+           <property name="maximum">
+            <double>1000000.000000000000000</double>
+           </property>
           </widget>
          </item>
          <item row="3" column="1">
           <widget class="QDoubleSpinBox" name="sp_x_scan_range">
            <property name="decimals">
             <number>4</number>
+           </property>
+           <property name="maximum">
+            <double>1000000.000000000000000</double>
            </property>
           </widget>
          </item>
@@ -680,6 +692,9 @@
             <property name="enabled">
              <bool>false</bool>
             </property>
+            <property name="maximum">
+             <double>10000.000000000000000</double>
+            </property>
             <property name="value">
              <double>5.000000000000000</double>
             </property>
@@ -713,6 +728,9 @@
            <widget class="QSpinBox" name="sp_slice_num">
             <property name="enabled">
              <bool>false</bool>
+            </property>
+            <property name="maximum">
+             <number>10000</number>
             </property>
             <property name="value">
              <number>2</number>
@@ -1101,7 +1119,11 @@
            </widget>
           </item>
           <item row="3" column="9">
-           <widget class="QSpinBox" name="sp_processes"/>
+           <widget class="QSpinBox" name="sp_processes">
+            <property name="maximum">
+             <number>1000000</number>
+            </property>
+           </widget>
           </item>
           <item row="3" column="7">
            <widget class="QDoubleSpinBox" name="sp_start_ave">

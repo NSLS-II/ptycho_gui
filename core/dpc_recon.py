@@ -76,7 +76,7 @@ class DPCReconWorker(QtCore.QThread):
         if param.gpu_flag:
             num_processes = str(len(param.gpus))
         else:
-            num_processes = str(1)
+            num_processes = str(param.processes) if param.processes > 1 else str(1)
         mpirun_command = ["mpirun", "-n", num_processes, "python", "-W", "ignore", "./core/ptycho/recon_ptycho_gui.py"]
                 
         if 'MPICH' in MPI.get_vendor()[0]:
@@ -162,7 +162,8 @@ class DPCReconWorker(QtCore.QThread):
                 message += "If you did not manually terminate it, consult the Traceback above to identify the problem."
                 raise Exception(message)
         except Exception as ex:
-            print(ex, file=sys.stderr)
+            traceback.print_exc()
+            #print(ex, file=sys.stderr)
             #raise ex
         finally:
             # clean up temp file
