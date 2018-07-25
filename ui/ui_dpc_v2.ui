@@ -515,12 +515,12 @@
             </item>
             <item>
              <property name="text">
-              <string>ML_G</string>
+              <string>ML</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>ML_P</string>
+              <string>DM_real</string>
              </property>
             </item>
            </widget>
@@ -539,12 +539,12 @@
             </item>
             <item>
              <property name="text">
-              <string>ML_G</string>
+              <string>ML</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>ML_P</string>
+              <string>DM_real</string>
              </property>
             </item>
            </widget>
