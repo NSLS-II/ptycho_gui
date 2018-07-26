@@ -48,8 +48,8 @@ class Param(object):
 
         ### [Reconstruction parameters] ###
         self.n_iterations = 50       # number of iterations
-        self.alg_flag = 'DM'         # ['DM', 'ER', 'ML_G', 'ML_P']
-        self.alg2_flag = 'DM'        # ['DM', 'ER', 'ML_G', 'ML_P']
+        self.alg_flag = 'DM'         # ['DM', 'ER', 'ML', 'DM_real']
+        self.alg2_flag = 'DM'        # ['DM', 'ER', 'ML', 'DM_real']
         self.alg_percentage = .8
         self.sign = 't1'             # saving file name
 
@@ -151,13 +151,13 @@ class Param(object):
         self.working_directory = path
 
     def get_alg_flg_index(self):
-        return ['DM', 'ER', 'ML_G', 'ML_P'].index(self.alg_flag)
+        return ['DM', 'ER', 'ML', 'DM_real'].index(self.alg_flag)
 
     def get_ml_model_index(self):
         return ['Poisson'].index(self.ml_mode)
 
     def get_alg2_flg_index(self):
-        return ['DM', 'ER', 'ML_G', 'ML_P'].index(self.alg2_flag)
+        return ['DM', 'ER', 'ML', 'DM_real'].index(self.alg2_flag)
 
     def get_pc_alg_index(self):
         return ['lucy', 'wiener'].index(self.pc_alg)
