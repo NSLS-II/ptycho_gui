@@ -235,7 +235,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         p.gpus = gpus
 
         # adv param group
-        #p.ccd_pixel_um = 
+        p.ccd_pixel_um = float(self.sp_ccd_pixel_um.value())
         p.distance = float(self.sp_distance.value())
         p.angle_correction_flag = self.ck_angle_correction_flag.isChecked()
         p.x_direction = float(self.sp_x_direction.value())
@@ -907,9 +907,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             self.sp_y_step_size.setValue(f['dr_y'].value)
             self.sp_x_scan_range.setValue(f['x_range'].value)
             self.sp_y_scan_range.setValue(f['y_range'].value)
+            self.sp_num_points.setValue(nz)
+            self.sp_ccd_pixel_um.setValue(f['ccd_pixel_um'].value)
             self.sp_angle.setValue(f['angle'].value)
             #self.cb_scan_type = ...
-            self.sp_num_points.setValue(nz)
             # read the detector name and set it in GUI??
             print("done")
 
