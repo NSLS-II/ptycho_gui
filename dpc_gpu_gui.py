@@ -205,6 +205,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         p.alg2_flag = str(self.cb_alg2_flag.currentText())
         p.alg_percentage = float(self.sp_alg_percentage.value())
         p.sign = str(self.le_sign.text())
+        p.precision = self.cb_precision_flag.currentText()
 
         p.init_prb_flag = self.ck_init_prb_flag.isChecked()
         p.init_obj_flag = self.ck_init_obj_flag.isChecked()
@@ -310,6 +311,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         self.cb_alg2_flag.setCurrentIndex(p.get_alg2_flg_index())
         self.sp_alg_percentage.setValue(float(p.alg_percentage))
         self.le_sign.setText(p.sign)
+        self.cb_precision_flag.setCurrentText(p.precision)
 
         self.ck_init_prb_flag.setChecked(p.init_prb_flag)
         self.le_prb_path.setText(str(p.prb_filename or ''))

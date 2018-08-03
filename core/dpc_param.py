@@ -52,6 +52,7 @@ class Param(object):
         self.alg2_flag = 'DM'        # ['DM', 'ER', 'ML', 'DM_real']
         self.alg_percentage = .8
         self.sign = 't1'             # saving file name
+        self.precision = 'double'    # use double or single precision floating point arithmetic
 
         self.init_prb_flag = True   # True: random guess; False: load an array
         self.prb_filename = ''
@@ -267,6 +268,7 @@ def parse_config(filename, param):
     p.alg2_flag                 = config['GUI']['alg2_flag'] # drop off box
     p.ml_mode                   = config['GUI']['ml_mode']   # drop off box
     p.pc_alg                    = config['GUI']['pc_alg']    # drop off box
+    p.precision                 = config['GUI']['precision'] # drop off box
 
     # special cases:
     p.gpus                      = config['GUI']['gpus']
