@@ -124,6 +124,7 @@ class Param(object):
         self.gui = True
         self.display_interval = 5 # plot every 5 steps
         self.preview_flag = True  # turn on live preview
+        self.cal_error_flag = True  # whether to calculate error in chi (fields)
         self.save_config_history = True 
 
         self.init_obj_dpc_flag = False
@@ -201,6 +202,7 @@ def parse_config(filename, param):
     p.weak_obj_flag             = config.getboolean('GUI', 'weak_obj_flag')
     p.preview_flag              = config.getboolean('GUI', 'preview_flag')
     p.save_config_history       = config.getboolean('GUI', 'save_config_history')
+    p.cal_error_flag            = config.getboolean('GUI', 'cal_error_flag')
 
     # integers
     p.frame_num                 = config.getint('GUI', 'frame_num')
