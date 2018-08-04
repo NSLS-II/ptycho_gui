@@ -1,7 +1,6 @@
-#from PyQt4 import  QtCore
 from PyQt5 import QtCore
 from datetime import datetime
-from core.dpc_param import Param
+from core.ptycho_param import Param
 #from .ptycho.recon_ptycho_gui import recon_gui
 from mpi4py import MPI
 import sys, os
@@ -19,7 +18,7 @@ except ImportError as ex:
     print('[!] (import error: {})'.format(ex))
 
 
-class DPCReconWorker(QtCore.QThread):
+class PtychoReconWorker(QtCore.QThread):
     update_signal = QtCore.pyqtSignal(int, object) # (interation number, chi arrays)
     process = None # subprocess 
 
@@ -33,7 +32,7 @@ class DPCReconWorker(QtCore.QThread):
                 for j in range(upper_limit):
                     target_list.append(float(tokens[current+2+j]))
             elif self.param.multislice_flag:
-                raise NotImplementedError("DPCReconWorker's parser doesn't know how to handle multislice yet.") 
+                raise NotImplementedError("PtychoReconWorker's parser doesn't know how to handle multislice yet.") 
             else:
                 target_list.append(float(tokens[current+2]))
     
@@ -67,7 +66,7 @@ class DPCReconWorker(QtCore.QThread):
 
 
     def recon_api(self, param:Param, update_fcn=None):
-        with open(param.working_directory + '.dpc_param.pkl', 'wb') as output:
+        with open(param.working_directory + '.ptycho_param.pkl', 'wb') as output:
             # dump param into disk and let children read it back
             pickle.dump(param, output, pickle.HIGHEST_PROTOCOL)
             print("pickle dumped")
@@ -167,12 +166,12 @@ class DPCReconWorker(QtCore.QThread):
             #raise ex
         finally:
             # clean up temp file
-            os.remove(param.working_directory + '.dpc_param.pkl')
-            if os.path.isfile(param.working_directory + ".dpc_param.txt"):
-                os.remove(param.working_directory + ".dpc_param.txt")
+            os.remove(param.working_directory + '.ptycho_param.pkl')
+            if os.path.isfile(param.working_directory + ".ptycho_param.txt"):
+                os.remove(param.working_directory + ".ptycho_param.txt")
 
     def run(self):
-        print('DPC thread started')
+        print('Ptycho thread started')
         try:
             self.recon_api(self.param, self.update_signal.emit)
         except IndexError:
@@ -250,7 +249,7 @@ class HardWorker(QtCore.QThread):
             update_fcn(0, metadata) # 0 is just a placeholder
 
 
-class DPCReconFakeWorker(QtCore.QThread):
+class PtychoReconFakeWorker(QtCore.QThread):
     update_signal = QtCore.pyqtSignal(int, object)
 
     def __init__(self, param:Param=None, parent=None):

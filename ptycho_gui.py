@@ -3,10 +3,10 @@ import os
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog, QAction
 
-from ui import ui_dpc
-from core.dpc_param import Param, parse_config
-from core.dpc_recon import DPCReconWorker, DPCReconFakeWorker, HardWorker
-from core.dpc_qt_utils import DPCStream
+from ui import ui_ptycho
+from core.ptycho_param import Param, parse_config
+from core.ptycho_recon import PtychoReconWorker, PtychoReconFakeWorker, HardWorker
+from core.ptycho_qt_utils import PtychoStream
 from core.widgets.mplcanvas import load_image_pil
 
 # databroker related
@@ -33,7 +33,7 @@ import traceback
 _TEST = False
 
 
-class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
+class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
     def __init__(self, parent=None, param:Param=None):
         super().__init__(parent)
         self.setupUi(self)
@@ -92,7 +92,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
             self.param = param
         self._prb = None
         self._obj = None
-        self._dpc_gpu_thread = None
+        self._ptycho_gpu_thread = None
         self._worker_thread = None
         self._db = None             # hold the Broker instance that contains the info of the given scan id
         self._mds_table = None      # hold a Pandas.dataframe instance
@@ -386,10 +386,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
 
     def start(self, batch_mode=False):
-        if self._dpc_gpu_thread is not None and self._dpc_gpu_thread.isFinished():
-            self._dpc_gpu_thread = None
+        if self._ptycho_gpu_thread is not None and self._ptycho_gpu_thread.isFinished():
+            self._ptycho_gpu_thread = None
 
-        if self._dpc_gpu_thread is None:
+        if self._ptycho_gpu_thread is None:
             if not self._loaded:
                 print("[WARNING] Remember to click \"Load\" before proceeding!", file=sys.stderr) 
                 return
@@ -438,9 +438,9 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
                     self.reconStepWindow.close()
 
             if not _TEST:
-                thread = self._dpc_gpu_thread = DPCReconWorker(self.param)
+                thread = self._ptycho_gpu_thread = PtychoReconWorker(self.param)
             else:
-                thread = self._dpc_gpu_thread = DPCReconFakeWorker(self.param)
+                thread = self._ptycho_gpu_thread = PtychoReconFakeWorker(self.param)
 
             thread.update_signal.connect(self.update_recon_step)
             thread.finished.connect(self.resetButtons)
@@ -454,12 +454,12 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
 
 
     def stop(self, batch_mode=False):
-        if self._dpc_gpu_thread is not None and self._dpc_gpu_thread.isRunning():
+        if self._ptycho_gpu_thread is not None and self._ptycho_gpu_thread.isRunning():
             if batch_mode:
-                self._dpc_gpu_thread.finished.disconnect(self._batch_manager)
-            self._dpc_gpu_thread.kill() # first kill the mpi processes
-            self._dpc_gpu_thread.quit() # then quit QThread gracefully
-            self._dpc_gpu_thread = None
+                self._ptycho_gpu_thread.finished.disconnect(self._batch_manager)
+            self._ptycho_gpu_thread.kill() # first kill the mpi processes
+            self._ptycho_gpu_thread.quit() # then quit QThread gracefully
+            self._ptycho_gpu_thread = None
             self.resetButtons()
             if self.reconStepWindow is not None:
                 self.reconStepWindow.reset_window()
@@ -663,7 +663,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_dpc.Ui_MainWindow):
         '''
         Brute-force abortion of the entire batch. No resumption is possible.
         '''
-        #self._dpc_gpu_thread.finished.disconnect(self._batch_manager)
+        #self._ptycho_gpu_thread.finished.disconnect(self._batch_manager)
         self._scan_numbers = None
         self.le_scan_num.textChanged.connect(self.forceLoad)
         self.stop(True)
@@ -1021,8 +1021,8 @@ def main():
     w.show()
     app.installEventFilter(w)
 
-    console_stdout = DPCStream(color = "black")
-    console_stderr = DPCStream(color = "red")
+    console_stdout = PtychoStream(color = "black")
+    console_stderr = PtychoStream(color = "red")
     console_stdout.message.connect(w.on_stdout_message)
     console_stderr.message.connect(w.on_stdout_message)
 

@@ -4,7 +4,7 @@ from ui import ui_roi
 
 import numpy as np
 from core.widgets.imgTools import find_outlier_pixels, find_brightest_pixels, rm_outlier_pixels
-from core.dpc_recon import HardWorker
+#from core.ptycho_recon import HardWorker
 from core.widgets.badpixel_dialog import BadPixelDialog
 
 
@@ -23,8 +23,7 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         self.setupUi(self)
         QtWidgets.QApplication.setStyle('Plastique')
 
-        img = np.load('./34784_frame0.npy')
-        self.canvas.draw_image(img, cmap='viridis', init_roi=True, use_log=False)
+        #image = np.load('./34784_frame0.npy')
         if image is not None:
             self.canvas.draw_image(image, cmap='gray', init_roi=True, use_log=False)
 

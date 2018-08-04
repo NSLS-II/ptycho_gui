@@ -1,6 +1,6 @@
 from PyQt5 import QtCore, QtGui
 
-class DPCStream(QtCore.QObject):
+class PtychoStream(QtCore.QObject):
     message = QtCore.pyqtSignal(str, QtGui.QColor)
     def __init__(self, parent=None, color="black"):
         super().__init__(parent)
