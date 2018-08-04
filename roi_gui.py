@@ -4,7 +4,7 @@ from ui import ui_roi
 
 import numpy as np
 from core.widgets.imgTools import find_outlier_pixels, find_brightest_pixels, rm_outlier_pixels
-#from core.ptycho_recon import HardWorker
+from core.ptycho_recon import HardWorker
 from core.widgets.badpixel_dialog import BadPixelDialog
 
 
