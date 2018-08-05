@@ -2,6 +2,8 @@ from PyQt5 import QtCore
 from datetime import datetime
 from core.ptycho_param import Param
 #from .ptycho.recon_ptycho_gui import recon_gui
+import mpi4py
+mpi4py.rc.initialize = False
 from mpi4py import MPI
 import sys, os
 import pickle     # dump param into disk
