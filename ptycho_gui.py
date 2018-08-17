@@ -276,9 +276,9 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         #self.ck_init_obj_dpc_flag.setChecked(p.init_obj_dpc_flag) 
         #self.ck_prb_center_flag.setChecked(p.prb_center_flag)
         #self.ck_mask_prb_flag.setChecked(p.mask_prb_flag)
-        #self.ck_weak_obj_flag.setChecked(p.weak_obj_flag)
+        p.weak_obj_flag = self.ck_weak_obj_flag.isChecked()
         #self.ck_mesh_flag.setChecked(p.mesh_flag)
-        #self.ck_ms_pie_flag.setChecked(p.ms_pie_flag)
+        p.ms_pie_flag = self.ck_ms_pie_flag.isChecked()
         #self.ck_sf_flag.setChecked(p.sf_flag)
 
         # batch param group, necessary?

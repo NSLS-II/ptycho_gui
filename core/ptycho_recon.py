@@ -28,13 +28,8 @@ class PtychoReconWorker(QtCore.QThread):
 
     def _parse_message(self, tokens):
         def _parser(current, upper_limit, target_list):
-            if self.param.mode_flag:
-                for j in range(upper_limit):
-                    target_list.append(float(tokens[current+2+j]))
-            elif self.param.multislice_flag:
-                raise NotImplementedError("PtychoReconWorker's parser doesn't know how to handle multislice yet.") 
-            else:
-                target_list.append(float(tokens[current+2]))
+            for j in range(upper_limit):
+                target_list.append(float(tokens[current+2+j]))
     
         # assuming tokens (stdout line) is split but not yet processed
         it = int(tokens[2])
@@ -55,9 +50,19 @@ class PtychoReconWorker(QtCore.QThread):
         obj_list = []
         for i, token in enumerate(tokens):
             if token == 'probe_chi':
-                _parser(i, self.param.prb_mode_num, prb_list)
+                if self.param.mode_flag:
+                    _parser(i, self.param.prb_mode_num, prb_list)
+                #elif self.param.multislice_flag: 
+                #TODO: maybe multislice will have multiple prb in the future?
+                else:
+                    _parser(i, 1, prb_list)
             if token == 'object_chi':
-                _parser(i, self.param.obj_mode_num, obj_list)
+                if self.param.mode_flag:
+                    _parser(i, self.param.obj_mode_num, obj_list)
+                elif self.param.multislice_flag:
+                    _parser(i, self.param.slice_num, obj_list)
+                else:
+                    _parser(i, 1, obj_list)
 
         # return a dictionary
         result = {'probe_chi':prb_list, 'object_chi':obj_list}
@@ -144,7 +149,7 @@ class PtychoReconWorker(QtCore.QThread):
                         stdout = stdout.decode('utf-8')
                         print(stdout, end='') # because the line already ends with '\n'
                         stdout = stdout.split()
-                        if len(stdout) > 0 and stdout[0] == "[INFO]" and update_fcn is not None:
+                        if len(stdout) > 2 and stdout[0] == "[INFO]" and update_fcn is not None:
                             it, result = self._parse_message(stdout)
                             #print(result['probe_chi'])
                             update_fcn(it+1, result)
