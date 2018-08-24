@@ -55,8 +55,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.cb_dataloader.currentTextChanged.connect(self.forceLoad)
         self.cb_detectorkind.currentTextChanged.connect(self.forceLoad)
 
-        self.ck_mode_flag.clicked.connect(self.updateModeFlg)
-        self.ck_multislice_flag.clicked.connect(self.updateMultiSliceFlg)
+        self.ck_mode_flag.clicked.connect(self.modeMultiSliceGuard)
+        self.ck_multislice_flag.clicked.connect(self.modeMultiSliceGuard)
         self.ck_gpu_flag.clicked.connect(self.updateGpuFlg)
         self.ck_bragg_flag.clicked.connect(self.updateBraggFlg)
         self.ck_pc_flag.clicked.connect(self.updatePcFlg)
@@ -536,6 +536,19 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             dirname = dirname + "/"
             self.param.set_working_directory(dirname)
             self.le_working_directory.setText(dirname)
+
+    def modeMultiSliceGuard(self):
+        '''
+        Currently our ptycho code does not support simultaneous mode + multi-slice reconstruction.
+        This function can be removed once the support is added.
+        '''
+        if self.ck_mode_flag.isChecked() and self.ck_multislice_flag.isChecked():
+           QtWidgets.QMessageBox.warning(self, "Warning", \
+                     "Currently our ptycho code does not support simultaneous multi-mode + multi-slice reconstruction.")
+           self.ck_mode_flag.setChecked(False)
+           self.ck_multislice_flag.setChecked(False)
+        self.updateModeFlg()
+        self.updateMultiSliceFlg()
 
 
     def updateModeFlg(self):
