@@ -543,8 +543,9 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         This function can be removed once the support is added.
         '''
         if self.ck_mode_flag.isChecked() and self.ck_multislice_flag.isChecked():
-           QtWidgets.QMessageBox.warning(self, "Warning", \
-                     "Currently our ptycho code does not support simultaneous multi-mode + multi-slice reconstruction.")
+           message = "Currently our ptycho code does not support simultaneous multi-mode + multi-slice reconstruction."
+           print("[WARNING] " + message, file=sys.stderr)
+           QtWidgets.QMessageBox.warning(self, "Warning", message)
            self.ck_mode_flag.setChecked(False)
            self.ck_multislice_flag.setChecked(False)
         self.updateModeFlg()

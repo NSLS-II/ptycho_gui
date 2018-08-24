@@ -670,7 +670,83 @@
          </layout>
         </item>
         <item>
-         <layout class="QGridLayout" name="gridLayout_11">
+         <layout class="QGridLayout" name="gridLayout_2">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="ck_mode_flag">
+            <property name="layoutDirection">
+             <enum>Qt::RightToLeft</enum>
+            </property>
+            <property name="text">
+             <string>Modes</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <spacer name="horizontalSpacer_8">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>13</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="0" column="2" colspan="2">
+           <widget class="QLabel" name="label_22">
+            <property name="text">
+             <string>Num. of probe mode</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="4" colspan="2">
+           <widget class="QSpinBox" name="sp_prb_mode_num">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="value">
+             <number>5</number>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="6">
+           <spacer name="horizontalSpacer_9">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="0" column="7" colspan="3">
+           <widget class="QLabel" name="label_23">
+            <property name="text">
+             <string>Num. of object mode</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="10" colspan="2">
+           <widget class="QSpinBox" name="sp_obj_mode_num">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="value">
+             <number>1</number>
+            </property>
+           </widget>
+          </item>
           <item row="1" column="0">
            <widget class="QCheckBox" name="ck_multislice_flag">
             <property name="layoutDirection">
@@ -681,30 +757,46 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="4">
-           <widget class="QSpinBox" name="sp_prb_mode_num">
-            <property name="enabled">
-             <bool>false</bool>
+          <item row="1" column="1">
+           <spacer name="horizontalSpacer_10">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
             </property>
-            <property name="value">
-             <number>5</number>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
             </property>
-           </widget>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>13</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
           </item>
-          <item row="0" column="2" colspan="2">
-           <widget class="QLabel" name="label_22">
+          <item row="1" column="2">
+           <widget class="QLabel" name="label_47">
             <property name="text">
-             <string>Num. of probe mode</string>
+             <string>Num. of slices</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="8">
-           <widget class="QSpinBox" name="sp_obj_mode_num">
+          <item row="1" column="3" colspan="2">
+           <widget class="QSpinBox" name="sp_slice_num">
             <property name="enabled">
              <bool>false</bool>
             </property>
+            <property name="maximum">
+             <number>10000</number>
+            </property>
             <property name="value">
-             <number>1</number>
+             <number>2</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="5" colspan="3">
+           <widget class="QLabel" name="label_48">
+            <property name="text">
+             <string>Slice spacing (um)</string>
             </property>
            </widget>
           </item>
@@ -721,81 +813,25 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="6" colspan="2">
-           <widget class="QLabel" name="label_23">
-            <property name="text">
-             <string>Num. of object mode</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="6" colspan="2">
-           <widget class="QLabel" name="label_48">
-            <property name="text">
-             <string>Slice spacing (um)</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QCheckBox" name="ck_mode_flag">
+          <item row="1" column="9" colspan="2">
+           <widget class="QCheckBox" name="ck_ms_pie_flag">
             <property name="layoutDirection">
              <enum>Qt::RightToLeft</enum>
             </property>
             <property name="text">
-             <string>Modes</string>
+             <string>Use PIE</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="4">
-           <widget class="QSpinBox" name="sp_slice_num">
-            <property name="enabled">
-             <bool>false</bool>
+          <item row="1" column="11">
+           <widget class="QCheckBox" name="ck_weak_obj_flag">
+            <property name="layoutDirection">
+             <enum>Qt::RightToLeft</enum>
             </property>
-            <property name="maximum">
-             <number>10000</number>
-            </property>
-            <property name="value">
-             <number>2</number>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2" colspan="2">
-           <widget class="QLabel" name="label_47">
             <property name="text">
-             <string>Num. of slices</string>
+             <string>weak object</string>
             </property>
            </widget>
-          </item>
-          <item row="0" column="1">
-           <spacer name="horizontalSpacer_8">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>10</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="0" column="5">
-           <spacer name="horizontalSpacer_9">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
           </item>
          </layout>
         </item>
@@ -1737,16 +1773,6 @@
               </property>
              </widget>
             </item>
-            <item row="1" column="1">
-             <widget class="QCheckBox" name="ck_weak_obj_flag">
-              <property name="layoutDirection">
-               <enum>Qt::RightToLeft</enum>
-              </property>
-              <property name="text">
-               <string>weak object</string>
-              </property>
-             </widget>
-            </item>
            </layout>
           </item>
           <item>
@@ -1761,16 +1787,6 @@
               </property>
               <property name="checked">
                <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="ck_ms_pie_flag">
-              <property name="layoutDirection">
-               <enum>Qt::RightToLeft</enum>
-              </property>
-              <property name="text">
-               <string>ms pie</string>
               </property>
              </widget>
             </item>
@@ -1988,7 +2004,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>758</width>
+     <width>760</width>
      <height>22</height>
     </rect>
    </property>
