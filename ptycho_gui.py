@@ -398,6 +398,11 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             self.recon_bar.setValue(0)
             self.recon_bar.setMaximum(self.param.n_iterations)
 
+            # at least one GPU needs to be selected
+            if self.param.gpu_flag and len(self.param.gpus) == 0:
+                print("[WARNING] select at least one GPU!", file=sys.stderr)
+                return
+
             # batch mode requires some additional changes to param
             if batch_mode:
                 if self._batch_prb_filename is not None:
@@ -427,9 +432,16 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
             # init reconStepWindow
             if self.ck_preview_flag.isChecked():
+                if self.param.mode_flag:
+                    info = (self.param.obj_mode_num, self.param.prb_mode_num)
+                elif self.param.multislice_flag:
+                    info = (self.param.slice_num, 1)
+                else: 
+                    info = (1, 1)
+
                 if self.reconStepWindow is None:
-                    self.reconStepWindow = ReconStepWindow()
-                self.reconStepWindow.reset_window(iterations=self.param.n_iterations,
+                    self.reconStepWindow = ReconStepWindow(*info)
+                self.reconStepWindow.reset_window(*info, iterations=self.param.n_iterations,
                                                   slider_interval=self.param.display_interval)
                 self.reconStepWindow.show()
             else:
@@ -479,10 +491,27 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
                         self._obj = open_memmap(self.param.working_directory + '.mmap_obj.npy', mode = 'r')
                     if it % self.param.display_interval == 1 or (it >= 1 and self.param.display_interval == 1):
                         # there could be synchronization problem? should have better solution...
-                        images = [np.flipud(np.angle(self._obj[it-1, 0]).T),
-                                  np.flipud(np.abs(self._obj[it-1, 0]).T),
-                                  np.flipud(np.abs(self._prb[it-1, 0]).T),
-                                  np.flipud(np.angle(self._prb[it-1, 0]).T)]
+                        if self.param.mode_flag:
+                            images = []
+                            for i in range(self.param.obj_mode_num):
+                                images.append(np.rot90(np.angle(self._obj[it-1, i])))
+                                images.append(np.rot90(np.abs(self._obj[it-1, i])))
+                            for i in range(self.param.prb_mode_num):
+                                images.append(np.rot90(np.abs(self._prb[it-1, i])))
+                                images.append(np.rot90(np.angle(self._prb[it-1, i])))
+                        elif self.param.multislice_flag:
+                            images = []
+                            for i in range(self.param.slice_num):
+                                images.append(np.rot90(np.angle(self._obj[it-1, i])))
+                                images.append(np.rot90(np.abs(self._obj[it-1, i])))
+                            #TODO: decide which probe we'd like to present
+                            images.append(np.rot90(np.abs(self._prb[it-1, 0])))
+                            images.append(np.rot90(np.angle(self._prb[it-1, 0])))
+                        else:
+                            images = [np.rot90(np.angle(self._obj[it-1, 0])),
+                                      np.rot90(np.abs(self._obj[it-1, 0]  )),
+                                      np.rot90(np.abs(self._prb[it-1, 0]  )),
+                                      np.rot90(np.angle(self._prb[it-1, 0]))]
                         self.reconStepWindow.update_images(it, images)
                         self.reconStepWindow.update_metric(it, data)
                 except TypeError as ex: # when MPI processes are terminated, _prb and _obj are deleted and so not subscriptable 

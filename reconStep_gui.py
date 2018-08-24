@@ -6,7 +6,7 @@ import numpy as np
 
 
 class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
-    def __init__(self, parent=None):
+    def __init__(self, obj_num=1, prb_num=1, parent=None):
         super().__init__(parent)
         self.setupUi(self)
         QtWidgets.QApplication.setStyle('Plastique')
@@ -24,9 +24,9 @@ class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
         self.pushButton_3.setEnabled(False)
         #self. ...
 
-        self.reset_window()
+        self.reset_window(obj_num, prb_num)
 
-    def reset_window(self, iterations=50, slider_interval=1):
+    def reset_window(self, obj_num=1, prb_num=1, iterations=50, slider_interval=1):
         """Called from outside"""
         self.image_buffer = {}
         self.metric_buffer_it = []
@@ -41,6 +41,22 @@ class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
         self.canvas_object_chi.axis_on()
         self.canvas_probe_chi.reset()
         self.canvas_probe_chi.axis_on()
+        self.reset_image_menu(obj_num, prb_num)
+
+    def reset_image_menu(self, obj_num, prb_num):
+        # number of object and probe images
+        self.obj_num = obj_num
+        self.prb_num = prb_num
+
+        self.cb_image_object.clear()
+        for i in range(self.obj_num):
+            self.cb_image_object.addItem("Object phase " + str(i))
+            self.cb_image_object.addItem("Object amplitude " + str(i))
+
+        self.cb_image_probe.clear()
+        for i in range(self.prb_num):
+            self.cb_image_probe.addItem("Probe amplitude " + str(i))
+            self.cb_image_probe.addItem("Probe phase " + str(i))
 
     def is_live_update(self):
         return self.ck_live.isChecked()
@@ -70,7 +86,7 @@ class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
         it = self.sb_iter.value()
         if it in self.image_buffer:
             images_to_show = self.image_buffer[it]
-            probe_image = images_to_show[idx+2]
+            probe_image = images_to_show[idx+2*self.obj_num]
             self.canvas_probe.update_image(probe_image)
 
     def btn_close_op(self):
@@ -119,7 +135,7 @@ class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
 
         if images_to_show is not None:
             object_image = images_to_show[self.cb_image_object.currentIndex()]
-            probe_image = images_to_show[self.cb_image_probe.currentIndex()+2]
+            probe_image = images_to_show[self.cb_image_probe.currentIndex()+2*self.obj_num]
             self.canvas_object.update_image(object_image)
             self.canvas_probe.update_image(probe_image)
 
