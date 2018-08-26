@@ -459,6 +459,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             if batch_mode:
                 thread.finished.connect(self._batch_manager)
             #thread.finished.connect(self.reconStepWindow.debug)
+            thread.finished.connect(self.importPostProcessing)
             thread.start()
 
             self.btn_recon_stop.setEnabled(True)
@@ -523,6 +524,64 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
                 images = [np.random.random((128,128)) for _ in range(4)]
                 self.reconStepWindow.update_images(it, images)
                 self.reconStepWindow.update_metric(it, data)
+
+
+    def importPostProcessing(self):
+        print("load results...")
+        # use the last iteration as the working space
+        it = self.param.n_iterations+1
+        self.reconStepWindow.slider_iters.setMaximum(it)
+        self.reconStepWindow.sb_iter.setMaximum(it)
+
+        p = self.param
+        work_dir = p.working_directory
+        scan_num = str(p.scan_num)
+        data_dir = work_dir+'/recon_result/S'+scan_num+'/'+p.sign+'/recon_data/'
+        data = {}
+        images = []
+
+        if self.param.mode_flag:
+            pass
+            ## load data
+            #for sol in ['ave', 'ave_rp']:
+            #    for tar, target in zip(['obj', 'prb'], ['object', 'probe']):
+            #        data[tar+'_'+sol] = np.load(data_dir+'recon_'+scan_num+'_'+p.sign+'_'+target+'_'+sol+'.npy')
+
+            #for i in range(self.param.obj_mode_num):
+            #    self.reconStepWindow.cb_image_object.addItem("Object phase (ave ver.)")
+            #    #images.append(np.rot90(np.angle(self._obj[it-1, i])))
+            #    self.reconStepWindow.cb_image_object.addItem("Object amplitude (ave ver.)")
+            #    #images.append(np.rot90(np.abs(self._obj[it-1, i])))
+            #for i in range(self.param.prb_mode_num):
+            #    self.reconStepWindow.cb_image_probe.addItem("Probe amplitude (ave ver.)")
+            #    #images.append(np.rot90(np.abs(self._prb[it-1, i])))
+            #    self.reconStepWindow.cb_image_probe.addItem("Probe phase (ave ver.)")
+            #    #images.append(np.rot90(np.angle(self._prb[it-1, i])))
+            #print("mode loaded")
+            #for i in range(len(images)):
+            #    print(id(images[i]))
+        elif self.param.multislice_flag:
+            pass
+            #for i in range(len(images)):
+            #    print(id(images[i]))
+        else:
+            # load data
+            for sol in ['ave', 'ave_rp']:
+                for tar, target in zip(['obj', 'prb'], ['object', 'probe']):
+                    data[tar+'_'+sol] = np.load(data_dir+'recon_'+scan_num+'_'+p.sign+'_'+target+'_'+sol+'.npy')
+
+            # calculate images
+            for sol in ['ave', 'ave_rp']:
+                for kind, fx in zip(['phase', 'amplitude'], [np.angle, np.abs]):
+                    self.reconStepWindow.cb_image_object.addItem("Object "+kind+" ("+sol+")")
+                    # hard-wire the padding values here...
+                    images.append( np.rot90(fx(data['obj_'+sol][(p.nx+30)//2:-(p.nx+30)//2, (p.ny+30)//2:-(p.ny+30)//2])) )
+            for sol in ['ave', 'ave_rp']:
+                for kind, fx in zip(['amplitude', 'phase'], [np.abs, np.angle]):
+                    self.reconStepWindow.cb_image_probe.addItem("Probe "+kind+" ("+sol+")")
+                    images.append( np.rot90(fx(data['prb_'+sol])) )
+
+            self.reconStepWindow.update_images(it, images)
 
 
     def loadProbe(self):

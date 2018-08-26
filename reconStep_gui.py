@@ -79,15 +79,17 @@ class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
         it = self.sb_iter.value()
         if it in self.image_buffer:
             images_to_show = self.image_buffer[it]
-            object_image = images_to_show[idx]
-            self.canvas_object.update_image(object_image)
+            object_image = self._fetch_images(it, images_to_show, 'object')
+            if object_image is not None:
+                self.canvas_object.update_image(object_image)
 
     def cb_image_probe_op(self, idx):
         it = self.sb_iter.value()
         if it in self.image_buffer:
             images_to_show = self.image_buffer[it]
-            probe_image = images_to_show[idx+2*self.obj_num]
-            self.canvas_probe.update_image(probe_image)
+            probe_image = self._fetch_images(it, images_to_show, 'probe')
+            if probe_image is not None:
+                self.canvas_probe.update_image(probe_image)
 
     def btn_close_op(self):
         # todo: close with signal to main window
@@ -133,11 +135,42 @@ class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
         elif it in self.image_buffer:
             images_to_show = self.image_buffer[it]
 
+        object_image = None
+        probe_image = None
         if images_to_show is not None:
-            object_image = images_to_show[self.cb_image_object.currentIndex()]
-            probe_image = images_to_show[self.cb_image_probe.currentIndex()+2*self.obj_num]
-            self.canvas_object.update_image(object_image)
-            self.canvas_probe.update_image(probe_image)
+            object_image = self._fetch_images(it, images_to_show, 'object')
+            probe_image = self._fetch_images(it, images_to_show, 'probe')
+            if object_image is not None:
+                self.canvas_object.update_image(object_image)
+            if probe_image is not None:
+                self.canvas_probe.update_image(probe_image)
+
+    def _fetch_images(self, it, images_to_show, flag=None):
+        image = None
+        if flag == 'probe':
+            prb_idx = self.cb_image_probe.currentIndex()
+            if it <= self.current_max_iters and prb_idx < 2*self.prb_num:
+                # the factor of 2 below is due to two kind of functions being applied to obj (angle and abs)
+                image = images_to_show[prb_idx+2*self.obj_num]
+            elif it > self.current_max_iters and prb_idx >= 2*self.prb_num:
+                # ptycho completes, perform post processing
+                # the factor of 2 below is due to two kind of results being loaded (ave & ave_rp)
+                image = images_to_show[prb_idx+2*self.obj_num]
+                print(id(image), file=sys.stderr)
+        elif flag == 'object':
+            obj_idx = self.cb_image_object.currentIndex()
+            if it <= self.current_max_iters and obj_idx < 2*self.obj_num:
+                image = images_to_show[obj_idx]
+            elif it > self.current_max_iters and obj_idx >= 2*self.obj_num:
+                # ptycho completes, perform post processing
+                # the factor of 2 below is due to two kind of functions being applied to obj (angle and abs)
+                image = images_to_show[obj_idx-2*self.obj_num]
+                print(id(image), file=sys.stderr)
+        else:
+            # shouldn't happen!
+            pass
+
+        return image
 
     def update_metric(self, it, data):
         self.metric_buffer_it.append(it)

@@ -71,7 +71,6 @@ class PtychoReconWorker(QtCore.QThread):
 
         return it, result
 
-
     def recon_api(self, param:Param, update_fcn=None):
         with open(param.working_directory + '.ptycho_param.pkl', 'wb') as output:
             # dump param into disk and let children read it back
@@ -187,6 +186,10 @@ class PtychoReconWorker(QtCore.QThread):
             # whatever happened in the MPI processes will always (!) generate traceback,
             # so do nothing here
             pass
+        else:
+            if self.param.preview_flag:
+                print("[SUCCESS] generated results are loaded in the preview window. ", end='', file=sys.stderr)
+                print("Slide to frame "+str(self.param.n_iterations+1)+" and select from drop-down menus.", file=sys.stderr)
         finally:
             print('finally?')
 
