@@ -27,6 +27,7 @@ class PtychoReconWorker(QtCore.QThread):
     def __init__(self, param:Param=None, parent=None):
         super().__init__(parent)
         self.param = param
+        self.return_value = None
 
     def _parse_message(self, tokens):
         def _parser(current, upper_limit, target_list):
@@ -118,7 +119,7 @@ class PtychoReconWorker(QtCore.QThread):
                 #print(" ".join(mpirun_command))
 
         try:
-            return_value = None
+            self.return_value = None
             with subprocess.Popen(mpirun_command,
                                   stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE,
@@ -160,9 +161,9 @@ class PtychoReconWorker(QtCore.QThread):
                         print(stderr, file=sys.stderr, end='')
 
                 # get the return value 
-                return_value = run_ptycho.poll()
+                self.return_value = run_ptycho.poll()
 
-            if return_value != 0:
+            if self.return_value != 0:
                 message = "At least one MPI process returned a nonzero value, so the whole job is aborted.\n"
                 message += "If you did not manually terminate it, consult the Traceback above to identify the problem."
                 raise Exception(message)
@@ -187,9 +188,9 @@ class PtychoReconWorker(QtCore.QThread):
             # so do nothing here
             pass
         else:
-            if self.param.preview_flag:
-                print("[SUCCESS] generated results are loaded in the preview window. ", end='', file=sys.stderr)
-                print("Slide to frame "+str(self.param.n_iterations+1)+" and select from drop-down menus.", file=sys.stderr)
+            # let preview window load results
+            if self.param.preview_flag and self.return_value == 0:
+                self.update_signal.emit(self.param.n_iterations+1, None)
         finally:
             print('finally?')
 

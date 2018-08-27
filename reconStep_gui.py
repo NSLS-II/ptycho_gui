@@ -6,7 +6,7 @@ import numpy as np
 
 
 class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
-    def __init__(self, obj_num=1, prb_num=1, parent=None):
+    def __init__(self, obj_num=1, prb_num=1, result_type_num=1, parent=None):
         super().__init__(parent)
         self.setupUi(self)
         QtWidgets.QApplication.setStyle('Plastique')
@@ -24,9 +24,9 @@ class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
         self.pushButton_3.setEnabled(False)
         #self. ...
 
-        self.reset_window(obj_num, prb_num)
+        self.reset_window(obj_num, prb_num, result_type_num)
 
-    def reset_window(self, obj_num=1, prb_num=1, iterations=50, slider_interval=1):
+    def reset_window(self, obj_num=1, prb_num=1, result_type_num=1, iterations=50, slider_interval=1):
         """Called from outside"""
         self.image_buffer = {}
         self.metric_buffer_it = []
@@ -41,22 +41,26 @@ class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
         self.canvas_object_chi.axis_on()
         self.canvas_probe_chi.reset()
         self.canvas_probe_chi.axis_on()
-        self.reset_image_menu(obj_num, prb_num)
+        self.reset_image_menu(obj_num, prb_num, result_type_num)
 
-    def reset_image_menu(self, obj_num, prb_num):
+    def reset_image_menu(self, obj_num, prb_num, result_type_num):
         # number of object and probe images
         self.obj_num = obj_num
         self.prb_num = prb_num
 
+        # number of result types
+        # mode: 1 (orth_ave_rp); multislice: 1 (ave_rp); otherwise: 2 (ave & ave_rp)
+        self.result_type_num = result_type_num
+
         self.cb_image_object.clear()
         for i in range(self.obj_num):
-            self.cb_image_object.addItem("Object phase " + str(i))
-            self.cb_image_object.addItem("Object amplitude " + str(i))
+            self.cb_image_object.addItem("Object " + str(i) + " phase")
+            self.cb_image_object.addItem("Object " + str(i) + " amplitude")
 
         self.cb_image_probe.clear()
         for i in range(self.prb_num):
-            self.cb_image_probe.addItem("Probe amplitude " + str(i))
-            self.cb_image_probe.addItem("Probe phase " + str(i))
+            self.cb_image_probe.addItem("Probe " + str(i) + " amplitude")
+            self.cb_image_probe.addItem("Probe " + str(i) + " phase")
 
     def is_live_update(self):
         return self.ck_live.isChecked()
@@ -154,9 +158,9 @@ class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
                 image = images_to_show[prb_idx+2*self.obj_num]
             elif it > self.current_max_iters and prb_idx >= 2*self.prb_num:
                 # ptycho completes, perform post processing
-                # the factor of 2 below is due to two kind of results being loaded (ave & ave_rp)
-                image = images_to_show[prb_idx+2*self.obj_num]
-                print(id(image), file=sys.stderr)
+                # the factor of 2 below is due to two kind of functions being applied to obj (angle and abs)
+                image = images_to_show[prb_idx+2*(self.result_type_num*self.obj_num-self.prb_num)]
+                #print(id(image), file=sys.stderr)
         elif flag == 'object':
             obj_idx = self.cb_image_object.currentIndex()
             if it <= self.current_max_iters and obj_idx < 2*self.obj_num:
@@ -165,7 +169,7 @@ class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
                 # ptycho completes, perform post processing
                 # the factor of 2 below is due to two kind of functions being applied to obj (angle and abs)
                 image = images_to_show[obj_idx-2*self.obj_num]
-                print(id(image), file=sys.stderr)
+                #print(id(image), file=sys.stderr)
         else:
             # shouldn't happen!
             pass
