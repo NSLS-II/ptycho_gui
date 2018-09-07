@@ -105,6 +105,12 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.reconStepWindow = None
         self.roiWindow = None
 
+        # temporary solutions
+        self.ck_ms_pie_flag.setEnabled(False)
+        self.ck_weak_obj_flag.setEnabled(False)
+        #self.cb_alg_flag. addItem("PIE")
+        #self.cb_alg2_flag.addItem("PIE")
+
         #if self.menu_save_config_history.isChecked(): # TODO: think of a better way...
         self.retrieveConfigHistory()
         self.update_gui_from_param()
