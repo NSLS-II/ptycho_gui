@@ -212,7 +212,7 @@
          <item row="2" column="0">
           <widget class="QLabel" name="label_41">
            <property name="text">
-            <string>X step size (nm)</string>
+            <string>X step size (um)</string>
            </property>
           </widget>
          </item>
@@ -386,7 +386,7 @@
          <item row="2" column="3">
           <widget class="QLabel" name="label_42">
            <property name="text">
-            <string>Y step size (nm)</string>
+            <string>Y step size (um)</string>
            </property>
           </widget>
          </item>
