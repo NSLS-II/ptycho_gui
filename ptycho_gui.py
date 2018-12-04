@@ -280,7 +280,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
         # TODO: organize them
         #self.ck_init_obj_dpc_flag.setChecked(p.init_obj_dpc_flag) 
-        #self.ck_prb_center_flag.setChecked(p.prb_center_flag)
+        p.prb_center_flag = self.ck_prb_center_flag.isChecked()
         #self.ck_mask_prb_flag.setChecked(p.mask_prb_flag)
         p.weak_obj_flag = self.ck_weak_obj_flag.isChecked()
         #self.ck_mesh_flag.setChecked(p.mesh_flag)

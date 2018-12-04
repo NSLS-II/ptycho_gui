@@ -128,7 +128,7 @@ class Param(object):
         self.save_config_history = True 
 
         self.init_obj_dpc_flag = False
-        self.prb_center_flag = True
+        self.prb_center_flag = False
         self.mask_prb_flag = False
         self.weak_obj_flag = False
         self.mesh_flag = 1
@@ -153,13 +153,13 @@ class Param(object):
         self.working_directory = path
 
     def get_alg_flg_index(self):
-        return ['DM', 'ER', 'ML', 'DM_real'].index(self.alg_flag)
+        return ['DM', 'ER', 'ML', 'DM_real', 'PIE'].index(self.alg_flag)
 
     def get_ml_model_index(self):
         return ['Poisson'].index(self.ml_mode)
 
     def get_alg2_flg_index(self):
-        return ['DM', 'ER', 'ML', 'DM_real'].index(self.alg2_flag)
+        return ['DM', 'ER', 'ML', 'DM_real', 'PIE'].index(self.alg2_flag)
 
     def get_pc_alg_index(self):
         return ['lucy', 'wiener'].index(self.pc_alg)

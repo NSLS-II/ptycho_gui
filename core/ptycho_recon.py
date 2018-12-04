@@ -72,6 +72,20 @@ class PtychoReconWorker(QtCore.QThread):
 
         return it, result
 
+    def _test_stdout_completeness(self, stdout):
+        counter = 0
+        for token in stdout:
+            if token == '=':
+                counter += 1
+
+        return counter
+
+    def _parse_one_line(self):
+        stdout_2 = self.process.stdout.readline().decode('utf-8')
+        print(stdout_2, end='') # because the line already ends with '\n'
+
+        return stdout_2.split()
+
     def recon_api(self, param:Param, update_fcn=None):
         with open(param.working_directory + '.ptycho_param.pkl', 'wb') as output:
             # dump param into disk and let children read it back
@@ -152,6 +166,17 @@ class PtychoReconWorker(QtCore.QThread):
                         print(stdout, end='') # because the line already ends with '\n'
                         stdout = stdout.split()
                         if len(stdout) > 2 and stdout[0] == "[INFO]" and update_fcn is not None:
+                            # TEST: check if stdout is complete by examining the number of "="
+                            # TODO: improve this ugly hack...
+                            while True:
+                                counter = self._test_stdout_completeness(stdout)
+                                if counter == 3:
+                                    break
+                                elif counter < 3:
+                                    stdout += self._parse_one_line()
+                                else: # counter > 3, we read one more line!
+                                    raise Exception("parsing error")
+                          
                             it, result = self._parse_message(stdout)
                             #print(result['probe_chi'])
                             update_fcn(it+1, result)
