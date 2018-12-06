@@ -57,6 +57,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
         self.ck_mode_flag.clicked.connect(self.modeMultiSliceGuard)
         self.ck_multislice_flag.clicked.connect(self.modeMultiSliceGuard)
+        self.ck_mask_obj_flag.clicked.connect(self.updateObjMaskFlg)
         self.ck_gpu_flag.clicked.connect(self.updateGpuFlg)
         self.ck_bragg_flag.clicked.connect(self.updateBraggFlg)
         self.ck_pc_flag.clicked.connect(self.updatePcFlg)
@@ -116,6 +117,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.update_gui_from_param()
         self.updateModeFlg()
         self.updateMultiSliceFlg()
+        self.updateObjMaskFlg()
         self.updateGpuFlg()
         self.resetButtons()
         self.resetExperimentalParameters() # probably not necessary
@@ -278,13 +280,15 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         p.preview_flag = self.ck_preview_flag.isChecked()
         p.cal_error_flag = self.ck_cal_error_flag.isChecked()
 
+        p.prb_center_flag = self.ck_prb_center_flag.isChecked()
+        p.mask_obj_flag = self.ck_mask_obj_flag.isChecked()
+        p.norm_prb_amp_flag = self.ck_norm_prb_amp_flag.isChecked()
+        p.weak_obj_flag = self.ck_weak_obj_flag.isChecked()
+        p.ms_pie_flag = self.ck_ms_pie_flag.isChecked()
         # TODO: organize them
         #self.ck_init_obj_dpc_flag.setChecked(p.init_obj_dpc_flag) 
-        p.prb_center_flag = self.ck_prb_center_flag.isChecked()
         #self.ck_mask_prb_flag.setChecked(p.mask_prb_flag)
-        p.weak_obj_flag = self.ck_weak_obj_flag.isChecked()
         #self.ck_mesh_flag.setChecked(p.mesh_flag)
-        p.ms_pie_flag = self.ck_ms_pie_flag.isChecked()
         #self.ck_sf_flag.setChecked(p.sf_flag)
 
         # batch param group, necessary?
@@ -383,6 +387,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.ck_init_obj_dpc_flag.setChecked(p.init_obj_dpc_flag) 
         self.ck_prb_center_flag.setChecked(p.prb_center_flag)
         self.ck_mask_prb_flag.setChecked(p.mask_prb_flag)
+        self.ck_mask_obj_flag.setChecked(p.mask_obj_flag)
+        self.ck_norm_prb_amp_flag.setChecked(p.norm_prb_amp_flag)
         self.ck_weak_obj_flag.setChecked(p.weak_obj_flag)
         self.ck_mesh_flag.setChecked(p.mesh_flag)
         self.ck_ms_pie_flag.setChecked(p.ms_pie_flag)
@@ -663,6 +669,15 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.sp_slice_num.setEnabled(flag)
         self.sp_slice_spacing_m.setEnabled(flag)
         self.param.multislice_flag = flag
+
+
+    def updateObjMaskFlg(self):
+        mask_flag = self.ck_mask_obj_flag.isChecked()
+        self.sp_amp_min.setEnabled(mask_flag)
+        self.sp_amp_max.setEnabled(mask_flag)
+        self.sp_pha_min.setEnabled(mask_flag)
+        self.sp_pha_max.setEnabled(mask_flag)
+        self.param.mask_obj_flag = mask_flag
 
 
     def updateGpuFlg(self):
