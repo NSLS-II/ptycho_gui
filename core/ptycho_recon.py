@@ -27,6 +27,7 @@ class PtychoReconWorker(QtCore.QThread):
     def __init__(self, param:Param=None, parent=None):
         super().__init__(parent)
         self.param = param
+        self.return_value = None
 
     def _parse_message(self, tokens):
         def _parser(current, upper_limit, target_list):
@@ -71,6 +72,19 @@ class PtychoReconWorker(QtCore.QThread):
 
         return it, result
 
+    def _test_stdout_completeness(self, stdout):
+        counter = 0
+        for token in stdout:
+            if token == '=':
+                counter += 1
+
+        return counter
+
+    def _parse_one_line(self):
+        stdout_2 = self.process.stdout.readline().decode('utf-8')
+        print(stdout_2, end='') # because the line already ends with '\n'
+
+        return stdout_2.split()
 
     def recon_api(self, param:Param, update_fcn=None):
         with open(param.working_directory + '.ptycho_param.pkl', 'wb') as output:
@@ -119,7 +133,7 @@ class PtychoReconWorker(QtCore.QThread):
                 #print(" ".join(mpirun_command))
 
         try:
-            return_value = None
+            self.return_value = None
             with subprocess.Popen(mpirun_command,
                                   stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE,
@@ -152,6 +166,17 @@ class PtychoReconWorker(QtCore.QThread):
                         print(stdout, end='') # because the line already ends with '\n'
                         stdout = stdout.split()
                         if len(stdout) > 2 and stdout[0] == "[INFO]" and update_fcn is not None:
+                            # TEST: check if stdout is complete by examining the number of "="
+                            # TODO: improve this ugly hack...
+                            while True:
+                                counter = self._test_stdout_completeness(stdout)
+                                if counter == 3:
+                                    break
+                                elif counter < 3:
+                                    stdout += self._parse_one_line()
+                                else: # counter > 3, we read one more line!
+                                    raise Exception("parsing error")
+                          
                             it, result = self._parse_message(stdout)
                             #print(result['probe_chi'])
                             update_fcn(it+1, result)
@@ -161,9 +186,9 @@ class PtychoReconWorker(QtCore.QThread):
                         print(stderr, file=sys.stderr, end='')
 
                 # get the return value 
-                return_value = run_ptycho.poll()
+                self.return_value = run_ptycho.poll()
 
-            if return_value != 0:
+            if self.return_value != 0:
                 message = "At least one MPI process returned a nonzero value, so the whole job is aborted.\n"
                 message += "If you did not manually terminate it, consult the Traceback above to identify the problem."
                 raise Exception(message)
@@ -187,6 +212,10 @@ class PtychoReconWorker(QtCore.QThread):
             # whatever happened in the MPI processes will always (!) generate traceback,
             # so do nothing here
             pass
+        else:
+            # let preview window load results
+            if self.param.preview_flag and self.return_value == 0:
+                self.update_signal.emit(self.param.n_iterations+1, None)
         finally:
             print('finally?')
 

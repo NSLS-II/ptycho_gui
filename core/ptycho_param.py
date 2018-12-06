@@ -128,8 +128,10 @@ class Param(object):
         self.save_config_history = True 
 
         self.init_obj_dpc_flag = False
-        self.prb_center_flag = True
+        self.prb_center_flag = False
         self.mask_prb_flag = False
+        self.mask_obj_flag = True
+        self.norm_prb_amp_flag = False
         self.weak_obj_flag = False
         self.mesh_flag = 1
         self.ms_pie_flag = False
@@ -153,13 +155,13 @@ class Param(object):
         self.working_directory = path
 
     def get_alg_flg_index(self):
-        return ['DM', 'ER', 'ML', 'DM_real'].index(self.alg_flag)
+        return ['DM', 'ER', 'ML', 'DM_real', 'PIE'].index(self.alg_flag)
 
     def get_ml_model_index(self):
         return ['Poisson'].index(self.ml_mode)
 
     def get_alg2_flg_index(self):
-        return ['DM', 'ER', 'ML', 'DM_real'].index(self.alg2_flag)
+        return ['DM', 'ER', 'ML', 'DM_real', 'PIE'].index(self.alg2_flag)
 
     def get_pc_alg_index(self):
         return ['lucy', 'wiener'].index(self.pc_alg)
@@ -190,6 +192,8 @@ def parse_config(filename, param):
     p.init_obj_dpc_flag         = config.getboolean('GUI', 'init_obj_dpc_flag')
     p.prb_center_flag           = config.getboolean('GUI', 'prb_center_flag')
     p.mask_prb_flag             = config.getboolean('GUI', 'mask_prb_flag')
+    p.mask_obj_flag             = config.getboolean('GUI', 'mask_obj_flag')
+    p.norm_prb_amp_flag         = config.getboolean('GUI', 'norm_prb_amp_flag')
     p.mesh_flag                 = config.getboolean('GUI', 'mesh_flag')
     p.cal_scan_pattern_flag     = config.getboolean('GUI', 'cal_scan_pattern_flag')
     p.bragg_flag                = config.getboolean('GUI', 'bragg_flag')

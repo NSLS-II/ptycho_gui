@@ -55,8 +55,9 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.cb_dataloader.currentTextChanged.connect(self.forceLoad)
         self.cb_detectorkind.currentTextChanged.connect(self.forceLoad)
 
-        self.ck_mode_flag.clicked.connect(self.updateModeFlg)
-        self.ck_multislice_flag.clicked.connect(self.updateMultiSliceFlg)
+        self.ck_mode_flag.clicked.connect(self.modeMultiSliceGuard)
+        self.ck_multislice_flag.clicked.connect(self.modeMultiSliceGuard)
+        self.ck_mask_obj_flag.clicked.connect(self.updateObjMaskFlg)
         self.ck_gpu_flag.clicked.connect(self.updateGpuFlg)
         self.ck_bragg_flag.clicked.connect(self.updateBraggFlg)
         self.ck_pc_flag.clicked.connect(self.updatePcFlg)
@@ -105,11 +106,18 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.reconStepWindow = None
         self.roiWindow = None
 
+        # temporary solutions
+        self.ck_ms_pie_flag.setEnabled(False)
+        self.ck_weak_obj_flag.setEnabled(False)
+        #self.cb_alg_flag. addItem("PIE")
+        #self.cb_alg2_flag.addItem("PIE")
+
         #if self.menu_save_config_history.isChecked(): # TODO: think of a better way...
         self.retrieveConfigHistory()
         self.update_gui_from_param()
         self.updateModeFlg()
         self.updateMultiSliceFlg()
+        self.updateObjMaskFlg()
         self.updateGpuFlg()
         self.resetButtons()
         self.resetExperimentalParameters() # probably not necessary
@@ -272,13 +280,15 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         p.preview_flag = self.ck_preview_flag.isChecked()
         p.cal_error_flag = self.ck_cal_error_flag.isChecked()
 
+        p.prb_center_flag = self.ck_prb_center_flag.isChecked()
+        p.mask_obj_flag = self.ck_mask_obj_flag.isChecked()
+        p.norm_prb_amp_flag = self.ck_norm_prb_amp_flag.isChecked()
+        p.weak_obj_flag = self.ck_weak_obj_flag.isChecked()
+        p.ms_pie_flag = self.ck_ms_pie_flag.isChecked()
         # TODO: organize them
         #self.ck_init_obj_dpc_flag.setChecked(p.init_obj_dpc_flag) 
-        #self.ck_prb_center_flag.setChecked(p.prb_center_flag)
         #self.ck_mask_prb_flag.setChecked(p.mask_prb_flag)
-        p.weak_obj_flag = self.ck_weak_obj_flag.isChecked()
         #self.ck_mesh_flag.setChecked(p.mesh_flag)
-        p.ms_pie_flag = self.ck_ms_pie_flag.isChecked()
         #self.ck_sf_flag.setChecked(p.sf_flag)
 
         # batch param group, necessary?
@@ -377,6 +387,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.ck_init_obj_dpc_flag.setChecked(p.init_obj_dpc_flag) 
         self.ck_prb_center_flag.setChecked(p.prb_center_flag)
         self.ck_mask_prb_flag.setChecked(p.mask_prb_flag)
+        self.ck_mask_obj_flag.setChecked(p.mask_obj_flag)
+        self.ck_norm_prb_amp_flag.setChecked(p.norm_prb_amp_flag)
         self.ck_weak_obj_flag.setChecked(p.weak_obj_flag)
         self.ck_mesh_flag.setChecked(p.mesh_flag)
         self.ck_ms_pie_flag.setChecked(p.ms_pie_flag)
@@ -397,6 +409,11 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             self.update_param_from_gui() # this has to be done first, so all operations depending on param are correct
             self.recon_bar.setValue(0)
             self.recon_bar.setMaximum(self.param.n_iterations)
+
+            # at least one GPU needs to be selected
+            if self.param.gpu_flag and len(self.param.gpus) == 0:
+                print("[WARNING] select at least one GPU!", file=sys.stderr)
+                return
 
             # batch mode requires some additional changes to param
             if batch_mode:
@@ -427,9 +444,16 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
             # init reconStepWindow
             if self.ck_preview_flag.isChecked():
+                if self.param.mode_flag:
+                    info = (self.param.obj_mode_num, self.param.prb_mode_num, 1)
+                elif self.param.multislice_flag:
+                    info = (self.param.slice_num, 1, 1)
+                else: 
+                    info = (1, 1, 2)
+
                 if self.reconStepWindow is None:
-                    self.reconStepWindow = ReconStepWindow()
-                self.reconStepWindow.reset_window(iterations=self.param.n_iterations,
+                    self.reconStepWindow = ReconStepWindow(*info)
+                self.reconStepWindow.reset_window(*info, iterations=self.param.n_iterations,
                                                   slider_interval=self.param.display_interval)
                 self.reconStepWindow.show()
             else:
@@ -477,14 +501,95 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
                         # the two npy are created by ptycho by this time
                         self._prb = open_memmap(self.param.working_directory + '.mmap_prb.npy', mode = 'r')
                         self._obj = open_memmap(self.param.working_directory + '.mmap_obj.npy', mode = 'r')
-                    if it % self.param.display_interval == 1 or (it >= 1 and self.param.display_interval == 1):
+                    if it == self.param.n_iterations+1:
+                        # reserve it=n_iterations+1 as the working space
+                        self.reconStepWindow.current_max_iters = self.param.n_iterations
+
+                        p = self.param
+                        work_dir = p.working_directory
+                        scan_num = str(p.scan_num)
+                        data_dir = work_dir+'/recon_result/S'+scan_num+'/'+p.sign+'/recon_data/'
+                        data = {}
+                        images = []
+                        print("[SUCCESS] generated results are loaded in the preview window. ", end='', file=sys.stderr)
+                        print("Slide to frame "+str(p.n_iterations+1)+" and select from drop-down menus.", file=sys.stderr)
+
+                        if self.param.mode_flag:
+                            # load data that has been averaged + orthonormalized + phase-ramp removed
+                            for i in range(self.param.obj_mode_num):
+                                data['obj_'+str(i)] = np.load(data_dir+'recon_'+scan_num+'_'+p.sign+'_' \
+                                                               +'object_mode_orth_ave_rp_mode_'+str(i)+'.npy')
+                                for kind, fx in zip(['phase', 'amplitude'], [np.angle, np.abs]):
+                                    self.reconStepWindow.cb_image_object.addItem("Object "+str(i)+" "+kind+" (orth_ave_rp)")
+                                    # hard-wire the padding values here...
+                                    images.append( np.rot90(fx(data['obj_'+str(i)][(p.nx+30)//2:-(p.nx+30)//2, (p.ny+30)//2:-(p.ny+30)//2])) )
+
+                            for i in range(self.param.prb_mode_num):
+                                data['prb_'+str(i)] = np.load(data_dir+'recon_'+scan_num+'_'+p.sign+'_' \
+                                                               +'probe_mode_orth_ave_rp_mode_'+str(i)+'.npy')
+                                for kind, fx in zip(['amplitude', 'phase'], [np.abs, np.angle]):
+                                    self.reconStepWindow.cb_image_probe.addItem("Probe "+str(i)+" "+kind+" (orth_ave_rp)")
+                                    images.append( np.rot90(fx(data['prb_'+str(i)])) )
+                        elif self.param.multislice_flag:
+                            # load data that has been averaged + phase-ramp removed
+                            for i in range(self.param.slice_num):
+                                data['obj_'+str(i)] = np.load(data_dir+'recon_'+scan_num+'_'+p.sign+'_' \
+                                                               +'object_ave_rp_ms_'+str(i)+'.npy')
+                                for kind, fx in zip(['phase', 'amplitude'], [np.angle, np.abs]):
+                                    self.reconStepWindow.cb_image_object.addItem("Object "+str(i)+" "+kind+" (ave_rp)")
+                                    # hard-wire the padding values here...
+                                    images.append( np.rot90(fx(data['obj_'+str(i)][(p.nx+30)//2:-(p.nx+30)//2, (p.ny+30)//2:-(p.ny+30)//2])) )
+
+                            for i in range(self.param.slice_num):
+                                data['prb_'+str(i)] = np.load(data_dir+'recon_'+scan_num+'_'+p.sign+'_' \
+                                                               +'probe_ave_rp_ms_'+str(i)+'.npy')
+                                for kind, fx in zip(['amplitude', 'phase'], [np.abs, np.angle]):
+                                    self.reconStepWindow.cb_image_probe.addItem("Probe "+str(i)+" "+kind+" (ave_rp)")
+                                    images.append( np.rot90(fx(data['prb_'+str(i)])) )
+                        else:
+                            # load data (ave & ave_rp)
+                            for sol in ['ave', 'ave_rp']:
+                                for tar, target in zip(['obj', 'prb'], ['object', 'probe']):
+                                    data[tar+'_'+sol] = np.load(data_dir+'recon_'+scan_num+'_'+p.sign+'_'+target+'_'+sol+'.npy')
+
+                            # calculate images
+                            for sol in ['ave', 'ave_rp']:
+                                for kind, fx in zip(['phase', 'amplitude'], [np.angle, np.abs]):
+                                    self.reconStepWindow.cb_image_object.addItem("Object "+kind+" ("+sol+")")
+                                    # hard-wire the padding values here...
+                                    images.append( np.rot90(fx(data['obj_'+sol][(p.nx+30)//2:-(p.nx+30)//2, (p.ny+30)//2:-(p.ny+30)//2])) )
+                            for sol in ['ave', 'ave_rp']:
+                                for kind, fx in zip(['amplitude', 'phase'], [np.abs, np.angle]):
+                                    self.reconStepWindow.cb_image_probe.addItem("Probe "+kind+" ("+sol+")")
+                                    images.append( np.rot90(fx(data['prb_'+sol])) )
+
+                        self.reconStepWindow.update_images(it, images)
+                    elif it % self.param.display_interval == 1 or (it >= 1 and self.param.display_interval == 1):
                         # there could be synchronization problem? should have better solution...
-                        images = [np.flipud(np.angle(self._obj[it-1, 0]).T),
-                                  np.flipud(np.abs(self._obj[it-1, 0]).T),
-                                  np.flipud(np.abs(self._prb[it-1, 0]).T),
-                                  np.flipud(np.angle(self._prb[it-1, 0]).T)]
+                        if self.param.mode_flag:
+                            images = []
+                            for i in range(self.param.obj_mode_num):
+                                images.append(np.rot90(np.angle(self._obj[it-1, i])))
+                                images.append(np.rot90(np.abs(self._obj[it-1, i])))
+                            for i in range(self.param.prb_mode_num):
+                                images.append(np.rot90(np.abs(self._prb[it-1, i])))
+                                images.append(np.rot90(np.angle(self._prb[it-1, i])))
+                        elif self.param.multislice_flag:
+                            images = []
+                            for i in range(self.param.slice_num):
+                                images.append(np.rot90(np.angle(self._obj[it-1, i])))
+                                images.append(np.rot90(np.abs(self._obj[it-1, i])))
+                            #TODO: decide which probe we'd like to present
+                            images.append(np.rot90(np.abs(self._prb[it-1, 0])))
+                            images.append(np.rot90(np.angle(self._prb[it-1, 0])))
+                        else:
+                            images = [np.rot90(np.angle(self._obj[it-1, 0])),
+                                      np.rot90(np.abs(self._obj[it-1, 0]  )),
+                                      np.rot90(np.abs(self._prb[it-1, 0]  )),
+                                      np.rot90(np.angle(self._prb[it-1, 0]))]
                         self.reconStepWindow.update_images(it, images)
                         self.reconStepWindow.update_metric(it, data)
+
                 except TypeError as ex: # when MPI processes are terminated, _prb and _obj are deleted and so not subscriptable 
                     pass
             else:
@@ -537,6 +642,20 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             self.param.set_working_directory(dirname)
             self.le_working_directory.setText(dirname)
 
+    def modeMultiSliceGuard(self):
+        '''
+        Currently our ptycho code does not support simultaneous mode + multi-slice reconstruction.
+        This function can be removed once the support is added.
+        '''
+        if self.ck_mode_flag.isChecked() and self.ck_multislice_flag.isChecked():
+           message = "Currently our ptycho code does not support simultaneous multi-mode + multi-slice reconstruction."
+           print("[WARNING] " + message, file=sys.stderr)
+           QtWidgets.QMessageBox.warning(self, "Warning", message)
+           self.ck_mode_flag.setChecked(False)
+           self.ck_multislice_flag.setChecked(False)
+        self.updateModeFlg()
+        self.updateMultiSliceFlg()
+
 
     def updateModeFlg(self):
         mode_flag = self.ck_mode_flag.isChecked()
@@ -550,6 +669,15 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.sp_slice_num.setEnabled(flag)
         self.sp_slice_spacing_m.setEnabled(flag)
         self.param.multislice_flag = flag
+
+
+    def updateObjMaskFlg(self):
+        mask_flag = self.ck_mask_obj_flag.isChecked()
+        self.sp_amp_min.setEnabled(mask_flag)
+        self.sp_amp_max.setEnabled(mask_flag)
+        self.sp_pha_min.setEnabled(mask_flag)
+        self.sp_pha_max.setEnabled(mask_flag)
+        self.param.mask_obj_flag = mask_flag
 
 
     def updateGpuFlg(self):
