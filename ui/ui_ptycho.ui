@@ -523,6 +523,11 @@
               <string>DM_real</string>
              </property>
             </item>
+            <item>
+             <property name="text">
+              <string>RAAR</string>
+             </property>
+            </item>
            </widget>
           </item>
           <item>
@@ -545,6 +550,11 @@
             <item>
              <property name="text">
               <string>DM_real</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>RAAR</string>
              </property>
             </item>
            </widget>
