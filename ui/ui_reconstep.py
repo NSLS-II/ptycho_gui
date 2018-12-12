@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui_reconstep.ui'
+# Form implementation generated from reading ui file 'ui/ui_reconstep.ui'
 #
-# Created by: PyQt5 UI code generator 5.10.1
+# Created by: PyQt5 UI code generator 5.9.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -145,7 +145,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "NSLS-II HXN Pytchography Recon. Monitor"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "NSLS-II Pytchography Reconstruction Monitor"))
         self.cb_image_object.setItemText(0, _translate("MainWindow", "object phase"))
         self.cb_image_object.setItemText(1, _translate("MainWindow", "object amplitude"))
         self.cb_image_probe.setItemText(0, _translate("MainWindow", "probe amplitude"))

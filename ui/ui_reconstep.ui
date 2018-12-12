@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>NSLS-II HXN Pytchography Recon. Monitor</string>
+   <string>NSLS-II Pytchography Reconstruction Monitor</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="MplCanvas" name="canvas_object" native="true">
