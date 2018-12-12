@@ -1078,8 +1078,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         if filename is not None and len(filename) > 0:
             if filename[-4:] != ".txt":
                 filename += ".txt"
-                self._exportConfigHelper(filename)
-                print("config saved to " + filename)
+            self._exportConfigHelper(filename)
+            print("config saved to " + filename)
 
 
     def _exportConfigHelper(self, filename:str):
