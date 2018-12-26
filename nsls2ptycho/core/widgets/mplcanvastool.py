@@ -5,8 +5,8 @@ from matplotlib.figure import Figure
 from matplotlib.pyplot import Axes
 import numpy as np
 
-from core.widgets.imgTools import estimate_roi
-from core.widgets.eventhandler import EventHandler
+from nsls2ptycho.core.widgets.imgTools import estimate_roi
+from nsls2ptycho.core.widgets.eventhandler import EventHandler
 
 
 class MplCanvasTool(QtWidgets.QWidget):

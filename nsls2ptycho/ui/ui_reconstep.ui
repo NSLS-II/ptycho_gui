@@ -296,7 +296,7 @@
   <customwidget>
    <class>MplCanvas</class>
    <extends>QWidget</extends>
-   <header>core.widgets.mplcanvas</header>
+   <header>nsls2ptycho.core.widgets.mplcanvas</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
