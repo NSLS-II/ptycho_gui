@@ -101,7 +101,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self._scan_numbers = None   # a list of scan numbers for batch mode
         self._batch_prb_filename = None  # probe's filename template for batch mode
         self._batch_obj_filename = None  # object's filename template for batch mode
-        self._config_path = os.path.expanduser("~") + "/.ptycho_gui_config"
+        self._config_path = os.path.expanduser("~") + "/.ptycho_gui/.ptycho_gui_config"
 
         self.reconStepWindow = None
         self.roiWindow = None
