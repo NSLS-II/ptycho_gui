@@ -1,7 +1,6 @@
 from PyQt5 import QtCore
 from datetime import datetime
-from core.ptycho_param import Param
-#from .ptycho.recon_ptycho_gui import recon_gui
+from nsls2ptycho.core.ptycho_param import Param
 import mpi4py
 mpi4py.rc.initialize = False
 from mpi4py import MPI
@@ -13,7 +12,7 @@ from os import O_NONBLOCK
 import numpy as np
 import traceback
 try:
-    from core.HXN_databroker import load_metadata, save_data
+    from nsls2ptycho.core.HXN_databroker import load_metadata, save_data
 except ImportError as ex:
     print('[!] Unable to import core.HXN_databroker packages some features will '
           'be unavailable')
@@ -97,10 +96,10 @@ class PtychoReconWorker(QtCore.QThread):
             num_processes = str(len(param.gpus))
         else:
             num_processes = str(param.processes) if param.processes > 1 else str(1)
-        mpirun_command = ["mpirun", "-n", num_processes, "python", "-W", "ignore", "./core/ptycho/recon_ptycho_gui.py"]
+        mpirun_command = ["mpirun", "-n", num_processes, "python", "-W", "ignore", "-m","nsls2ptycho.core.ptycho.recon_ptycho_gui"]
                 
         if 'MPICH' in MPI.get_vendor()[0]:
-            mpirun_command.insert(-1, "-u") # force flush asap (MPICH is weird...)
+            mpirun_command.insert(-2, "-u") # force flush asap (MPICH is weird...)
 
         # use MPI machine file if available, assuming each line of which is: 
         # ip_address slots=n max-slots=n   --- Open MPI

@@ -1,6 +1,6 @@
 import sys
 from PyQt5 import QtWidgets
-from ui import ui_reconstep
+from nsls2ptycho.ui import ui_reconstep
 
 import numpy as np
 

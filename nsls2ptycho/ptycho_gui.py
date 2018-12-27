@@ -3,23 +3,23 @@ import os
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog, QAction
 
-from ui import ui_ptycho
-from core.ptycho_param import Param, parse_config
-from core.ptycho_recon import PtychoReconWorker, PtychoReconFakeWorker, HardWorker
-from core.ptycho_qt_utils import PtychoStream
-from core.widgets.mplcanvas import load_image_pil
+from nsls2ptycho.ui import ui_ptycho
+from nsls2ptycho.core.ptycho_param import Param, parse_config
+from nsls2ptycho.core.ptycho_recon import PtychoReconWorker, PtychoReconFakeWorker, HardWorker
+from nsls2ptycho.core.ptycho_qt_utils import PtychoStream
+from nsls2ptycho.core.widgets.mplcanvas import load_image_pil
 
 # databroker related
 try:
-    from core.HXN_databroker import db1, db2, db_old, load_metadata
+    from nsls2ptycho.core.HXN_databroker import db1, db2, db_old, load_metadata
     from hxntools.scan_info import ScanInfo
 except ImportError as ex:
     print('[!] Unable to import hxntools-related packages some features will '
           'be unavailable')
     print('[!] (import error: {})'.format(ex))
 
-from reconStep_gui import ReconStepWindow
-from roi_gui import RoiWindow
+from nsls2ptycho.reconStep_gui import ReconStepWindow
+from nsls2ptycho.roi_gui import RoiWindow
 
 import h5py
 import numpy as np
