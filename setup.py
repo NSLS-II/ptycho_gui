@@ -1,7 +1,17 @@
+NAME = 'nsls2ptycho'
+VERSION = "1.0.0"
+DESCRIPTION = 'NSLS-II Ptychography Software'
+AUTHOR = 'Leo Fang, Sungsoo Ha, Zhihua Dong, and Xiaojing Huang'
+EMAIL = 'leofang@bnl.gov'
+LINK = 'https://github.com/leofang/ptycho_gui/'
+LICENSE = 'MIT'
+REQUIREMENTS = ['mpi4py', 'pyfftw', 'numpy', 'scipy', 'matplotlib', 'Pillow', 'h5py']
+
 import sys
 from setuptools import setup #, find_packages
 
 # cython is needed for compiling the CPU codes
+# TODO: add the generated .c file in the source tree to avoid depending on cython
 try:
     from Cython.Build import cythonize
 except ImportError:
@@ -11,16 +21,11 @@ except ImportError:
           "*************************************************************************\n", file=sys.stderr)
     raise
 
-REQUIREMENTS = ['mpi4py', 'pyfftw', 'numpy', 'scipy', 'matplotlib', 'Pillow', 'h5py']
-
 # see if PyQt5 is already installed --- pip and conda use different names...
 try:
     from PyQt5 import QtCore, QtGui, QtWidgets
 except ImportError:
     REQUIREMENTS.append('PyQt5')
-
-NAME = 'nsls2ptycho'
-VERSION = "1.0.0"
 
 setup(name=NAME,
       version=VERSION,
@@ -34,4 +39,9 @@ setup(name=NAME,
       extras_require={'GPU': 'cupy'}, # this will build cupy from source, may not be the best practice!
       ext_modules=cythonize("nsls2ptycho/core/ptycho/*.pyx"),
       #dependency_links=['git+https://github.com/leofang/ptycho.git#optimization']
+      description=DESCRIPTION,
+      author=AUTHOR,
+      author_email=EMAIL,
+      url=LINK,
+      license=LICENSE,
       )
