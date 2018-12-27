@@ -9,7 +9,7 @@ from nsls2ptycho.core.widgets.badpixel_dialog import BadPixelDialog
 
 
 try:
-    from core.HXN_databroker import save_data
+    from nsls2ptycho.core.HXN_databroker import save_data
 except ImportError as ex:
     print('[!] Unable to import core.HXN_databroker packages some features will '
           'be unavailable')
