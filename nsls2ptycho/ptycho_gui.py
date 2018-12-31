@@ -1,5 +1,6 @@
 import sys
 import os
+import random
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog, QAction
 
@@ -24,10 +25,12 @@ from nsls2ptycho.roi_gui import RoiWindow
 import h5py
 import numpy as np
 from numpy import pi
-from numpy.lib.format import open_memmap
 import matplotlib.pyplot as plt
 import traceback
 
+# for frontend-backend communication
+from posix_ipc import SharedMemory
+import mmap
 
 # set True for testing GUI changes
 _TEST = False
@@ -123,6 +126,9 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.resetExperimentalParameters() # probably not necessary
         self.setLoadButton()
 
+        # generate a unique string for shared memory
+        self.param.shm_name = 'ptycho_'+os.getlogin()+'_'+str(os.getpid())+'_'+str(random.randrange(256))
+
 
     @property
     def db(self):
@@ -133,6 +139,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
     @db.setter
     def db(self, scan_id:int):
         # choose the correct Broker instance based on the given scan id
+        # TODO: this should be configured based on selected beamline profile!
         if scan_id <= 34000:
             self._db = db_old
         elif scan_id <= 48990:
@@ -151,14 +158,17 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         plt.close('all')
         # close the mmap arrays
         # removing these arrays, can be changed later if needed
+        flag = False
         if self._prb is not None:
             del self._prb
             self._prb = None
-            os.remove(self.param.working_directory + '.mmap_prb.npy')
+            flag = True
         if self._obj is not None:
             del self._obj
             self._obj = None
-            os.remove(self.param.working_directory + '.mmap_obj.npy')
+            flag = True
+        if flag:
+            self.close_mmap()
 
     
     # TODO: consider merging this function with importConfig()? 
@@ -489,6 +499,53 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
                 self.reconStepWindow.reset_window()
 
 
+    def init_mmap(self):
+        global ptycho_shm0, ptycho_shm1, ptycho_shm2, ptycho_mm0, ptycho_mm1, ptycho_mm2
+        p = self.param
+        datasize = 8 if p.precision == 'single' else 16
+        datatype = np.complex64 if p.precision == 'single' else np.complex128
+
+        ptycho_shm0 = SharedMemory("/"+p.shm_name+"_obj_size")
+        ptycho_mm0 = mmap.mmap(ptycho_shm0.fd, 0)
+        nx_obj = int.from_bytes(ptycho_mm0.read(8), byteorder='big')
+        ny_obj = int.from_bytes(ptycho_mm0.read(8), byteorder='big') # the file position has been moved by 8 bytes when we get nx_obj
+
+        ptycho_shm1 = SharedMemory("/"+p.shm_name+"_prb")
+        ptycho_mm1 = mmap.mmap(ptycho_shm1.fd, 0)
+        ptycho_shm2 = SharedMemory("/"+p.shm_name+"_obj")
+        ptycho_mm2 = mmap.mmap(ptycho_shm2.fd, 0)
+        if p.mode_flag:
+            self._prb = np.ndarray(shape=(p.n_iterations, p.prb_mode_num, p.nx, p.ny), dtype=datatype, buffer=ptycho_mm1, order='C')
+            self._obj = np.ndarray(shape=(p.n_iterations, p.obj_mode_num, nx_obj, ny_obj), dtype=datatype, buffer=ptycho_mm2, order='C')
+        elif p.multislice_flag:
+            self._prb = np.ndarray(shape=(p.n_iterations, 1, p.nx, p.ny), dtype=datatype, buffer=ptycho_mm1, order='C')
+            self._obj = np.ndarray(shape=(p.n_iterations, p.slice_num, nx_obj, ny_obj), dtype=datatype, buffer=ptycho_mm2, order='C')
+        else:
+            self._prb = np.ndarray(shape=(p.n_iterations, 1, p.nx, p.ny), dtype=datatype, buffer=ptycho_mm1, order='C')
+            self._obj = np.ndarray(shape=(p.n_iterations, 1, nx_obj, ny_obj), dtype=datatype, buffer=ptycho_mm2, order='C')
+
+
+    def close_mmap(self):
+        # We close shared memory as long as the backend is terminated either normally or 
+        # abnormally. The subtlety here is that the monitor should still be able to access
+        # the intermediate results after mmaps' are closed. A potential segfault is avoided 
+        # by accessing the transformed results, which are buffered, not the original ones.
+        try:
+            global ptycho_mm0, ptycho_mm1, ptycho_mm2, ptycho_shm0, ptycho_shm1, ptycho_shm2
+            ptycho_mm0.close()
+            ptycho_mm1.close()
+            ptycho_mm2.close()
+            ptycho_shm0.close_fd()
+            ptycho_shm1.close_fd()
+            ptycho_shm2.close_fd()
+            ptycho_shm0.unlink()
+            ptycho_shm1.unlink()
+            ptycho_shm2.unlink()
+            del ptycho_mm0, ptycho_mm1, ptycho_mm2, ptycho_shm0, ptycho_shm1, ptycho_shm2
+        except NameError:
+            pass # either not using GUI, monitor is turned off, or global variables are deleted
+
+
     def update_recon_step(self, it, data=None):
         self.recon_bar.setValue(it)
 
@@ -499,8 +556,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
                 try:
                     if it == 1:
                         # the two npy are created by ptycho by this time
-                        self._prb = open_memmap(self.param.working_directory + '.mmap_prb.npy', mode = 'r')
-                        self._obj = open_memmap(self.param.working_directory + '.mmap_obj.npy', mode = 'r')
+                        self.init_mmap()
                     if it == self.param.n_iterations+1:
                         # reserve it=n_iterations+1 as the working space
                         self.reconStepWindow.current_max_iters = self.param.n_iterations
@@ -1129,6 +1185,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
                 self.update_param_from_gui()
                 self._exportConfigHelper(self._config_path)
                 #print("config file was written to " + self._config_path)
+            self.close_mmap()
         except:
             traceback.print_exc()
             raise

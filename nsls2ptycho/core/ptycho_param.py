@@ -277,6 +277,7 @@ def parse_config(filename, param):
     p.ml_mode                   = config['GUI']['ml_mode']   # drop off box
     p.pc_alg                    = config['GUI']['pc_alg']    # drop off box
     p.precision                 = config['GUI']['precision'] # drop off box
+    p.shm_name                  = config['GUI']['shm_name']
 
     # special cases:
     p.gpus                      = config['GUI']['gpus']

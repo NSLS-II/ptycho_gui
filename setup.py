@@ -5,7 +5,7 @@ AUTHOR = 'Leo Fang, Sungsoo Ha, Zhihua Dong, and Xiaojing Huang'
 EMAIL = 'leofang@bnl.gov'
 LINK = 'https://github.com/leofang/ptycho_gui/'
 LICENSE = 'MIT'
-REQUIREMENTS = ['mpi4py', 'pyfftw', 'numpy', 'scipy', 'matplotlib', 'Pillow', 'h5py']
+REQUIREMENTS = ['mpi4py', 'pyfftw', 'numpy', 'scipy', 'matplotlib', 'Pillow', 'h5py', 'posix_ipc']
 
 import sys
 from setuptools import setup #, find_packages
