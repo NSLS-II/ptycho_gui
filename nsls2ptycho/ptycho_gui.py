@@ -5,10 +5,11 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog, QAction
 
 from nsls2ptycho.ui import ui_ptycho
-from nsls2ptycho.core.ptycho_param import Param, parse_config
+from nsls2ptycho.core.ptycho_param import Param
 from nsls2ptycho.core.ptycho_recon import PtychoReconWorker, PtychoReconFakeWorker, HardWorker
 from nsls2ptycho.core.ptycho_qt_utils import PtychoStream
 from nsls2ptycho.core.widgets.mplcanvas import load_image_pil
+from nsls2ptycho.core.ptycho.parse_config import parse_config
 
 # databroker related
 try:

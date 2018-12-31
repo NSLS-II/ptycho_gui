@@ -86,11 +86,6 @@ class PtychoReconWorker(QtCore.QThread):
         return stdout_2.split()
 
     def recon_api(self, param:Param, update_fcn=None):
-        with open(param.working_directory + '.ptycho_param.pkl', 'wb') as output:
-            # dump param into disk and let children read it back
-            pickle.dump(param, output, pickle.HIGHEST_PROTOCOL)
-            print("pickle dumped")
-
         # working version
         if param.gpu_flag:
             num_processes = str(len(param.gpus))
@@ -197,9 +192,9 @@ class PtychoReconWorker(QtCore.QThread):
             #raise ex
         finally:
             # clean up temp file
-            os.remove(param.working_directory + '.ptycho_param.pkl')
-            if os.path.isfile(param.working_directory + ".ptycho_param.txt"):
-                os.remove(param.working_directory + ".ptycho_param.txt")
+            filepath = param.working_directory + "/." + param.shm_name + ".txt"
+            if os.path.isfile(filepath):
+                os.remove(filepath)
 
     def run(self):
         print('Ptycho thread started')
