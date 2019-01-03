@@ -30,7 +30,7 @@ import matplotlib.pyplot as plt
 import traceback
 
 # for frontend-backend communication
-from posix_ipc import SharedMemory
+from posix_ipc import SharedMemory, ExistentialError
 import mmap
 
 # set True for testing GUI changes
@@ -159,17 +159,13 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         plt.close('all')
         # close the mmap arrays
         # removing these arrays, can be changed later if needed
-        flag = False
         if self._prb is not None:
             del self._prb
             self._prb = None
-            flag = True
         if self._obj is not None:
             del self._obj
             self._obj = None
-            flag = True
-        if flag:
-            self.close_mmap()
+        self.close_mmap()
 
     
     # TODO: consider merging this function with importConfig()? 
@@ -544,7 +540,14 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             ptycho_shm2.unlink()
             del ptycho_mm0, ptycho_mm1, ptycho_mm2, ptycho_shm0, ptycho_shm1, ptycho_shm2
         except NameError:
-            pass # either not using GUI, monitor is turned off, or global variables are deleted
+            # either not using GUI, monitor is turned off, global variables are deleted or not yet created!
+            # need to examine the last case
+            try:
+                SharedMemory("/"+self.param.shm_name+"_obj_size").unlink()
+                SharedMemory("/"+self.param.shm_name+"_prb").unlink()
+                SharedMemory("/"+self.param.shm_name+"_obj").unlink()
+            except ExistentialError:
+                pass # nothing to clean up, we're done
 
 
     def update_recon_step(self, it, data=None):
