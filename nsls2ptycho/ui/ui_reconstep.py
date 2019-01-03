@@ -161,4 +161,4 @@ class Ui_MainWindow(object):
         self.pushButton.setText(_translate("MainWindow", "Rot"))
         self.btn_close.setText(_translate("MainWindow", "Close"))
 
-from core.widgets.mplcanvas import MplCanvas
+from nsls2ptycho.core.widgets.mplcanvas import MplCanvas

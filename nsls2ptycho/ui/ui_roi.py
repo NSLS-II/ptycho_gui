@@ -102,4 +102,4 @@ class Ui_MainWindow(object):
         self.menuTools.setTitle(_translate("MainWindow", "Tools"))
         self.actionBadpixels.setText(_translate("MainWindow", "show badpixel list"))
 
-from core.widgets.mplcanvastool import MplCanvasTool
+from nsls2ptycho.core.widgets.mplcanvastool import MplCanvasTool

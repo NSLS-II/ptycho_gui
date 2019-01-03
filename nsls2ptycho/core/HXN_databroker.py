@@ -49,7 +49,7 @@ import numpy as np
 import sys, os
 import h5py
 try:
-    from core.widgets.imgTools import rm_outlier_pixels
+    from nsls2ptycho.core.widgets.imgTools import rm_outlier_pixels
 except ModuleNotFoundError:
     # for test purpose
     from widgets.imgTools import rm_outlier_pixels
