@@ -7,6 +7,7 @@ While one can `pip install` this pacakge, most likely the non-Python dependencie
 `conda install python=3.6 pyfftw mpi4py pyqt>=5 numpy scipy matplotlib pillow h5py posix_ipc`
 4. Enter the cloned directory: `cd ./ptycho_gui`
 5. `pip install .`
+6. For using GPUs, do `pip install cupy-cudaXX`, where `XX` is the version of your CUDA toolkit (ex: `cupy-cuda91` for toolkit v9.1)
 
 ## Execution
 1. With GUI: `run-ptycho`
