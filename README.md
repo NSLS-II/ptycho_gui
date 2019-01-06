@@ -1,4 +1,6 @@
 # BNL NSLS-II in-house ptychography software
+## Introduction
+
 ## Installation
 While one can `pip install` this pacakge, most likely the non-Python dependencies will not be available. For the time being, therefore, we recommend using Conda. Here's the steps (6 & 7 are additional steps for using GPUs):
 1. Make sure you are granted access to the backend, currently hosted in [this private GitHub repo](https://github.com/leofang/ptycho)
@@ -19,3 +21,9 @@ In the near future, users in the NSLS-II control network will be able to do `con
 ## Conventions:
 1. The GUI writes a config file and a few compiled `.cubin` files to `~/.ptycho_gui/`
 2. Once the working directory is specified in the GUI, it assumes that all HDF5 files are stored there, and the outputs are written to `working_dir/recon_results/SXXXXX/`, where `XXXXX` is the scan-number string.  
+
+## License
+MIT (subject to change)
+
+## Maintainer
+- Leo Fang ([@leofang](https://github.com/leofang))
