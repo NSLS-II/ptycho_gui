@@ -10,10 +10,12 @@ While one can `pip install` this pacakge, most likely the non-Python dependencie
 6. `pip install cupy-cudaXX` \[`XX` is the version of your CUDA toolkit (ex: `cupy-cuda91` for toolkit v9.1)\]
 7. Run the script `configure.sh` in the project directory: `bash ./configure.sh`
 
+In the near future, users in the NSLS-II control network will be able to do `conda install nsls2ptycho` to complete the installation.
+
 ## Execution
-1. With GUI: `run-ptycho`
+1. Start the GUI: `run-ptycho`
 2. Spawn two MPI processes without GUI: `mpirun -n 2 run-ptycho-backend input_file`
 
 ## Conventions:
 1. The GUI writes a config file and a few compiled `.cubin` files to `~/.ptycho_gui/`
-2. Once the working directory is specified in the GUI, it will assume that all HDF5 files are stored there, and the outputs are written to `working_dir/recon_results/SXXXXX/`, where `XXXXX` is the scan-number string.  
+2. Once the working directory is specified in the GUI, it assumes that all HDF5 files are stored there, and the outputs are written to `working_dir/recon_results/SXXXXX/`, where `XXXXX` is the scan-number string.  
