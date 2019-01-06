@@ -123,12 +123,14 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.updateMultiSliceFlg()
         self.updateObjMaskFlg()
         self.updateGpuFlg()
-        self.resetButtons()
         self.resetExperimentalParameters() # probably not necessary
         self.setLoadButton()
 
         # generate a unique string for shared memory
         self.param.shm_name = 'ptycho_'+os.getlogin()+'_'+str(os.getpid())+'_'+str(random.randrange(256))
+
+        # TODO: delete param.shm_name read in from previous config so that we can reset the buttons earlier
+        self.resetButtons()
 
 
     @property
