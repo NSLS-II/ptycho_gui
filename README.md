@@ -18,12 +18,17 @@ In the near future, users in the NSLS-II control network will be able to do `con
 1. Start the GUI: `run-ptycho`
 2. Spawn two MPI processes without GUI: `mpirun -n 2 run-ptycho-backend input_file`
 
-## Conventions:
+## Conventions
 1. The GUI writes a config file and a few compiled `.cubin` files to `~/.ptycho_gui/`
 2. Once the working directory is specified in the GUI, it assumes that all HDF5 files are stored there, and the outputs are written to `working_dir/recon_results/SXXXXX/`, where `XXXXX` is the scan-number string.  
 
+## References
+- *High-Performance Multi-Mode Ptychography Reconstruction on Distributed GPUs*, Z. Dong, Y.-L. L. Fang *et al.*, 2018 NYSDS, DOI:[10.1109/NYSDS.2018.8538964](https://doi.org/10.1109/NYSDS.2018.8538964)
+
 ## License
 MIT (subject to change)
+
+Users are encouraged to cite the references above.
 
 ## Maintainer
 - Leo Fang ([@leofang](https://github.com/leofang))
