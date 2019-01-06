@@ -1,6 +1,6 @@
 # BNL NSLS-II in-house ptychography software
 ## Installation
-While one can `pip install` this pacakge, most likely the non-Python dependencies will not be avaialable. For the time being, therefore, we recommend using Conda. Here's the steps (6 & 7 are additional steps for using GPUs):
+While one can `pip install` this pacakge, most likely the non-Python dependencies will not be available. For the time being, therefore, we recommend using Conda. Here's the steps (6 & 7 are additional steps for using GPUs):
 1. Make sure you are granted access to the backend, currently hosted in [this private GitHub repo](https://github.com/leofang/ptycho)
 2. `git clone --recursive https://github.com/leofang/ptycho_gui.git` (during the process `git` will prompt you to enther your GitHub id and password for cloning the backend)
 3. Either use the current Conda environment, or create a new one, and then do 
