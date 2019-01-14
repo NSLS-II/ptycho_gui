@@ -39,7 +39,8 @@ setup(name=NAME,
       },
       install_requires=REQUIREMENTS,
       extras_require={'GPU': 'cupy'}, # this will build cupy from source, may not be the best practice!
-      ext_modules=cythonize("nsls2ptycho/core/ptycho/*.pyx", include_path = [numpy.get_include()]),
+      ext_modules=cythonize("nsls2ptycho/core/ptycho/*.pyx"),
+      include_dirs=[numpy.get_include()],
       #dependency_links=['git+https://github.com/leofang/ptycho.git#optimization']
       description=DESCRIPTION,
       author=AUTHOR,
