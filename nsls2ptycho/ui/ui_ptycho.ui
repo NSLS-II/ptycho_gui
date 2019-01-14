@@ -1670,7 +1670,7 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_17">
+         <layout class="QHBoxLayout" name="horizontalLayout_18">
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_3">
             <item>
@@ -1801,6 +1801,52 @@
                <bool>false</bool>
               </property>
              </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_17">
+              <item>
+               <widget class="QLabel" name="label_56">
+                <property name="text">
+                 <string>GPU batch size</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="cb_gpu_batch_size">
+                <property name="toolTip">
+                 <string>Rule of thumb: the larger, the better. But one may get an Out-of-Memory error if this is too large.</string>
+                </property>
+                <property name="currentText">
+                 <string>256</string>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>4</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>16</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>64</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>256</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>1024</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+             </layout>
             </item>
            </layout>
           </item>

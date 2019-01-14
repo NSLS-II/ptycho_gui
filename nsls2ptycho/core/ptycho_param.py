@@ -79,6 +79,7 @@ class Param(object):
 
         self.gpu_flag = True      # whether to use GPU
         self.gpus = [1, 2, 3]     # should be a list of gpu numbers, ex: [0, 2, 3]
+        self.gpu_batch_size = 256 # should be 4^n, ex: 4, 16, 64, 256, 1024, 4096, ...
         self.mpi_file_path = ''   # full path to a valid MPI machine file
 
         ### [adv param group] ###
@@ -176,3 +177,6 @@ class Param(object):
 
     def get_slice_spacing_m(self):
         return np.round(self.slice_spacing_m / 1e-6)
+
+    def get_gpu_batch_index(self):
+        return [4, 16, 64, 256, 1024].index(self.gpu_batch_size)

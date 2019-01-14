@@ -33,6 +33,7 @@ import traceback
 from posix_ipc import SharedMemory, ExistentialError
 import mmap
 
+
 # set True for testing GUI changes
 _TEST = False
 
@@ -122,6 +123,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.updateModeFlg()
         self.updateMultiSliceFlg()
         self.updateObjMaskFlg()
+        self.checkGpuAvail()
         self.updateGpuFlg()
         self.resetExperimentalParameters() # probably not necessary
         self.setLoadButton()
@@ -251,6 +253,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             if btn_gpu.isChecked():
                 gpus.append(id)
         p.gpus = gpus
+        p.gpu_batch_size = int(self.cb_gpu_batch_size.currentText())
 
         # adv param group
         p.ccd_pixel_um = float(self.sp_ccd_pixel_um.value())
@@ -354,7 +357,14 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.ck_gpu_flag.setChecked(p.gpu_flag)
         for btn_gpu, id in zip(self.btn_gpu_all, range(len(self.btn_gpu_all))):
             btn_gpu.setChecked(id in p.gpus)
-        # TODO: set MPI file path from param    
+        self.cb_gpu_batch_size.setCurrentIndex(p.get_gpu_batch_index())
+        
+        # set MPI file path from param    
+        if p.mpi_file_path != '':
+            mpi_filename = os.path.basename(p.mpi_file_path)
+            self.le_MPI_file_path.setText(mpi_filename)
+            for btn in self.btn_gpu_all:
+                btn.setChecked(False)
 
         # adv param group
         self.sp_ccd_pixel_um.setValue(p.ccd_pixel_um)
@@ -740,6 +750,20 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.sp_pha_min.setEnabled(mask_flag)
         self.sp_pha_max.setEnabled(mask_flag)
         self.param.mask_obj_flag = mask_flag
+
+
+    def checkGpuAvail(self):
+        try:
+            import cupy
+        except ImportError:
+            print('[!] Unable to import CuPy. GPU reconstruction is disabled.')
+            print('[!] (Either CuPy is not installed, or GPU is not available.)')
+            self.ck_gpu_flag.setChecked(False)
+            self.ck_gpu_flag.setEnabled(False)
+            self.param.gpu_flag = False
+            for button in self.btn_gpu_all:
+                button.setChecked(False)
+            self.cb_gpu_batch_size.setEnabled(False)
 
 
     def updateGpuFlg(self):
