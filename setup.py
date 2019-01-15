@@ -20,6 +20,8 @@ except ImportError:
           "***** Please do \"pip install cython\" and then install this package. *****\n"
           "*************************************************************************\n", file=sys.stderr)
     raise
+else:
+    import numpy
 
 # see if PyQt5 is already installed --- pip and conda use different names...
 try:
@@ -38,6 +40,7 @@ setup(name=NAME,
       install_requires=REQUIREMENTS,
       extras_require={'GPU': 'cupy'}, # this will build cupy from source, may not be the best practice!
       ext_modules=cythonize("nsls2ptycho/core/ptycho/*.pyx"),
+      include_dirs=[numpy.get_include()],
       #dependency_links=['git+https://github.com/leofang/ptycho.git#optimization']
       description=DESCRIPTION,
       author=AUTHOR,
