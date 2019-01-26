@@ -1,50 +1,5 @@
-#from hxntools.handlers import register
-#import filestore
-from metadatastore.mds import MDS
+from hxntools.handlers import register
 from databroker import Broker
-from filestore.fs import FileStore
-
-# database #1
-_mds_config = {'host': 'xf03id-ca1',
-               'port': 27017,
-               'database': 'datastore-new',
-               'timezone': 'US/Eastern'}
-mds = MDS(_mds_config)
-_fs_config = {'host': 'xf03id-ca1',
-              'port': 27017,
-              'database': 'filestore-new'}
-db1 = Broker(mds, FileStore(_fs_config))
-
-# database #2
-_mds_config = {'host': 'xf03id-ca1',
-               'port': 27017,
-               'database': 'datastore-1',
-               'timezone': 'US/Eastern'}
-mds = MDS(_mds_config)
-_fs_config = {'host': 'xf03id-ca1',
-              'port': 27017,
-              'database': 'filestore-1'}
-db2 = Broker(mds, FileStore(_fs_config))
-
-# database old
-_mds_config_old = {'host': 'xf03id-ca1',
-                   'port': 27017,
-                   'database': 'datastore',
-                   'timezone': 'US/Eastern'}
-mds_old = MDS(_mds_config_old)
-
-_fs_config_old = {'host': 'xf03id-ca1',
-                  'port': 27017,
-                  'database': 'filestore'}
-db_old = Broker(mds_old, FileStore(_fs_config_old))
-
-from hxntools.handlers.timepix import TimepixHDF5Handler
-from hxntools.handlers.xspress3 import Xspress3HDF5Handler
-db1.reg.register_handler(TimepixHDF5Handler._handler_name, TimepixHDF5Handler, overwrite=True)
-db2.reg.register_handler(TimepixHDF5Handler._handler_name, TimepixHDF5Handler, overwrite=True)
-db_old.reg.register_handler(Xspress3HDF5Handler.HANDLER_NAME, Xspress3HDF5Handler)
-db_old.reg.register_handler(TimepixHDF5Handler._handler_name, TimepixHDF5Handler, overwrite=True)
-
 import numpy as np
 import sys, os
 import h5py
@@ -53,6 +8,15 @@ try:
 except ModuleNotFoundError:
     # for test purpose
     from widgets.imgTools import rm_outlier_pixels
+
+try:
+    # new mongo database
+    hxn_db = Broker.named('hxn')
+    register(hxn_db)
+except FileNotFoundError:
+    print("hxn.yml not found. Unable to access HXN's database.", file=sys.stderr)
+    hxn_db = None
+
 #######################################
 
 
@@ -98,7 +62,7 @@ def load_metadata(db, scan_num:int, det_name:str):
         dr_y = 1.*y_range/y_num
         x_range = x_range - dr_x
         y_range = y_range - dr_y
-    elif scan_type == 'rel_spiral_fermat':
+    elif scan_type == 'rel_spiral_fermat' or scan_type == 'fermat':
         x_range = plan_args['x_range']
         y_range = plan_args['y_range']
         dr_x = plan_args['dr']
