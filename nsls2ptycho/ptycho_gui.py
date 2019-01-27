@@ -13,7 +13,7 @@ from nsls2ptycho.core.ptycho.parse_config import parse_config
 
 # databroker related
 try:
-    from nsls2ptycho.core.HXN_databroker import db1, db2, db_old, load_metadata
+    from nsls2ptycho.core.HXN_databroker import hxn_db, load_metadata
     from hxntools.scan_info import ScanInfo
 except ImportError as ex:
     print('[!] Unable to import hxntools-related packages some features will '
@@ -143,14 +143,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
     @db.setter
     def db(self, scan_id:int):
-        # choose the correct Broker instance based on the given scan id
         # TODO: this should be configured based on selected beamline profile!
-        if scan_id <= 34000:
-            self._db = db_old
-        elif scan_id <= 48990:
-            self._db = db1
-        else:
-            self._db = db2
+        self._db = hxn_db
 
 
     def resetButtons(self):
