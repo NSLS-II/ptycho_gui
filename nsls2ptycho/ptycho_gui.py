@@ -565,8 +565,12 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             if not _TEST and self.ck_preview_flag.isChecked():
                 try:
                     if it == 1:
-                        # the two npy are created by ptycho by this time
-                        self.init_mmap()
+                        try:
+                            # the two npy are created by ptycho by this time
+                            self.init_mmap()
+                        except ExistentialError:
+                            # user may kill the process prematurely
+                            self.stop()
                     if it == self.param.n_iterations+1:
                         # reserve it=n_iterations+1 as the working space
                         self.reconStepWindow.current_max_iters = self.param.n_iterations
