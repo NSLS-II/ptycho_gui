@@ -6,10 +6,12 @@ While one can `pip install` this pacakge, most likely the non-Python dependencie
 1. Make sure you are granted access to the backend, currently hosted in [this private GitHub repo](https://github.com/leofang/ptycho)
 2. `git clone --recursive https://github.com/leofang/ptycho_gui.git` (during the process `git` will prompt you to enther your GitHub id and password for cloning the backend)
 3. Either use the current Conda environment, or create a new one, and then do 
-`conda install python=3.6 cython pyfftw mpi4py pyqt=5 numpy scipy matplotlib pillow h5py posix_ipc`
+`conda install python=3.6 cython pyfftw pyqt=5 numpy scipy matplotlib pillow h5py posix_ipc databroker`
+4. If you need beamline-specific packages, install it now. Ex: `conda install hxntools`
+5. `conda install -c conda-forge mpi4py openmpi` (the `conda-forge` channel is needed until we build `mpi4py` in `nsls2-tag`)
 4. Enter the cloned directory: `cd ./ptycho_gui`
 5. `pip install .`
-6. ~~`pip install cupy-cudaXX` \[`XX` is the version of your CUDA toolkit (ex: `cupy-cuda91` for toolkit v9.1)\]~~ We need the feature from [this PR](https://github.com/cupy/cupy/pull/1942), and before it's merged and released please fork [the `fft_plan_arg` branch of leofang/cupy](https://github.com/leofang/cupy/tree/fft_plan_arg) and build CuPy from source.
+6. ~~`pip install cupy-cudaXX` \[`XX` is the version of your CUDA toolkit (ex: `cupy-cuda91` for toolkit v9.1)\]~~ We need the feature from [this PR](https://github.com/cupy/cupy/pull/1942), and before it's merged and released please fork a customized CuPy using `git clone -b fft_plan_arg https://github.com/leofang/cupy.git` and build it from source.
 7. Run the script `configure.sh` in the project directory: `bash ./configure.sh`
 
 In the near future, users in the NSLS-II control network will be able to do `conda install nsls2ptycho` to complete the installation.
