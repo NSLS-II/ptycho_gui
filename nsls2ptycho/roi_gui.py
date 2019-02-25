@@ -168,9 +168,8 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         if len(badpixels) == 2 and len(badpixels[0]) == len(badpixels[1]) > 0:
             pass
             #print("bad pixels:")
-            #for x, y in zip(badpixels[0], badpixels[1]):
+            #for y, x in zip(badpixels[0], badpixels[1]):
             #    print("  (x, y) = ({0}, {1})".format(x, y))
-
         else:
             badpixels = None
             print("no bad pixels")
@@ -180,8 +179,8 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         #print(blue_rois)
 
         thread = self._worker_thread \
-               = HardWorker("save_h5", master.db, p, int(p.scan_num), self.roi_height, self.roi_width, 
-                                       self.cy, self.cx, threshold, badpixels, blue_rois)
+               = HardWorker("save_h5", master.db, p, int(p.scan_num), self.roi_width, self.roi_height,
+                                       self.cx, self.cy, threshold, badpixels, blue_rois)
         thread.finished.connect(lambda: self.btn_save_to_h5.setEnabled(True))
         thread.exception_handler = master.exception_handler
         self.btn_save_to_h5.setEnabled(False)
