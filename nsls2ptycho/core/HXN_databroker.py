@@ -112,21 +112,21 @@ def load_metadata(db, scan_num:int, det_name:str):
     return metadata
 
 
-def save_data(db, param, scan_num:int, n:int, nn:int, cx=110, cy=160, threshold=1., bad_pixels=None, zero_out=None):
+def save_data(db, param, scan_num:int, n:int, nn:int, cx:int, cy:int, threshold=1., bad_pixels=None, zero_out=None):
     '''
     Save metadata and diffamp for the given scan number to a HDF5 file.
 
     Parameters:
         - db: 
-            a Broker instance. For HXN experiments they are db1, db2, and db_old
+            a Broker instance.
         - param: Param
             a Param instance containing the metadata and other information from the GUI
         - scan_num: int
             the scan number
         - n: int
-            the x dimension of the ROI window (nx_prb)
+            the x dimension of the ROI window (=nx_prb)
         - nn: int
-            the y dimension of the ROI window (nx_prb)
+            the y dimension of the ROI window (=ny_prb)
         - cx: int
             x index of the center of mass
         - cy: int
@@ -139,7 +139,7 @@ def save_data(db, param, scan_num:int, n:int, nn:int, cx=110, cy=160, threshold=
             zero out the given rois [(x0, y0, w0, h0), (x1, y1, w1, h1), ...]
 
     Notes:
-    1. the detector distance is assumed existent as param.z_m
+        1. the detector distance is assumed existent as param.z_m
     '''
     det_distance_m = param.z_m
     det_pixel_um = param.ccd_pixel_um

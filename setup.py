@@ -6,6 +6,8 @@ EMAIL = 'leofang@bnl.gov'
 LINK = 'https://github.com/leofang/ptycho_gui/'
 LICENSE = 'MIT'
 REQUIREMENTS = ['mpi4py', 'pyfftw', 'numpy', 'scipy', 'matplotlib', 'Pillow', 'h5py', 'posix_ipc']
+with open("README.md", "r") as f:
+    long_description = f.read()
 
 import sys
 from setuptools import setup #, find_packages
@@ -43,6 +45,8 @@ setup(name=NAME,
       include_dirs=[numpy.get_include()],
       #dependency_links=['git+https://github.com/leofang/ptycho.git#optimization']
       description=DESCRIPTION,
+      long_description=long_description,
+      long_description_content_type="text/markdown",
       author=AUTHOR,
       author_email=EMAIL,
       url=LINK,
