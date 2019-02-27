@@ -424,7 +424,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             self.recon_bar.setMaximum(self.param.n_iterations)
 
             # at least one GPU needs to be selected
-            if self.param.gpu_flag and len(self.param.gpus) == 0:
+            if self.param.gpu_flag and len(self.param.gpus) == 0 and self.param.mpi_file_path == '':
                 print("[WARNING] select at least one GPU!", file=sys.stderr)
                 return
 
@@ -475,9 +475,9 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
                     self.reconStepWindow.close()
 
             if not _TEST:
-                thread = self._ptycho_gpu_thread = PtychoReconWorker(self.param)
+                thread = self._ptycho_gpu_thread = PtychoReconWorker(self.param, parent=self)
             else:
-                thread = self._ptycho_gpu_thread = PtychoReconFakeWorker(self.param)
+                thread = self._ptycho_gpu_thread = PtychoReconFakeWorker(self.param, parent=self)
 
             thread.update_signal.connect(self.update_recon_step)
             thread.finished.connect(self.resetButtons)
