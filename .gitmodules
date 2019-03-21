@@ -1,3 +1,3 @@
 [submodule "nsls2ptycho/core/ptycho"]
 	path = nsls2ptycho/core/ptycho
-	url = https://github.com/leofang/ptycho.git
+	url = https://gitlab.nsls2.bnl.gov/leofang/ptycho_backend.git
