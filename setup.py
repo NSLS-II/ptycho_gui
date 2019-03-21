@@ -1,5 +1,5 @@
 NAME = 'nsls2ptycho'
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 DESCRIPTION = 'NSLS-II Ptychography Software'
 AUTHOR = 'Leo Fang, Sungsoo Ha, Zhihua Dong, and Xiaojing Huang'
 EMAIL = 'leofang@bnl.gov'
