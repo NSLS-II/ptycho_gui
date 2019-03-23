@@ -90,12 +90,12 @@ def load_metadata(db, scan_num:int, det_name:str):
     metadata['points'] = points
 
     # get angle, ic
-    if scan_motors[1] == 'dssy':
-        angle = bl.dsth[1]
-        ic = np.asfarray(df['sclr1_ch4'])
-    elif scan_motors[1] == 'zpssy':
+    if scan_motors[1] == 'zpssy':
         angle = bl.zpsth[1]
         ic = np.asfarray(df['sclr1_ch3'])
+    else:
+        angle = bl.dsth[1]
+        ic = np.asfarray(df['sclr1_ch4'])
     metadata['angle'] = angle
     metadata['ic'] = ic
     
