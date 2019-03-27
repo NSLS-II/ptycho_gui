@@ -1,4 +1,3 @@
-from hxntools.handlers import register
 from databroker import Broker
 import numpy as np
 import sys, os
@@ -9,6 +8,7 @@ except ModuleNotFoundError:
     # for test purpose
     from widgets.imgTools import rm_outlier_pixels
 
+from hxntools.handlers import register
 try:
     # new mongo database
     hxn_db = Broker.named('hxn')
@@ -36,7 +36,6 @@ def load_metadata(db, scan_num:int, det_name:str):
         A dictionary that holds the metadata (except for those directly related to the image)
     '''
     sid = scan_num
-    metadata = dict()
     header = db[sid]
 
     plan_args = header.start['plan_args']
@@ -50,7 +49,6 @@ def load_metadata(db, scan_num:int, det_name:str):
     # get energy_kev
     dcm_th = bl.dcm_th[1]
     energy_kev = 12.39842 / (2.*3.1355893 * np.sin(dcm_th * np.pi / 180.))
-    metadata['xray_energy_kev'] = energy_kev
 
     # get scan_type, x_range, y_range, dr_x, dr_y
     if scan_type == 'FlyPlan2D':
@@ -76,18 +74,12 @@ def load_metadata(db, scan_num:int, det_name:str):
         dr_y = 1.*y_range/y_num
         x_range = x_range - dr_x
         y_range = y_range - dr_y
-    metadata['scan_type'] = scan_type
-    metadata['dr_x'] = dr_x
-    metadata['dr_y'] = dr_y
-    metadata['x_range'] = x_range
-    metadata['y_range'] = y_range
 
     # get points
     num_frame, count = np.shape(df)
     points = np.zeros((2, num_frame))
     points[0] = np.array(df[scan_motors[0]])
     points[1] = np.array(df[scan_motors[1]])
-    metadata['points'] = points
 
     # get angle, ic
     if scan_motors[1] == 'zpssy':
@@ -96,16 +88,26 @@ def load_metadata(db, scan_num:int, det_name:str):
     else:
         angle = bl.dsth[1]
         ic = np.asfarray(df['sclr1_ch4'])
-    metadata['angle'] = angle
-    metadata['ic'] = ic
     
     # get ccd_pixel_um
     ccd_pixel_um = 55.
-    metadata['ccd_pixel_um'] = ccd_pixel_um
 
     # get diffamp dimensions (uncropped!)
     nz, = df[det_name].shape
     mds_table = df[det_name]
+
+    # write everything we need to a dict
+    metadata = dict()
+    metadata['xray_energy_kev'] = energy_kev
+    metadata['scan_type'] = scan_type
+    metadata['dr_x'] = dr_x
+    metadata['dr_y'] = dr_y
+    metadata['x_range'] = x_range
+    metadata['y_range'] = y_range
+    metadata['points'] = points
+    metadata['angle'] = angle
+    metadata['ic'] = ic
+    metadata['ccd_pixel_um'] = ccd_pixel_um
     metadata['nz'] = nz
     metadata['mds_table'] = mds_table
 
