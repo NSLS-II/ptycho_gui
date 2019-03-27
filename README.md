@@ -7,13 +7,13 @@ While one can `pip install` this pacakge directly, most likely the non-Python de
 1. Create a new conda environment named `ptycho_production` with root priviledge: `sudo conda create -n ptycho_production python=3.6 cython pyfftw pyqt=5 numpy scipy matplotlib pillow h5py posix_ipc databroker openmpi mpi4py` (If you need beamline-specific packages, such as `hxntools` for HXN, append the package names in the `conda install` command. This helps resolve possible conflict/downgrade issues.)
 2. Make sure you are able to log in NSLS-II internal GitLab (https://gitlab.nsls2.bnl.gov/) via LDAP using your control network account. Currently the backend is host there. Do **NOT** register a new account there!
 3. Create a temporary workspace: `mkdir /tmp/build_ptycho; cd /tmp/build_ptycho`
-4. Clone this repo: `git clone --recursive https://github.com/leofang/ptycho_gui.git`. (During the process `git` will prompt you to enther your control id and password for cloning the backend.)
+4. Clone the mirror of this repo: `git clone --recursive https://gitlab.nsls2.bnl.gov/leofang/ptycho_gui.git`. (During the process `git` may prompt you to enther your control id and password up to *twice* for cloning the frontend and the backend.)
 5. Move this repo to `/usr/local/` with root priviledge: `sudo mv ./ptycho_gui /usr/local/; cd /usr/local/ptycho_gui; rmdir /tmp/build_ptycho`
 6. `pip install .`
 7. `pip install 'cupy-cudaXX>=6.0.0b3'`, where `XX` is your CUDA toolkit version, available from `nvcc --version`
 8. Copy the script `run-ptycho` to `/usr/local/bin/`: `sudo cp ./run-ptycho /usr/local/bin/` This step allows *all* users logging in this machine to run `run-ptycho` directly to start the software without any setup (the conda environment `ptycho_production` is activated under the hood).
 
-In the near future, users in the NSLS-II control network will be able to do `conda install nsls2ptycho` to complete the installation.
+In the near future, users in the BNL campus network will be able to do `conda install nsls2ptycho` to complete the installation.
 
 ### On personal machines (TO BE UPDATED)
 1. Make sure you are granted access to the backend, currently hosted in [this private GitHub repo](https://github.com/leofang/ptycho)
