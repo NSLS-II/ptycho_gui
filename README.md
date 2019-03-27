@@ -7,15 +7,23 @@ While one can `pip install` this pacakge directly, most likely the non-Python de
 The instruction below is for sys admins who have root priviledge to install the software at the system level so that *all* users logging in the machine can run the software directly without any setup.
 1. Create a new conda environment named `ptycho_production`: `sudo conda create -n ptycho_production python=3.6 cython pyfftw pyqt=5 numpy scipy matplotlib pillow h5py posix_ipc databroker openmpi mpi4py` (If you need beamline-specific packages, such as `hxntools` for HXN, append the package names in the `conda install` command. This helps resolve possible conflict/downgrade issues.) 
 The conda environment `ptycho_production` is activated under the hood using the `run-ptycho` script to be installed in Step 8.
-2. Make sure you are able to log in NSLS-II internal GitLab (https://gitlab.nsls2.bnl.gov/) **via LDAP using your control network account**. Currently the backend is host there. Do **NOT** register a new account there!
+2. Make sure you are able to log in NSLS-II internal GitLab (https://gitlab.nsls2.bnl.gov/) **via LDAP using your control network account**. Currently the backend is host there. Do **NOT** register a new account!
 3. Create a temporary workspace: `mkdir /tmp/build_ptycho; cd /tmp/build_ptycho`
-4. Clone the mirror of this repo: `git clone --recursive https://gitlab.nsls2.bnl.gov/leofang/ptycho_gui.git`. (During the process `git` may prompt you to enther your control id and password up to *twice* for cloning the frontend and the backend.)
+4. Clone from the mirror of this repo: `git clone --recursive https://gitlab.nsls2.bnl.gov/leofang/ptycho_gui.git` (During the process `git` may prompt you to enther your control id and password up to *twice* for cloning the frontend and the backend.)
 5. Move this repo to `/usr/local/`: `sudo mv ./ptycho_gui /usr/local/; cd /usr/local/ptycho_gui; rmdir /tmp/build_ptycho`
-6. `sudo /opt/conda_envs/ptycho_production/bin/pip install .`
+6. Install the GUI in "develop" mode: `sudo /opt/conda_envs/ptycho_production/bin/pip install -e .`
 7. `sudo /opt/conda_envs/ptycho_production/bin/pip install 'cupy-cudaXX>=6.0.0b3'`, where `XX` is your CUDA toolkit version, available from `nvcc --version`
 8. Copy the script `run-ptycho` to `/usr/local/bin/`: `sudo cp ./run-ptycho /usr/local/bin/`
 
 In the near future, users in the BNL campus network will be able to do simply `conda install nsls2ptycho` to replace Steps 1-6. 
+
+To update the software, simple go to the code location and do `git pull` there. Since we installed in the develop mode (with `-e` flag) the files are symlinked to the conda env, so any updates we do to the code will be immediately up online. This can also work as a way to do "hot fixes".
+```shell
+cd /usr/local/ptycho_gui/
+sudo git pull origin master    # update frontend
+cd ./nsls2ptycho/core/ptycho/
+sudo git pull origin master    # update backend
+```
 
 ### On personal machines (TO BE UPDATED)
 1. Make sure you are granted access to the backend, currently hosted in [this private GitHub repo](https://github.com/leofang/ptycho)
