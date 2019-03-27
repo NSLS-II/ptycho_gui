@@ -11,8 +11,8 @@ The conda environment `ptycho_production` is activated under the hood using the 
 3. Create a temporary workspace: `mkdir /tmp/build_ptycho; cd /tmp/build_ptycho`
 4. Clone the mirror of this repo: `git clone --recursive https://gitlab.nsls2.bnl.gov/leofang/ptycho_gui.git`. (During the process `git` may prompt you to enther your control id and password up to *twice* for cloning the frontend and the backend.)
 5. Move this repo to `/usr/local/`: `sudo mv ./ptycho_gui /usr/local/; cd /usr/local/ptycho_gui; rmdir /tmp/build_ptycho`
-6. `sudo /opt/conda_env/ptycho_production/bin/pip install .`
-7. `sudo /opt/conda_env/ptycho_production/bin/pip install 'cupy-cudaXX>=6.0.0b3'`, where `XX` is your CUDA toolkit version, available from `nvcc --version`
+6. `sudo /opt/conda_envs/ptycho_production/bin/pip install .`
+7. `sudo /opt/conda_envs/ptycho_production/bin/pip install 'cupy-cudaXX>=6.0.0b3'`, where `XX` is your CUDA toolkit version, available from `nvcc --version`
 8. Copy the script `run-ptycho` to `/usr/local/bin/`: `sudo cp ./run-ptycho /usr/local/bin/`
 
 In the near future, users in the BNL campus network will be able to do simply `conda install nsls2ptycho` to replace Steps 1-6. 
