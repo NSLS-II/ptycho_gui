@@ -82,9 +82,12 @@ def load_metadata(db, scan_num:int, det_name:str):
     points[1] = np.array(df[scan_motors[1]])
 
     # get angle, ic
-    if scan_motors[1] == 'zpssy':
-        angle = bl.zpsth[1]
+    if scan_motors[1] == 'ssy':
+        angle = 0#bl.zpsth[1]
         ic = np.asfarray(df['sclr1_ch3'])
+    elif scan_motors[1] == 'zpssy':
+        angle = bl.zpsth[1]
+        ic = np.asfarray(df['sclr1_ch4'])
     else:
         angle = bl.dsth[1]
         ic = np.asfarray(df['sclr1_ch4'])
