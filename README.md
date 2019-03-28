@@ -2,9 +2,20 @@
 ## Introduction
 
 ## Installation
-While one can `pip install` this pacakge directly, most likely the non-Python dependencies will not be available. For the time being, therefore, we recommend using Conda. The last two steps are needed for using GPU. 
+While one can `pip install` this pacakge directly, most likely the non-Python dependencies will not be available. For the time being, therefore, we recommend using Conda. The last two steps in each part of instructions below are needed for using GPU.
+
 ### On NSLS-II beamline machines
 The instruction below is for sys admins who have root priviledge to install the software at the system level so that *all* users logging in the machine can run the software directly without any setup.
+
+#### Fully automatic way (new)
+1. Create a new conda environment named `ptycho_production`: `sudo conda create -n ptycho_production python=3.6 nsls2ptycho` (If you need beamline-specific packages, such as `hxntools` for HXN, append the package names in the `conda install` command. This helps resolve possible conflict/downgrade issues.) 
+The conda environment `ptycho_production` is activated under the hood using the `run-ptycho` script to be installed in Step 3.
+2. `sudo /opt/conda_envs/ptycho_production/bin/pip install 'cupy-cudaXX>=6.0.0b3'`, where `XX` is your CUDA toolkit version, available from `nvcc --version`
+3. Download the script `run-ptycho` to `/usr/local/bin/`: `wget https://raw.githubusercontent.com/leofang/ptycho_gui/master/run-ptycho; sudo mv ./run-ptycho /usr/local/bin/`
+
+To update the software, simple do `sudo conda update nsls2ptycho`
+
+#### Manual installation
 1. Create a new conda environment named `ptycho_production`: `sudo conda create -n ptycho_production python=3.6 cython pyfftw pyqt=5 numpy scipy matplotlib pillow h5py posix_ipc databroker openmpi mpi4py` (If you need beamline-specific packages, such as `hxntools` for HXN, append the package names in the `conda install` command. This helps resolve possible conflict/downgrade issues.) 
 The conda environment `ptycho_production` is activated under the hood using the `run-ptycho` script to be installed in Step 8.
 2. Make sure you are able to log in NSLS-II internal GitLab (https://gitlab.nsls2.bnl.gov/) **via LDAP using your control network account**. Currently the backend is host there. Do **NOT** register a new account!
@@ -14,8 +25,6 @@ The conda environment `ptycho_production` is activated under the hood using the 
 6. Install the GUI in "develop" mode: `sudo /opt/conda_envs/ptycho_production/bin/pip install -e .`
 7. `sudo /opt/conda_envs/ptycho_production/bin/pip install 'cupy-cudaXX>=6.0.0b3'`, where `XX` is your CUDA toolkit version, available from `nvcc --version`
 8. Copy the script `run-ptycho` to `/usr/local/bin/`: `sudo cp ./run-ptycho /usr/local/bin/`
-
-In the near future, users in the BNL campus network will be able to do simply `conda install nsls2ptycho` to replace Steps 1-6. 
 
 To update the software, simple go to the code location and do `git pull` there. Since we installed in the develop mode (with `-e` flag) the files are symlinked to the conda env, so any updates we do to the code will be immediately up online. This can also work as a way to do "hot fixes".
 ```shell
