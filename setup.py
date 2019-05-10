@@ -1,5 +1,5 @@
 NAME = 'nsls2ptycho'
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 DESCRIPTION = 'NSLS-II Ptychography Software'
 AUTHOR = 'Leo Fang, Sungsoo Ha, Zhihua Dong, and Xiaojing Huang'
 EMAIL = 'leofang@bnl.gov'
@@ -31,6 +31,11 @@ try:
 except ImportError:
     REQUIREMENTS.append('PyQt5')
 
+# for generating .cubin files
+# TODO: add a flag to do this only if GPU support is needed?
+from nsls2ptycho.core.ptycho.build_cuda_source import compile
+cubin_path = compile()
+
 setup(name=NAME,
       version=VERSION,
       #packages=find_packages(),
@@ -51,4 +56,5 @@ setup(name=NAME,
       author_email=EMAIL,
       url=LINK,
       license=LICENSE,
+      include_package_data=True, # to include all precompiled .cubin files
       )
