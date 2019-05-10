@@ -50,38 +50,39 @@ def search_on_path(filenames):
 # -----------------------------------------------------------
 
 
-def _run_nvcc(cmd, cwd):
+# adapted from cupy.cupy.cuda.compiler._run_nvcc()
+def run(cmd, cwd=None):
     try:
         return subprocess.check_output(cmd, cwd=cwd, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
-        msg = ('`nvcc` command returns non-zero exit status. \n'
+        msg = ('command returns non-zero exit status. \n'
                'command: {0}\n'
-               'return-code: {1}\n'
+               'return code: {1}\n'
                'stdout/stderr: \n'
                '{2}'.format(e.cmd,
                             e.returncode,
-                            e.output.decode(encoding='UTF-8',
-                                            errors='replace')))
+                            e.output.decode(encoding='UTF-8', errors='replace')))
         raise RuntimeError(msg)
     except OSError as e:
-        msg = 'Failed to run `nvcc` command. ' \
+        msg = 'Failed to run command. ' \
               'Check PATH environment variable: ' \
               + str(e)
         raise OSError(msg)
 
 
+# adapted from cupy.install.build.build_and_run()
 def build_and_run(nvcc_path, source):
     with _tempdir() as temp_dir:
         fname = os.path.join(temp_dir, 'a.cu')
         with open(fname, 'w') as f:
             f.write(source)
 
-        # TODO: rewrite _run_nvcc so that we use it twice here
         # build
-        build_out = _run_nvcc([nvcc_path, 'a.cu', '-o', 'test.out'], temp_dir)
+        build_out = run([nvcc_path, 'a.cu', '-o', 'test.out'], temp_dir)
 
         # and run
-        run_out = subprocess.check_output(['./test.out'], cwd=temp_dir, stderr=subprocess.STDOUT)
+        run_out = run(['./test.out'], cwd=temp_dir)
+
         return run_out
 
 
@@ -90,14 +91,12 @@ def build_and_run(nvcc_path, source):
 def check_cuda_version(nvcc_path, settings):
     global _cuda_version
 
-    source = '''
-             #include <cuda.h>
-             #include <stdio.h>
-             int main(int argc, char* argv[]) {
-               printf("%d", CUDA_VERSION);
-               return 0;
-             }
-             '''
+    source = '''#include <cuda.h>
+                #include <stdio.h>
+                int main(int argc, char* argv[]) {
+                  printf("%d", CUDA_VERSION);
+                  return 0;
+                }'''
 
     try:
         out = build_and_run(nvcc_path, source)
@@ -147,6 +146,7 @@ def nvcc_arch_options(cuda_version):
     return arch_list
 
 
+# from cupy/install/build.py
 def get_cuda_path():
     global _cuda_path
 
@@ -183,6 +183,7 @@ def get_cuda_path():
     return _cuda_path
 
 
+# from cupy/install/build.py
 def get_nvcc_path():
     nvcc = os.environ.get('NVCC', None)
     if nvcc:
@@ -204,6 +205,8 @@ def get_nvcc_path():
         return None
 
 
+# from cupy/install/build.py
+# TODO: this is not necessary, can be removed
 def get_compiler_setting():
     cuda_path = get_cuda_path()
 
@@ -239,7 +242,7 @@ def get_compiler_setting():
     }
 
 
-def build():
+def compile():
     cubin_path = []
 
     # check nvcc exists
@@ -266,15 +269,18 @@ def build():
     source_path = os.path.join(dir_path, 'ptycho_precision.cu')
 
     # actual compilation:
-    for precision in ['single', 'double']:
+    for precision in [(1, 'single'), (2, 'double')]:
         for arch in options:
-            filename = 'ptycho_' + arch + '_' + precision + '.cubin'
+            filename = 'ptycho_' + arch + '_' + precision[1] + '.cubin'
             filepath = os.path.join(dir_path, filename)
             try:
-                subprocess.run([nvcc, '-cubin', '-arch='+arch, '-o', filepath, source_path])
+                run([nvcc, '-DPTYCHO_PRECISION='+str(precision[0]), '-cubin', 
+                     '-arch='+arch, '-o', filepath, source_path])
             except Exception as e:
                 print(e)
-            cubin_path.append(filepath)
-            print('processed:', filepath)
+            else:
+                cubin_path.append(filepath)
+            finally:
+                print('processed:', filepath)
 
     return cubin_path
