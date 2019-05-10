@@ -33,8 +33,20 @@ except ImportError:
 
 # for generating .cubin files
 # TODO: add a flag to do this only if GPU support is needed?
-from nsls2ptycho.core.ptycho.build_cuda_source import compile
-cubin_path = compile()
+import nsls2ptycho.core.ptycho.build_cuda_source as bcs
+cubin_path = bcs.compile()
+
+# if GPU support is needed, check if cupy exists
+if len(cubin_path) > 0:
+    cuda_ver = str(bcs._cuda_version)
+    major = str(int(cuda_ver[:-2])//10)
+    minor = str(int(cuda_ver[-2:])//10)
+    try:
+        import cupy
+    except ImportError:
+        cupy_ver = 'cupy-cuda'+major+minor
+        print("CuPy not found. Will install", cupy_ver+"...", file=sys.stderr)
+        REQUIREMENTS.append(cupy_ver+'>=6.0.0b3') # for experimental FFT plan feature
 
 setup(name=NAME,
       version=VERSION,
@@ -45,7 +57,7 @@ setup(name=NAME,
           'console_scripts': ['run-ptycho-backend = nsls2ptycho.core.ptycho.recon_ptycho_gui:main']
       },
       install_requires=REQUIREMENTS,
-      extras_require={'GPU': 'cupy'}, # this will build cupy from source, may not be the best practice!
+      #extras_require={'GPU': 'cupy'}, # this will build cupy from source, may not be the best practice!
       ext_modules=cythonize("nsls2ptycho/core/ptycho/*.pyx"),
       include_dirs=[numpy.get_include()],
       #dependency_links=['git+https://github.com/leofang/ptycho.git#optimization']
