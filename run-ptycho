@@ -10,41 +10,10 @@ export LD_LIBRARY_PATH=${CUDA_HOME}/nvvm/lib64:$LD_LIBRARY_PATH
 # use the production conda environment
 source /opt/conda/bin/activate ptycho_production
 
-# test if nvcc exists in $PATH
-if ! [ -x "$(command -v nvcc)" ]; then
-    echo 'Error: nvcc is not found. No GPU support.' >&2
-    exit 1
-fi
-
 PTYCHO_HOME=/home/$USER/.ptycho_gui 
-PWD=/usr/local/ptycho_gui
-
 if [ ! -d $PTYCHO_HOME ]; then
     mkdir $PTYCHO_HOME
 fi
-
-for pre in 1 2
-do
-    #TODO: find a way to automate the compiling without hard-coding the compute compatibilities
-    for sm in sm_35 sm_60 sm_70
-    do
-        if [ $pre == 1 ]
-        then
-            precision=single
-        else
-            precision=double
-        fi
-
-        cubin_name=$PTYCHO_HOME/ptycho_${sm}_${precision}.cubin
-        #if [ ! -e $cubin_name ]; then
-        #    #echo $precision $sm 
-        #    nvcc -DPTYCHO_PRECISION=$pre -cubin -arch=$sm -o $cubin_name $PWD/nsls2ptycho/core/ptycho/ptycho_precision.cu
-        #fi
-
-        # always rebuild cubin!
-        nvcc -DPTYCHO_PRECISION=$pre -cubin -arch=$sm -o $cubin_name $PWD/nsls2ptycho/core/ptycho/ptycho_precision.cu
-    done
-done
 
 # use the script installed by pip
 /opt/conda_envs/ptycho_production/bin/run-ptycho
