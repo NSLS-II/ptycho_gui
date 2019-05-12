@@ -1,3 +1,4 @@
+# ---------------- package metadata ----------------
 NAME = 'nsls2ptycho'
 VERSION = "1.0.2"
 DESCRIPTION = 'NSLS-II Ptychography Software'
@@ -6,24 +7,22 @@ EMAIL = 'leofang@bnl.gov'
 LINK = 'https://github.com/leofang/ptycho_gui/'
 LICENSE = 'MIT'
 REQUIREMENTS = ['mpi4py', 'pyfftw', 'numpy', 'scipy', 'matplotlib', 'Pillow', 'h5py', 'posix_ipc']
-with open("README.md", "r") as f:
-    long_description = f.read()
+# --------------------------------------------------
 
 import sys
 from setuptools import setup #, find_packages
 
 # cython is needed for compiling the CPU codes
-# TODO: add the generated .c file in the source tree to avoid depending on cython
 try:
     from Cython.Build import cythonize
 except ImportError:
     print("\n*************************************************************************\n"
-          "***** Cython is required to build this package.                     *****\n"
-          "***** Please do \"pip install cython\" and then install this package. *****\n"
+          "***** Cython is not found. Use the corresponding C source instead. ********\n"
           "*************************************************************************\n", file=sys.stderr)
-    raise
+    extensions = [Extension("*", ["nsls2ptycho/core/ptycho/*.c"])]
 else:
     import numpy
+    extensions = cythonize("nsls2ptycho/core/ptycho/*.pyx")
 
 # see if PyQt5 is already installed --- pip and conda use different names...
 try:
@@ -35,6 +34,13 @@ except ImportError:
 # TODO: add a flag to do this only if GPU support is needed?
 import nsls2ptycho.core.ptycho.build_cuda_source as bcs
 cubin_path = bcs.compile()
+
+# skip depending CuPy on OS X as the wheel is not provided
+if bcs.PLATFORM_DARWIN:
+    #import os
+    #for cubin in cubin_path:
+    #    os.remove(cubin)
+    cubin_path = []
 
 # if GPU support is needed, check if cupy exists
 if len(cubin_path) > 0:
@@ -48,6 +54,10 @@ if len(cubin_path) > 0:
         print("CuPy not found. Will install", cupy_ver+"...", file=sys.stderr)
         REQUIREMENTS.append(cupy_ver+'>=6.0.0b3') # for experimental FFT plan feature
 
+# start building
+with open("README.md", "r") as f:
+    long_description = f.read()
+
 setup(name=NAME,
       version=VERSION,
       #packages=find_packages(),
@@ -58,7 +68,7 @@ setup(name=NAME,
       },
       install_requires=REQUIREMENTS,
       #extras_require={'GPU': 'cupy'}, # this will build cupy from source, may not be the best practice!
-      ext_modules=cythonize("nsls2ptycho/core/ptycho/*.pyx"),
+      ext_modules=extensions,
       include_dirs=[numpy.get_include()],
       #dependency_links=['git+https://github.com/leofang/ptycho.git#optimization']
       description=DESCRIPTION,
