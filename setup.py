@@ -9,19 +9,27 @@ LICENSE = 'MIT'
 REQUIREMENTS = ['mpi4py', 'pyfftw', 'numpy', 'scipy', 'matplotlib', 'Pillow', 'h5py', 'posix_ipc']
 # --------------------------------------------------
 
+import os
 import sys
 from setuptools import setup #, find_packages
+import numpy
 
 # cython is needed for compiling the CPU codes
 try:
     from Cython.Build import cythonize
 except ImportError:
-    print("\n*************************************************************************\n"
-          "***** Cython is not found. Use the corresponding C source instead. ********\n"
-          "*************************************************************************\n", file=sys.stderr)
-    extensions = [Extension("*", ["nsls2ptycho/core/ptycho/*.c"])]
+    print("\n************************************************************************\n"
+          "***** Cython is not found. Use the corresponding C source instead. *****\n"
+          "************************************************************************\n", file=sys.stderr)
+    from distutils.extension import Extension
+    from glob import glob
+    extensions = []
+    # this doesn't work because setuptools doesn't support glob pattern...
+    #extensions = [Extension("*", ["nsls2ptycho/core/ptycho/*.c"])]
+    for filename in glob("nsls2ptycho/core/ptycho/*.c"):
+        mod = os.path.basename(filename)[:-2]
+        extensions.append(Extension(mod, [filename]))
 else:
-    import numpy
     extensions = cythonize("nsls2ptycho/core/ptycho/*.pyx")
 
 # see if PyQt5 is already installed --- pip and conda use different names...
@@ -37,7 +45,6 @@ cubin_path = bcs.compile()
 
 # skip depending CuPy on OS X as the wheel is not provided
 if bcs.PLATFORM_DARWIN:
-    #import os
     #for cubin in cubin_path:
     #    os.remove(cubin)
     cubin_path = []
