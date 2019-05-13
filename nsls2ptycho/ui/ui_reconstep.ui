@@ -6,31 +6,31 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>652</width>
-    <height>551</height>
+    <width>640</width>
+    <height>806</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>NSLS-II Pytchography Reconstruction Monitor</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="MplCanvas" name="canvas_object" native="true">
+   <widget class="MplCanvas" name="canvas_object_amp" native="true">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>20</x>
       <y>40</y>
-      <width>311</width>
-      <height>291</height>
+      <width>280</width>
+      <height>240</height>
      </rect>
     </property>
    </widget>
-   <widget class="MplCanvas" name="canvas_probe" native="true">
+   <widget class="MplCanvas" name="canvas_probe_amp" native="true">
     <property name="geometry">
      <rect>
-      <x>330</x>
+      <x>340</x>
       <y>40</y>
-      <width>311</width>
-      <height>291</height>
+      <width>280</width>
+      <height>240</height>
      </rect>
     </property>
    </widget>
@@ -39,7 +39,7 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>311</width>
+      <width>300</width>
       <height>27</height>
      </rect>
     </property>
@@ -59,7 +59,7 @@
      <rect>
       <x>330</x>
       <y>10</y>
-      <width>311</width>
+      <width>300</width>
       <height>27</height>
      </rect>
     </property>
@@ -78,9 +78,9 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>320</y>
-      <width>311</width>
-      <height>91</height>
+      <y>540</y>
+      <width>300</width>
+      <height>80</height>
      </rect>
     </property>
    </widget>
@@ -88,19 +88,39 @@
     <property name="geometry">
      <rect>
       <x>330</x>
-      <y>320</y>
-      <width>311</width>
-      <height>91</height>
+      <y>540</y>
+      <width>300</width>
+      <height>80</height>
      </rect>
     </property>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="MplCanvas" name="canvas_object_pha" native="true">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>400</y>
-      <width>631</width>
-      <height>141</height>
+      <x>20</x>
+      <y>290</y>
+      <width>280</width>
+      <height>240</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="MplCanvas" name="canvas_probe_pha" native="true">
+    <property name="geometry">
+     <rect>
+      <x>340</x>
+      <y>290</y>
+      <width>280</width>
+      <height>240</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QWidget" name="layoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>11</x>
+      <y>631</y>
+      <width>624</width>
+      <height>159</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -262,34 +282,15 @@
      </item>
     </layout>
    </widget>
-   <zorder>canvas_object</zorder>
-   <zorder>canvas_probe</zorder>
+   <zorder>layoutWidget</zorder>
+   <zorder>canvas_object_amp</zorder>
+   <zorder>canvas_probe_amp</zorder>
    <zorder>cb_image_object</zorder>
    <zorder>cb_image_probe</zorder>
-   <zorder>progressBar</zorder>
-   <zorder>btn_close</zorder>
-   <zorder>slider_iters</zorder>
-   <zorder>sb_iter</zorder>
-   <zorder>progressBar</zorder>
    <zorder>canvas_object_chi</zorder>
    <zorder>canvas_probe_chi</zorder>
-   <zorder>progressBar</zorder>
-   <zorder>btn_close</zorder>
-   <zorder>slider_iters</zorder>
-   <zorder>sb_iter</zorder>
-   <zorder>ck_live</zorder>
-   <zorder>label</zorder>
-   <zorder>label_2</zorder>
-   <zorder>spinBox</zorder>
-   <zorder>label_3</zorder>
-   <zorder>spinBox_2</zorder>
-   <zorder>pushButton</zorder>
-   <zorder>pushButton_2</zorder>
-   <zorder>label_4</zorder>
-   <zorder>label_5</zorder>
-   <zorder>doubleSpinBox</zorder>
-   <zorder>pushButton_3</zorder>
-   <zorder>gridLayoutWidget</zorder>
+   <zorder>canvas_object_pha</zorder>
+   <zorder>canvas_probe_pha</zorder>
   </widget>
  </widget>
  <customwidgets>

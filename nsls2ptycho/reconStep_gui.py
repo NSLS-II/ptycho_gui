@@ -35,8 +35,8 @@ class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
         self.progressBar.setValue(0)
         self.reset_iter(iterations, slider_interval)
         # can we reset the figures here???
-        self.canvas_object.reset()
-        self.canvas_probe.reset()
+        self.canvas_object_amp.reset()
+        self.canvas_probe_amp.reset()
         self.canvas_object_chi.reset()
         self.canvas_object_chi.axis_on()
         self.canvas_probe_chi.reset()
@@ -85,7 +85,7 @@ class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
             images_to_show = self.image_buffer[it]
             object_image = self._fetch_images(it, images_to_show, 'object')
             if object_image is not None:
-                self.canvas_object.update_image(object_image)
+                self.canvas_object_amp.update_image(object_image)
 
     def cb_image_probe_op(self, idx):
         it = self.sb_iter.value()
@@ -93,7 +93,7 @@ class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
             images_to_show = self.image_buffer[it]
             probe_image = self._fetch_images(it, images_to_show, 'probe')
             if probe_image is not None:
-                self.canvas_probe.update_image(probe_image)
+                self.canvas_probe_amp.update_image(probe_image)
 
     def btn_close_op(self):
         # todo: close with signal to main window
@@ -145,9 +145,9 @@ class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
             object_image = self._fetch_images(it, images_to_show, 'object')
             probe_image = self._fetch_images(it, images_to_show, 'probe')
             if object_image is not None:
-                self.canvas_object.update_image(object_image)
+                self.canvas_object_amp.update_image(object_image)
             if probe_image is not None:
-                self.canvas_probe.update_image(probe_image)
+                self.canvas_probe_amp.update_image(probe_image)
 
     def _fetch_images(self, it, images_to_show, flag=None):
         image = None
