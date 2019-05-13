@@ -1,6 +1,5 @@
 # ---------------- package metadata ----------------
 NAME = 'nsls2ptycho'
-VERSION = "1.0.2"
 DESCRIPTION = 'NSLS-II Ptychography Software'
 AUTHOR = 'Leo Fang, Sungsoo Ha, Zhihua Dong, and Xiaojing Huang'
 EMAIL = 'leofang@bnl.gov'
@@ -61,12 +60,15 @@ if len(cubin_path) > 0:
         print("CuPy not found. Will install", cupy_ver+"...", file=sys.stderr)
         REQUIREMENTS.append(cupy_ver+'>=6.0.0b3') # for experimental FFT plan feature
 
+# Get __version__ variable
+exec(open(os.path.join(os.path.dirname(__file__), 'nsls2ptycho', '_version.py')).read())
+
 # start building
 with open("README.md", "r") as f:
     long_description = f.read()
 
 setup(name=NAME,
-      version=VERSION,
+      version=__version__,
       #packages=find_packages(),
       packages=["nsls2ptycho", "nsls2ptycho.core", "nsls2ptycho.ui", "nsls2ptycho.core.ptycho", "nsls2ptycho.core.widgets"],
       entry_points={
