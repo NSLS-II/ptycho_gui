@@ -5,7 +5,7 @@
 While one can `pip install` this pacakge directly, most likely the non-Python dependencies will not be available. For the time being, therefore, we recommend using Conda. The last two steps in each part of instructions below are needed for using GPU.
 
 ### On NSLS-II beamline machines
-The instruction below is for admins who have root priviledge to install the software at the system level so that *all* users logging in the machine can run the software directly without any setup.
+The instruction below is **for admins who have the root priviledge** to install the software at the system level so that *all* users logging in the machine can run the software directly without any setup.
 
 #### Fully automatic way (recommended)
 1. Create a new conda environment named `ptycho_production`: `sudo conda create -n ptycho_production python=3.6 nsls2ptycho` (If you need beamline-specific packages, such as `hxntools` for HXN, append the package names in the `conda create` command. This helps resolve possible conflict/downgrade issues.) 
@@ -16,7 +16,7 @@ To update the software, simple do `sudo conda update -n ptycho_production nsls2p
 
 #### Manual installation
 1. Create a new conda environment named `ptycho_production`: `sudo conda create -n ptycho_production python=3.6 pyfftw pyqt=5 numpy scipy matplotlib pillow h5py posix_ipc databroker openmpi mpi4py` (If you need beamline-specific packages, such as `hxntools` for HXN, append the package names in the `conda create` command. This helps resolve possible conflict/downgrade issues.) 
-The conda environment `ptycho_production` is activated under the hood using the `run-ptycho` script to be installed in Step 8.
+The conda environment `ptycho_production` is activated under the hood using the `run-ptycho` script to be installed in Step 7.
 2. Make sure you are able to log in NSLS-II internal GitLab (https://gitlab.nsls2.bnl.gov/) **via LDAP using your control network account**. Currently the backend is host there. Do **NOT** register a new account!
 3. Create a temporary workspace: `mkdir /tmp/build_ptycho; cd /tmp/build_ptycho`
 4. Clone from the mirror of this repo: `git clone --recursive https://gitlab.nsls2.bnl.gov/leofang/ptycho_gui.git` (During the process `git` may prompt you to enther your control id and password up to *twice* for cloning the frontend and the backend.)
