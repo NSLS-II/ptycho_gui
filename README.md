@@ -15,7 +15,7 @@ The conda environment `ptycho_production` is activated under the hood using the 
 To update the software, simple do `sudo conda update -n ptycho_production nsls2ptycho`
 
 #### Manual installation
-1. Create a new conda environment named `ptycho_production`: `sudo conda create -n ptycho_production python=3.6 cython pyfftw pyqt=5 numpy scipy matplotlib pillow h5py posix_ipc databroker openmpi mpi4py` (If you need beamline-specific packages, such as `hxntools` for HXN, append the package names in the `conda create` command. This helps resolve possible conflict/downgrade issues.) 
+1. Create a new conda environment named `ptycho_production`: `sudo conda create -n ptycho_production python=3.6 pyfftw pyqt=5 numpy scipy matplotlib pillow h5py posix_ipc databroker openmpi mpi4py` (If you need beamline-specific packages, such as `hxntools` for HXN, append the package names in the `conda create` command. This helps resolve possible conflict/downgrade issues.) 
 The conda environment `ptycho_production` is activated under the hood using the `run-ptycho` script to be installed in Step 8.
 2. Make sure you are able to log in NSLS-II internal GitLab (https://gitlab.nsls2.bnl.gov/) **via LDAP using your control network account**. Currently the backend is host there. Do **NOT** register a new account!
 3. Create a temporary workspace: `mkdir /tmp/build_ptycho; cd /tmp/build_ptycho`
@@ -32,17 +32,15 @@ cd ./nsls2ptycho/core/ptycho/
 sudo git pull origin master    # update backend
 ```
 
-### On personal machines (TO BE UPDATED)
+### On personal machines
 1. Make sure you are granted access to the backend, currently hosted in [this private GitHub repo](https://github.com/leofang/ptycho)
 2. `git clone --recursive https://github.com/leofang/ptycho_gui.git` (during the process `git` will prompt you to enther your GitHub id and password for cloning the backend)
 3. Either use the current Conda environment, or create a new one, and then do 
-`conda install python=3.6 cython pyfftw pyqt=5 numpy scipy matplotlib pillow h5py posix_ipc databroker`
+`conda install python=3.6 pyfftw pyqt=5 numpy scipy matplotlib pillow h5py posix_ipc databroker`
 4. If you need beamline-specific packages, install it now. Ex: `conda install hxntools`
-5. `conda install -c conda-forge mpi4py openmpi` (the `conda-forge` channel is needed until we build `mpi4py` in `nsls2-tag`)
+5. `conda install -c conda-forge openmpi mpi4py` (the `conda-forge` channel can be replaced by `lightsource2-tag`)
 4. Enter the cloned directory: `cd ./ptycho_gui`
 5. `pip install .`
-6. `pip install 'cupy-cudaXX>=6.0.0b3'`, where `XX` is your CUDA toolkit version, available from `nvcc --version`
-7. Run the script `configure.sh` in the project directory: `bash ./configure.sh`
 
 ## Execution
 1. Start the GUI: `run-ptycho`
