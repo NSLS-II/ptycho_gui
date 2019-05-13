@@ -28,7 +28,7 @@ except ImportError:
     #extensions = [Extension("*", ["nsls2ptycho/core/ptycho/*.c"])]
     for filename in glob("nsls2ptycho/core/ptycho/*.c"):
         mod = os.path.basename(filename)[:-2]
-        extensions.append(Extension(mod, [filename]))
+        extensions.append(Extension("nsls2ptycho.core.ptycho."+mod, [filename]))
 else:
     extensions = cythonize("nsls2ptycho/core/ptycho/*.pyx")
 
