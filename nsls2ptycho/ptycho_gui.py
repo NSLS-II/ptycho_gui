@@ -10,6 +10,7 @@ from nsls2ptycho.core.ptycho_recon import PtychoReconWorker, PtychoReconFakeWork
 from nsls2ptycho.core.ptycho_qt_utils import PtychoStream
 from nsls2ptycho.core.widgets.mplcanvas import load_image_pil
 from nsls2ptycho.core.ptycho.parse_config import parse_config
+from nsls2ptycho._version import __version__
 
 # databroker related
 try:
@@ -141,6 +142,9 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
         # TODO: delete param.shm_name read in from previous config so that we can reset the buttons earlier
         self.resetButtons()
+
+        # display GUI version
+        self.setWindowTitle("NSLS-II Ptychography v" + __version__)
 
 
     @property
