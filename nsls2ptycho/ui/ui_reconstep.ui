@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>640</width>
-    <height>806</height>
+    <width>600</width>
+    <height>800</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,9 +17,9 @@
    <widget class="MplCanvas" name="canvas_object_amp" native="true">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>40</x>
       <y>40</y>
-      <width>280</width>
+      <width>250</width>
       <height>240</height>
      </rect>
     </property>
@@ -27,9 +27,9 @@
    <widget class="MplCanvas" name="canvas_probe_amp" native="true">
     <property name="geometry">
      <rect>
-      <x>340</x>
+      <x>320</x>
       <y>40</y>
-      <width>280</width>
+      <width>250</width>
       <height>240</height>
      </rect>
     </property>
@@ -37,9 +37,9 @@
    <widget class="QComboBox" name="cb_image_object">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>30</x>
       <y>10</y>
-      <width>300</width>
+      <width>250</width>
       <height>27</height>
      </rect>
     </property>
@@ -57,9 +57,9 @@
    <widget class="QComboBox" name="cb_image_probe">
     <property name="geometry">
      <rect>
-      <x>330</x>
+      <x>320</x>
       <y>10</y>
-      <width>300</width>
+      <width>250</width>
       <height>27</height>
      </rect>
     </property>
@@ -77,29 +77,29 @@
    <widget class="MplCanvas" name="canvas_object_chi" native="true">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>40</x>
       <y>540</y>
-      <width>300</width>
-      <height>80</height>
+      <width>250</width>
+      <height>100</height>
      </rect>
     </property>
    </widget>
    <widget class="MplCanvas" name="canvas_probe_chi" native="true">
     <property name="geometry">
      <rect>
-      <x>330</x>
+      <x>320</x>
       <y>540</y>
-      <width>300</width>
-      <height>80</height>
+      <width>250</width>
+      <height>100</height>
      </rect>
     </property>
    </widget>
    <widget class="MplCanvas" name="canvas_object_pha" native="true">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>40</x>
       <y>290</y>
-      <width>280</width>
+      <width>250</width>
       <height>240</height>
      </rect>
     </property>
@@ -107,9 +107,9 @@
    <widget class="MplCanvas" name="canvas_probe_pha" native="true">
     <property name="geometry">
      <rect>
-      <x>340</x>
+      <x>320</x>
       <y>290</y>
-      <width>280</width>
+      <width>250</width>
       <height>240</height>
      </rect>
     </property>
@@ -117,9 +117,9 @@
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>11</x>
-      <y>631</y>
-      <width>624</width>
+      <x>20</x>
+      <y>632</y>
+      <width>560</width>
       <height>159</height>
      </rect>
     </property>
@@ -166,20 +166,33 @@
      </item>
      <item>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="1" column="8">
-        <widget class="QPushButton" name="pushButton_3">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label">
          <property name="text">
-          <string>Apply</string>
+          <string>Background remover</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="3">
-        <widget class="QDoubleSpinBox" name="doubleSpinBox"/>
+       <item row="0" column="1">
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>18</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
        </item>
-       <item row="0" column="8">
-        <widget class="QPushButton" name="pushButton_2">
+       <item row="0" column="2">
+        <widget class="QLabel" name="label_2">
          <property name="text">
-          <string>Apply</string>
+          <string>min</string>
          </property>
         </widget>
        </item>
@@ -196,17 +209,30 @@
        <item row="0" column="5">
         <widget class="QSpinBox" name="spinBox_2"/>
        </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label">
+       <item row="0" column="6">
+        <widget class="QPushButton" name="pushButton">
          <property name="text">
-          <string>Background remover</string>
+          <string>Rot</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="2">
-        <widget class="QLabel" name="label_2">
+       <item row="0" column="7">
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>18</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="0" column="8">
+        <widget class="QPushButton" name="pushButton_2">
          <property name="text">
-          <string>min</string>
+          <string>Apply</string>
          </property>
         </widget>
        </item>
@@ -224,41 +250,15 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
+       <item row="1" column="3" colspan="2">
+        <widget class="QDoubleSpinBox" name="doubleSpinBox"/>
        </item>
-       <item row="0" column="6">
-        <widget class="QPushButton" name="pushButton">
+       <item row="1" column="8">
+        <widget class="QPushButton" name="pushButton_3">
          <property name="text">
-          <string>Rot</string>
+          <string>Apply</string>
          </property>
         </widget>
-       </item>
-       <item row="0" column="7">
-        <spacer name="horizontalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </item>
@@ -282,6 +282,66 @@
      </item>
     </layout>
    </widget>
+   <widget class="QLabel" name="label_6">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>40</y>
+      <width>100</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Amplitude</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_8">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>280</y>
+      <width>81</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Phase</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_10">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>530</y>
+      <width>81</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Error</string>
+    </property>
+   </widget>
    <zorder>layoutWidget</zorder>
    <zorder>canvas_object_amp</zorder>
    <zorder>canvas_probe_amp</zorder>
@@ -291,6 +351,9 @@
    <zorder>canvas_probe_chi</zorder>
    <zorder>canvas_object_pha</zorder>
    <zorder>canvas_probe_pha</zorder>
+   <zorder>label_6</zorder>
+   <zorder>label_8</zorder>
+   <zorder>label_10</zorder>
   </widget>
  </widget>
  <customwidgets>

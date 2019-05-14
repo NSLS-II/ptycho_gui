@@ -93,7 +93,10 @@ class MplCanvas(FigureCanvas):
         else:
             for hidx, h in enumerate(self.line_handlers):
                 h.set_data(xValues, yValues[:,hidx])
-            self.axes.relim()
+            self.axes.tick_params(axis='both', labelsize=8)
+            self.axes.relim(visible_only=True)
+            #self.axes.autoscale(tight=True)
+            #self.axes.autoscale_view(tight=True)
             self.axes.autoscale_view()
 
         self.draw()
