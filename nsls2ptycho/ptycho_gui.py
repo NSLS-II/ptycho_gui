@@ -171,9 +171,9 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         if self._obj is not None:
             del self._obj
             self._obj = None
-        if self._scan_points is not None:
-            del self._scan_points
-            self._scan_points = None
+        #if self._scan_points is not None:
+        #    del self._scan_points
+        #    self._scan_points = None
         self.close_mmap()
 
     
@@ -517,7 +517,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
                     num_processes = str(len(self.param.gpus))
                 else:
                     num_processes = str(self.param.processes) if self.param.processes > 1 else str(1)
-                self.scanWindow.update_image(self._scan_points, num_processes)
+                self.scanWindow.update_image(self._scan_points, int(num_processes))
 
 
     def stop(self, batch_mode=False):
@@ -530,6 +530,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             self.resetButtons()
             if self.reconStepWindow is not None:
                 self.reconStepWindow.reset_window()
+            if self.scanWindow is not None:
+                self.scanWindow.reset_window()
 
 
     def init_mmap(self):

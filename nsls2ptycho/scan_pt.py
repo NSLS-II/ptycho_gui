@@ -18,7 +18,8 @@ class ScanWindow(QtWidgets.QMainWindow, ui_scan.Ui_MainWindow):
         # can we reset the figures here???
         self.scatter_pt.reset()
 
-    def update_images(self, data, num_process):
+    def update_image(self, data, num_process):
+        self.scatter_pt.reset()
         self.scatter_pt.update_scatter(data, num_process)
 
     def debug(self):
@@ -37,8 +38,8 @@ if __name__ == '__main__':
     w.show()
 
     data = np.random.random((2, 300))
-    w.update_images(data, 4)
+    w.update_image(data, 4)
     data = np.random.random((2, 300))
-    w.update_images(data, 4)
+    w.update_image(data, 4)
 
     sys.exit(app.exec_())
