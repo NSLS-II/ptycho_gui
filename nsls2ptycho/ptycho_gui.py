@@ -10,6 +10,7 @@ from nsls2ptycho.core.ptycho_recon import PtychoReconWorker, PtychoReconFakeWork
 from nsls2ptycho.core.ptycho_qt_utils import PtychoStream
 from nsls2ptycho.core.widgets.mplcanvas import load_image_pil
 from nsls2ptycho.core.ptycho.parse_config import parse_config
+from nsls2ptycho._version import __version__
 
 # databroker related
 try:
@@ -22,6 +23,7 @@ except ImportError as ex:
 
 from nsls2ptycho.reconStep_gui import ReconStepWindow
 from nsls2ptycho.roi_gui import RoiWindow
+from nsls2ptycho.scan_pt import ScanWindow
 
 import h5py
 import numpy as np
@@ -104,6 +106,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self._mds_table = None      # hold a Pandas.dataframe instance
         self._loaded = False        # whether the user has loaded metadata or not (from either databroker or h5)
         self._scan_numbers = None   # a list of scan numbers for batch mode
+        self._scan_points = None    # an array of shape (2, N) holding the scan coordinates
         self._batch_prb_filename = None  # probe's filename template for batch mode
         self._batch_obj_filename = None  # object's filename template for batch mode
         self._config_path = os.path.expanduser("~") + "/.ptycho_gui/.ptycho_gui_config"
@@ -112,6 +115,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
         self.reconStepWindow = None
         self.roiWindow = None
+        self.scanWindow = None
 
         # temporary solutions
         self.ck_ms_pie_flag.setEnabled(False)
@@ -138,6 +142,9 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
         # TODO: delete param.shm_name read in from previous config so that we can reset the buttons earlier
         self.resetButtons()
+
+        # display GUI version
+        self.setWindowTitle("NSLS-II Ptychography v" + __version__)
 
 
     @property
@@ -168,6 +175,9 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         if self._obj is not None:
             del self._obj
             self._obj = None
+        #if self._scan_points is not None:
+        #    del self._scan_points
+        #    self._scan_points = None
         self.close_mmap()
 
     
@@ -494,6 +504,25 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             self.btn_recon_stop.setEnabled(True)
             self.btn_recon_start.setEnabled(False)
 
+            # init scan window
+            # TODO: optimize and refactor this part
+            if self.scanWindow is None:
+                self.scanWindow = ScanWindow()
+                self.scanWindow.reset_window()
+                self.scanWindow.show()
+
+            if self._scan_points is None:
+                raise RuntimeError("Scan points were not read. This shouldn't happen. Abort.")
+            else:
+                self._scan_points[0] *= -1.*self.param.x_direction
+                self._scan_points[1] *= self.param.y_direction
+                # copied from nsls2ptycho/core/ptycho_recon.py
+                if self.param.gpu_flag:
+                    num_processes = str(len(self.param.gpus))
+                else:
+                    num_processes = str(self.param.processes) if self.param.processes > 1 else str(1)
+                self.scanWindow.update_image(self._scan_points, int(num_processes))
+
 
     def stop(self, batch_mode=False):
         if self._ptycho_gpu_thread is not None and self._ptycho_gpu_thread.isRunning():
@@ -505,6 +534,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             self.resetButtons()
             if self.reconStepWindow is not None:
                 self.reconStepWindow.reset_window()
+            if self.scanWindow is not None:
+                self.scanWindow.reset_window()
 
 
     def init_mmap(self):
@@ -594,33 +625,33 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
                             for i in range(self.param.obj_mode_num):
                                 data['obj_'+str(i)] = np.load(data_dir+'recon_'+scan_num+'_'+p.sign+'_' \
                                                                +'object_mode_orth_ave_rp_mode_'+str(i)+'.npy')
-                                for kind, fx in zip(['phase', 'amplitude'], [np.angle, np.abs]):
-                                    self.reconStepWindow.cb_image_object.addItem("Object "+str(i)+" "+kind+" (orth_ave_rp)")
-                                    # hard-wire the padding values here...
-                                    images.append( np.rot90(fx(data['obj_'+str(i)][(p.nx+30)//2:-(p.nx+30)//2, (p.ny+30)//2:-(p.ny+30)//2])) )
+                                self.reconStepWindow.cb_image_object.addItem("Object "+str(i)+" (orth_ave_rp)")
+                                # hard-wire the padding values here...
+                                images.append( np.rot90(np.angle(data['obj_'+str(i)][(p.nx+30)//2:-(p.nx+30)//2, (p.ny+30)//2:-(p.ny+30)//2])) )
+                                images.append( np.rot90(np.abs(data['obj_'+str(i)][(p.nx+30)//2:-(p.nx+30)//2, (p.ny+30)//2:-(p.ny+30)//2])) )
 
                             for i in range(self.param.prb_mode_num):
                                 data['prb_'+str(i)] = np.load(data_dir+'recon_'+scan_num+'_'+p.sign+'_' \
                                                                +'probe_mode_orth_ave_rp_mode_'+str(i)+'.npy')
-                                for kind, fx in zip(['amplitude', 'phase'], [np.abs, np.angle]):
-                                    self.reconStepWindow.cb_image_probe.addItem("Probe "+str(i)+" "+kind+" (orth_ave_rp)")
-                                    images.append( np.rot90(fx(data['prb_'+str(i)])) )
+                                self.reconStepWindow.cb_image_probe.addItem("Probe "+str(i)+" (orth_ave_rp)")
+                                images.append( np.rot90(np.abs(data['prb_'+str(i)])) )
+                                images.append( np.rot90(np.angle(data['prb_'+str(i)])) )
                         elif self.param.multislice_flag:
                             # load data that has been averaged + phase-ramp removed
                             for i in range(self.param.slice_num):
                                 data['obj_'+str(i)] = np.load(data_dir+'recon_'+scan_num+'_'+p.sign+'_' \
                                                                +'object_ave_rp_ms_'+str(i)+'.npy')
-                                for kind, fx in zip(['phase', 'amplitude'], [np.angle, np.abs]):
-                                    self.reconStepWindow.cb_image_object.addItem("Object "+str(i)+" "+kind+" (ave_rp)")
-                                    # hard-wire the padding values here...
-                                    images.append( np.rot90(fx(data['obj_'+str(i)][(p.nx+30)//2:-(p.nx+30)//2, (p.ny+30)//2:-(p.ny+30)//2])) )
+                                self.reconStepWindow.cb_image_object.addItem("Object "+str(i)+" (ave_rp)")
+                                # hard-wire the padding values here...
+                                images.append( np.rot90(np.angle(data['obj_'+str(i)][(p.nx+30)//2:-(p.nx+30)//2, (p.ny+30)//2:-(p.ny+30)//2])) )
+                                images.append( np.rot90(np.abs(data['obj_'+str(i)][(p.nx+30)//2:-(p.nx+30)//2, (p.ny+30)//2:-(p.ny+30)//2])) )
 
                             for i in range(self.param.slice_num):
                                 data['prb_'+str(i)] = np.load(data_dir+'recon_'+scan_num+'_'+p.sign+'_' \
                                                                +'probe_ave_rp_ms_'+str(i)+'.npy')
-                                for kind, fx in zip(['amplitude', 'phase'], [np.abs, np.angle]):
-                                    self.reconStepWindow.cb_image_probe.addItem("Probe "+str(i)+" "+kind+" (ave_rp)")
-                                    images.append( np.rot90(fx(data['prb_'+str(i)])) )
+                                self.reconStepWindow.cb_image_probe.addItem("Probe "+str(i)+" (ave_rp)")
+                                images.append( np.rot90(np.abs(data['prb_'+str(i)])) )
+                                images.append( np.rot90(np.angle(data['prb_'+str(i)])) )
                         else:
                             # load data (ave & ave_rp)
                             for sol in ['ave', 'ave_rp']:
@@ -629,14 +660,15 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
                             # calculate images
                             for sol in ['ave', 'ave_rp']:
-                                for kind, fx in zip(['phase', 'amplitude'], [np.angle, np.abs]):
-                                    self.reconStepWindow.cb_image_object.addItem("Object "+kind+" ("+sol+")")
-                                    # hard-wire the padding values here...
-                                    images.append( np.rot90(fx(data['obj_'+sol][(p.nx+30)//2:-(p.nx+30)//2, (p.ny+30)//2:-(p.ny+30)//2])) )
+                                self.reconStepWindow.cb_image_object.addItem("Object  ("+sol+")")
+                                # hard-wire the padding values here...
+                                images.append( np.rot90(np.angle(data['obj_'+sol][(p.nx+30)//2:-(p.nx+30)//2, (p.ny+30)//2:-(p.ny+30)//2])) )
+                                images.append( np.rot90(np.abs(data['obj_'+sol][(p.nx+30)//2:-(p.nx+30)//2, (p.ny+30)//2:-(p.ny+30)//2])) )
+
                             for sol in ['ave', 'ave_rp']:
-                                for kind, fx in zip(['amplitude', 'phase'], [np.abs, np.angle]):
-                                    self.reconStepWindow.cb_image_probe.addItem("Probe "+kind+" ("+sol+")")
-                                    images.append( np.rot90(fx(data['prb_'+sol])) )
+                                self.reconStepWindow.cb_image_probe.addItem("Probe ("+sol+")")
+                                images.append( np.rot90(np.abs(data['prb_'+sol])) )
+                                images.append( np.rot90(np.angle(data['prb_'+sol])) )
 
                         self.reconStepWindow.update_images(it, images)
                     elif it % self.param.display_interval == 1 or (it >= 1 and self.param.display_interval == 1):
@@ -1129,6 +1161,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             self.sp_num_points.setValue(nz)
             self.sp_ccd_pixel_um.setValue(f['ccd_pixel_um'].value)
             self.sp_angle.setValue(f['angle'].value)
+            self._scan_points = f['points'][:] # for visualization purpose
             #self.cb_scan_type = ...
             # read the detector name and set it in GUI??
             print("done")
