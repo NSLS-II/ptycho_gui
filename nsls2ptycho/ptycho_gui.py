@@ -594,33 +594,33 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
                             for i in range(self.param.obj_mode_num):
                                 data['obj_'+str(i)] = np.load(data_dir+'recon_'+scan_num+'_'+p.sign+'_' \
                                                                +'object_mode_orth_ave_rp_mode_'+str(i)+'.npy')
-                                for kind, fx in zip(['phase', 'amplitude'], [np.angle, np.abs]):
-                                    self.reconStepWindow.cb_image_object.addItem("Object "+str(i)+" "+kind+" (orth_ave_rp)")
-                                    # hard-wire the padding values here...
-                                    images.append( np.rot90(fx(data['obj_'+str(i)][(p.nx+30)//2:-(p.nx+30)//2, (p.ny+30)//2:-(p.ny+30)//2])) )
+                                self.reconStepWindow.cb_image_object.addItem("Object "+str(i)+" (orth_ave_rp)")
+                                # hard-wire the padding values here...
+                                images.append( np.rot90(np.angle(data['obj_'+str(i)][(p.nx+30)//2:-(p.nx+30)//2, (p.ny+30)//2:-(p.ny+30)//2])) )
+                                images.append( np.rot90(np.abs(data['obj_'+str(i)][(p.nx+30)//2:-(p.nx+30)//2, (p.ny+30)//2:-(p.ny+30)//2])) )
 
                             for i in range(self.param.prb_mode_num):
                                 data['prb_'+str(i)] = np.load(data_dir+'recon_'+scan_num+'_'+p.sign+'_' \
                                                                +'probe_mode_orth_ave_rp_mode_'+str(i)+'.npy')
-                                for kind, fx in zip(['amplitude', 'phase'], [np.abs, np.angle]):
-                                    self.reconStepWindow.cb_image_probe.addItem("Probe "+str(i)+" "+kind+" (orth_ave_rp)")
-                                    images.append( np.rot90(fx(data['prb_'+str(i)])) )
+                                self.reconStepWindow.cb_image_probe.addItem("Probe "+str(i)+" (orth_ave_rp)")
+                                images.append( np.rot90(np.abs(data['prb_'+str(i)])) )
+                                images.append( np.rot90(np.angle(data['prb_'+str(i)])) )
                         elif self.param.multislice_flag:
                             # load data that has been averaged + phase-ramp removed
                             for i in range(self.param.slice_num):
                                 data['obj_'+str(i)] = np.load(data_dir+'recon_'+scan_num+'_'+p.sign+'_' \
                                                                +'object_ave_rp_ms_'+str(i)+'.npy')
-                                for kind, fx in zip(['phase', 'amplitude'], [np.angle, np.abs]):
-                                    self.reconStepWindow.cb_image_object.addItem("Object "+str(i)+" "+kind+" (ave_rp)")
-                                    # hard-wire the padding values here...
-                                    images.append( np.rot90(fx(data['obj_'+str(i)][(p.nx+30)//2:-(p.nx+30)//2, (p.ny+30)//2:-(p.ny+30)//2])) )
+                                self.reconStepWindow.cb_image_object.addItem("Object "+str(i)+" (ave_rp)")
+                                # hard-wire the padding values here...
+                                images.append( np.rot90(np.angle(data['obj_'+str(i)][(p.nx+30)//2:-(p.nx+30)//2, (p.ny+30)//2:-(p.ny+30)//2])) )
+                                images.append( np.rot90(np.abs(data['obj_'+str(i)][(p.nx+30)//2:-(p.nx+30)//2, (p.ny+30)//2:-(p.ny+30)//2])) )
 
                             for i in range(self.param.slice_num):
                                 data['prb_'+str(i)] = np.load(data_dir+'recon_'+scan_num+'_'+p.sign+'_' \
                                                                +'probe_ave_rp_ms_'+str(i)+'.npy')
-                                for kind, fx in zip(['amplitude', 'phase'], [np.abs, np.angle]):
-                                    self.reconStepWindow.cb_image_probe.addItem("Probe "+str(i)+" "+kind+" (ave_rp)")
-                                    images.append( np.rot90(fx(data['prb_'+str(i)])) )
+                                self.reconStepWindow.cb_image_probe.addItem("Probe "+str(i)+" (ave_rp)")
+                                images.append( np.rot90(np.abs(data['prb_'+str(i)])) )
+                                images.append( np.rot90(np.angle(data['prb_'+str(i)])) )
                         else:
                             # load data (ave & ave_rp)
                             for sol in ['ave', 'ave_rp']:
@@ -629,14 +629,15 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
                             # calculate images
                             for sol in ['ave', 'ave_rp']:
-                                for kind, fx in zip(['phase', 'amplitude'], [np.angle, np.abs]):
-                                    self.reconStepWindow.cb_image_object.addItem("Object "+kind+" ("+sol+")")
-                                    # hard-wire the padding values here...
-                                    images.append( np.rot90(fx(data['obj_'+sol][(p.nx+30)//2:-(p.nx+30)//2, (p.ny+30)//2:-(p.ny+30)//2])) )
+                                self.reconStepWindow.cb_image_object.addItem("Object  ("+sol+")")
+                                # hard-wire the padding values here...
+                                images.append( np.rot90(np.angle(data['obj_'+sol][(p.nx+30)//2:-(p.nx+30)//2, (p.ny+30)//2:-(p.ny+30)//2])) )
+                                images.append( np.rot90(np.abs(data['obj_'+sol][(p.nx+30)//2:-(p.nx+30)//2, (p.ny+30)//2:-(p.ny+30)//2])) )
+
                             for sol in ['ave', 'ave_rp']:
-                                for kind, fx in zip(['amplitude', 'phase'], [np.abs, np.angle]):
-                                    self.reconStepWindow.cb_image_probe.addItem("Probe "+kind+" ("+sol+")")
-                                    images.append( np.rot90(fx(data['prb_'+sol])) )
+                                self.reconStepWindow.cb_image_probe.addItem("Probe ("+sol+")")
+                                images.append( np.rot90(np.abs(data['prb_'+sol])) )
+                                images.append( np.rot90(np.angle(data['prb_'+sol])) )
 
                         self.reconStepWindow.update_images(it, images)
                     elif it % self.param.display_interval == 1 or (it >= 1 and self.param.display_interval == 1):
