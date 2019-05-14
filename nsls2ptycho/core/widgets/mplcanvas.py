@@ -6,11 +6,14 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 from matplotlib.pyplot import Axes
+import matplotlib.cm as cm
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_area_auto_adjustable
 
 import csv
 import numpy as np
 from PIL import Image
+
+from nsls2ptycho.core.ptycho.utils import split
 
 
 def load_image_pil(path):
@@ -101,6 +104,33 @@ class MplCanvas(FigureCanvas):
 
         self.draw()
 
+    def update_scatter(self, pts, mpi_size, colormap=cm.jet):
+        '''
+        Plot N scanning points in mpi_size different colors
+
+        Parameters:
+            - pts: np.array([[x0, x1, ..., xN], [y0, y1, ..., yN]])
+            - mpi_size: number of MPI processes
+            - colormap 
+        '''
+        if len(self.line_handlers) == 0:
+            a = split(pts.shape[1], mpi_size)
+            colors = colormap(np.linspace(0, 1, len(a)))
+            for i in range(mpi_size):
+                h = self.axes.scatter(pts[0, a[i][0]:a[i][1]], pts[1, a[i][0]:a[i][1]], c=colors[i])
+                self.line_handlers.append(h)
+        else: # assuming mpi_size is unchanged
+            a = split(pts.shape[1], mpi_size)
+            for i, h in enumerate(self.line_handlers):
+                h.set_offsets(np.array([pts[0, a[i][0]:a[i][1]], pts[1, a[i][0]:a[i][1]]]).transpose())
+            # TODO: handle plot limits?
+            ##self.axes.tick_params(axis='both', labelsize=8)
+            #self.axes.relim(visible_only=True)
+            ##self.axes.autoscale(tight=True)
+            ##self.axes.autoscale_view(tight=True)
+            #self.axes.autoscale_view()
+
+        self.draw()
 
 
 class MplCanvasTool(QtWidgets.QWidget):

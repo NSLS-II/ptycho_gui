@@ -22,6 +22,7 @@ except ImportError as ex:
 
 from nsls2ptycho.reconStep_gui import ReconStepWindow
 from nsls2ptycho.roi_gui import RoiWindow
+from nsls2ptycho.scan_pt import ScanWindow
 
 import h5py
 import numpy as np
@@ -104,6 +105,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self._mds_table = None      # hold a Pandas.dataframe instance
         self._loaded = False        # whether the user has loaded metadata or not (from either databroker or h5)
         self._scan_numbers = None   # a list of scan numbers for batch mode
+        self._scan_points = None    # an array of shape (2, N) holding the scan coordinates
         self._batch_prb_filename = None  # probe's filename template for batch mode
         self._batch_obj_filename = None  # object's filename template for batch mode
         self._config_path = os.path.expanduser("~") + "/.ptycho_gui/.ptycho_gui_config"
@@ -112,6 +114,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
         self.reconStepWindow = None
         self.roiWindow = None
+        self.scanWindow = None
 
         # temporary solutions
         self.ck_ms_pie_flag.setEnabled(False)
@@ -168,6 +171,9 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         if self._obj is not None:
             del self._obj
             self._obj = None
+        if self._scan_points is not None:
+            del self._scan_points
+            self._scan_points = None
         self.close_mmap()
 
     
@@ -493,6 +499,25 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
             self.btn_recon_stop.setEnabled(True)
             self.btn_recon_start.setEnabled(False)
+
+            # init scan window
+            # TODO: optimize and refactor this part
+            if self.scanWindow is None:
+                self.scanWindow = ScanWindow()
+                self.scanWindow.reset_window()
+                self.scanWindow.show()
+
+            if self._scan_points is None:
+                raise RuntimeError("Scan points were not read. This shouldn't happen. Abort.")
+            else:
+                self._scan_points[0] *= -1.*self.param.x_direction
+                self._scan_points[1] *= self.param.y_direction
+                # copied from nsls2ptycho/core/ptycho_recon.py
+                if self.param.gpu_flag:
+                    num_processes = str(len(self.param.gpus))
+                else:
+                    num_processes = str(self.param.processes) if self.param.processes > 1 else str(1)
+                self.scanWindow.update_image(self._scan_points, num_processes)
 
 
     def stop(self, batch_mode=False):
@@ -1130,6 +1155,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             self.sp_num_points.setValue(nz)
             self.sp_ccd_pixel_um.setValue(f['ccd_pixel_um'].value)
             self.sp_angle.setValue(f['angle'].value)
+            self._scan_points = f['points'][:] # for visualization purpose
             #self.cb_scan_type = ...
             # read the detector name and set it in GUI??
             print("done")

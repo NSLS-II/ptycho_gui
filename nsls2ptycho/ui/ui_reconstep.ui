@@ -14,6 +14,12 @@
    <string>NSLS-II Pytchography Reconstruction Monitor</string>
   </property>
   <widget class="QWidget" name="centralwidget">
+   <property name="minimumSize">
+    <size>
+     <width>600</width>
+     <height>800</height>
+    </size>
+   </property>
    <widget class="MplCanvas" name="canvas_object_amp" native="true">
     <property name="geometry">
      <rect>
@@ -285,8 +291,8 @@
    <widget class="QLabel" name="label_6">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>40</y>
+      <x>275</x>
+      <y>30</y>
       <width>100</width>
       <height>21</height>
      </rect>
@@ -305,7 +311,7 @@
    <widget class="QLabel" name="label_8">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>285</x>
       <y>280</y>
       <width>81</width>
       <height>21</height>
@@ -325,7 +331,7 @@
    <widget class="QLabel" name="label_10">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>290</x>
       <y>530</y>
       <width>81</width>
       <height>21</height>
