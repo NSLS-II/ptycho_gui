@@ -30,7 +30,7 @@ def find_owner(filename):
     # from https://stackoverflow.com/a/1830635
     return getpwuid(os.stat(filename).st_uid).pw_name
 
-def clean_shared_memory():
+def clean_shared_memory(pid=None):
     '''
     This function cleans up shared memory segments created by the GUI or a buggy Open MPI.
     '''
@@ -40,15 +40,15 @@ def clean_shared_memory():
         return
     assert os.path.isdir('/dev/shm/')
 
+    from posix_ipc import SharedMemory
     shm_list = os.listdir('/dev/shm/')
     user = getpass.getuser()   
 
-    owned_shm_list = []
     for shm in shm_list:
         if (shm.startswith('ptycho') or shm.startswith('vader')) \
            and user == find_owner('/dev/shm/'+shm):
-            owned_shm_list.append(shm)
 
-    from posix_ipc import SharedMemory
-    for shm in owned_shm_list:
-        SharedMemory("/"+shm).unlink()
+            if (pid is None) or (pid is not None and pid in shm):
+                s = SharedMemory("/"+shm)
+                s.close_fd()
+                s.unlink()
