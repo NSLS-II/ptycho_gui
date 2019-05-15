@@ -10,7 +10,8 @@ The instruction below is **for admins who have the root priviledge** to install 
 #### Fully automatic way (recommended)
 1. Create a new conda environment named `ptycho_production`: `sudo conda create -n ptycho_production python=3.6 nsls2ptycho` (If you need beamline-specific packages, such as `hxntools` for HXN, append the package names in the `conda create` command. This helps resolve possible conflict/downgrade issues.) 
 The conda environment `ptycho_production` is activated under the hood using the `run-ptycho` script to be installed in the next step.
-2. If needed, copy the script `run-ptycho` in the root of this repo to `/usr/local/bin/`: `sudo cp ./run-ptycho /usr/local/bin/`
+2. `sudo /opt/conda_envs/ptycho_production/bin/pip install 'cupy-cudaXX>=6.0.0b3'`, where `XX` is your CUDA toolkit version, available from `nvcc --version`
+3. If needed, copy the script `run-ptycho` in the root of this repo to `/usr/local/bin/`: `sudo cp ./run-ptycho /usr/local/bin/`
 
 To update the software, simple do `sudo conda update -n ptycho_production nsls2ptycho`
 
@@ -33,6 +34,7 @@ sudo git pull origin master    # update backend
 ```
 
 ### On personal machines
+Basically the procedure is similar to those outlined above, except that we don't need `sudo`:
 1. Make sure you are granted access to the backend, currently hosted in [this private GitHub repo](https://github.com/leofang/ptycho)
 2. `git clone --recursive https://github.com/leofang/ptycho_gui.git` (during the process `git` will prompt you to enther your GitHub id and password for cloning the backend)
 3. Either use the current Conda environment, or create a new one, and then do 
