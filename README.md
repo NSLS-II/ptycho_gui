@@ -2,7 +2,7 @@
 ## Introduction
 
 ## Installation
-While one can `pip install` this pacakge directly, most likely the non-Python dependencies will not be available. For the time being, therefore, we recommend using Conda. The last two steps in each part of instructions below are needed for using GPU.
+While one can `pip install` this pacakge directly, most likely the non-Python dependencies will not be available. For the time being, therefore, we recommend using Conda. 
 
 ### On NSLS-II beamline machines
 The instruction below is **for admins who have the root priviledge** to install the software at the system level so that *all* users logging in the machine can run the software directly without any setup.
