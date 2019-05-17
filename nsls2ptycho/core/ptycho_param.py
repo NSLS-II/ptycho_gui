@@ -179,4 +179,4 @@ class Param(object):
         return np.round(self.slice_spacing_m / 1e-6)
 
     def get_gpu_batch_index(self):
-        return [4, 16, 64, 256, 1024].index(self.gpu_batch_size)
+        return [4, 16, 64, 256, 1024, 4096].index(self.gpu_batch_size)

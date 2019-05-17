@@ -1844,6 +1844,11 @@
                   <string>1024</string>
                  </property>
                 </item>
+                <item>
+                 <property name="text">
+                  <string>4096</string>
+                 </property>
+                </item>
                </widget>
               </item>
              </layout>

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui_ptycho.ui'
+# Form implementation generated from reading ui file 'nsls2ptycho/ui/ui_ptycho.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -774,6 +774,7 @@ class Ui_MainWindow(object):
         self.cb_gpu_batch_size.addItem("")
         self.cb_gpu_batch_size.addItem("")
         self.cb_gpu_batch_size.addItem("")
+        self.cb_gpu_batch_size.addItem("")
         self.horizontalLayout_17.addWidget(self.cb_gpu_batch_size)
         self.verticalLayout_4.addLayout(self.horizontalLayout_17)
         self.horizontalLayout_18.addLayout(self.verticalLayout_4)
@@ -1041,6 +1042,7 @@ class Ui_MainWindow(object):
         self.cb_gpu_batch_size.setItemText(2, _translate("MainWindow", "64"))
         self.cb_gpu_batch_size.setItemText(3, _translate("MainWindow", "256"))
         self.cb_gpu_batch_size.setItemText(4, _translate("MainWindow", "1024"))
+        self.cb_gpu_batch_size.setItemText(5, _translate("MainWindow", "4096"))
         self.ck_sf_flag.setText(_translate("MainWindow", "sf"))
         self.ck_mesh_flag.setText(_translate("MainWindow", "mesh"))
         self.ck_mask_prb_flag.setText(_translate("MainWindow", "mask probe"))
