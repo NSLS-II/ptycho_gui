@@ -313,6 +313,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         p.refine_data_interval = int(self.sp_refine_data_interval.value())
         p.refine_data_step     = float(self.sp_refine_data_step.value())
 
+        p.profiler_flag        = self.ck_profiler_flag.isChecked()
+
         # TODO: organize them
         #self.ck_init_obj_dpc_flag.setChecked(p.init_obj_dpc_flag) 
         #self.ck_mask_prb_flag.setChecked(p.mask_prb_flag)
@@ -432,7 +434,9 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.ck_refine_data_flag.setChecked(p.refine_data_flag)
         self.sp_refine_data_start_it.setValue(p.refine_data_start_it)
         self.sp_refine_data_interval.setValue(p.refine_data_interval)
-        self.sp_refine_data_step.setValue(p.refine_data_step)    
+        self.sp_refine_data_step.setValue(p.refine_data_step)
+
+        self.ck_profiler_flag.setChecked(p.profiler_flag)
 
         # batch param group, necessary?
 

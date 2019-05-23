@@ -127,6 +127,9 @@ class Param(object):
         self.refine_data_interval = 5
         self.refine_data_step = 0.05
 
+        # line profiler
+        self.profiler_flag = False
+
         # GUI related 
         self.gui = True
         self.display_interval = 5 # plot every 5 steps
