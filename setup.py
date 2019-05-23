@@ -58,7 +58,7 @@ if len(cubin_path) > 0:
     except ImportError:
         cupy_ver = 'cupy-cuda'+major+minor
         print("CuPy not found. Will install", cupy_ver+"...", file=sys.stderr)
-        REQUIREMENTS.append(cupy_ver+'>=6.0.0b3') # for experimental FFT plan feature
+        REQUIREMENTS.append(cupy_ver+'>=6.0.0') # for experimental FFT plan feature and bug fix in __cuda_array_interface__
 
 # Get __version__ variable
 exec(open(os.path.join(os.path.dirname(__file__), 'nsls2ptycho', '_version.py')).read())
