@@ -118,7 +118,7 @@ class Param(object):
         self.position_correction_step = 10
 
         # reconstruction feedback parameters
-        self.alpha = 1.e-8
+        self.sigma2 = 5E-5
         self.beta = 0.9
 
         # GUI related 

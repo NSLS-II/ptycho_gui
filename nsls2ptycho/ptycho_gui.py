@@ -295,7 +295,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         p.position_correction_start = self.sp_position_correction_start.value()
         p.position_correction_step = self.sp_position_correction_step.value()  
 
-        p.alpha = float(self.sp_alpha.value()*1.e-8)
+        p.sigma2 = float(self.sp_sigma2.value())
         p.beta = float(self.sp_beta.value())
         p.display_interval = int(self.sp_display_interval.value())
         p.preview_flag = self.ck_preview_flag.isChecked()
@@ -406,7 +406,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.sp_position_correction_start.setValue(p.position_correction_start)
         self.sp_position_correction_step.setValue(p.position_correction_step)
 
-        self.sp_alpha.setValue(p.alpha * 1e+8)
+        self.sp_sigma2.setValue(p.sigma2)
         self.sp_beta.setValue(p.beta)
         self.sp_display_interval.setValue(p.display_interval)
         self.ck_preview_flag.setChecked(p.preview_flag)

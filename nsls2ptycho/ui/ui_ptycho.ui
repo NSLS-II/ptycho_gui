@@ -1177,7 +1177,7 @@
       </widget>
       <widget class="QWidget" name="tab_2">
        <attribute name="title">
-        <string>Advanced options</string>
+        <string>Advanced options 1</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_8">
         <item>
@@ -1678,20 +1678,20 @@
               <item>
                <widget class="QLabel" name="label_20">
                 <property name="text">
-                 <string>alpha (1e-8)</string>
+                 <string>sigma2</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QDoubleSpinBox" name="sp_alpha">
+               <widget class="QDoubleSpinBox" name="sp_sigma2">
                 <property name="decimals">
-                 <number>2</number>
+                 <number>5</number>
                 </property>
                 <property name="maximum">
-                 <double>10.000000000000000</double>
+                 <double>1.000000000000000</double>
                 </property>
                 <property name="value">
-                 <double>1.000000000000000</double>
+                 <double>0.000050000000000</double>
                 </property>
                </widget>
               </item>
@@ -1925,6 +1925,236 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="tab_4">
+       <attribute name="title">
+        <string>Advanced options 2</string>
+       </attribute>
+       <widget class="QCheckBox" name="ck_profiler_flag">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>90</y>
+          <width>111</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Line Profiler</string>
+        </property>
+       </widget>
+       <widget class="QWidget" name="layoutWidget">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>10</y>
+          <width>660</width>
+          <height>31</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_19">
+         <item>
+          <widget class="QCheckBox" name="ck_refine_data_flag">
+           <property name="text">
+            <string>Refine data:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_11">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>18</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_57">
+           <property name="text">
+            <string>start</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="sp_refine_data_start_it">
+           <property name="maximum">
+            <number>100000000</number>
+           </property>
+           <property name="value">
+            <number>10</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_12">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>18</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_58">
+           <property name="text">
+            <string>interval</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="sp_refine_data_interval">
+           <property name="maximum">
+            <number>100000000</number>
+           </property>
+           <property name="value">
+            <number>5</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_13">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>18</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_59">
+           <property name="text">
+            <string>step</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="sp_refine_data_step">
+           <property name="maximum">
+            <double>1.000000000000000</double>
+           </property>
+           <property name="singleStep">
+            <double>0.050000000000000</double>
+           </property>
+           <property name="value">
+            <double>0.050000000000000</double>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>50</y>
+          <width>476</width>
+          <height>26</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_20">
+         <item>
+          <widget class="QLabel" name="label_60">
+           <property name="text">
+            <string>Inter-process communication:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_14">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>28</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="rb_mpi">
+           <property name="text">
+            <string>MPI</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_15">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>28</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="rb_nccl">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>NCCL (GPU only)</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_16">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>28</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="rb_none">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>None</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
       <widget class="QWidget" name="tab_3">
        <attribute name="title">
         <string>Batch mode</string>
@@ -2142,7 +2372,16 @@
     <addaction name="menu_clear_config_history"/>
     <addaction name="menu_save_config_history"/>
    </widget>
+   <widget class="QMenu" name="menuWindows">
+    <property name="title">
+     <string>Windows</string>
+    </property>
+    <addaction name="actionROI"/>
+    <addaction name="actionMonitor"/>
+    <addaction name="actionScan_points"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuWindows"/>
   </widget>
   <action name="menu_import_config">
    <property name="text">
@@ -2171,6 +2410,21 @@
   <action name="menu_clear_config_history">
    <property name="text">
     <string>Clear config history</string>
+   </property>
+  </action>
+  <action name="actionROI">
+   <property name="text">
+    <string>ROI</string>
+   </property>
+  </action>
+  <action name="actionMonitor">
+   <property name="text">
+    <string>Monitor</string>
+   </property>
+  </action>
+  <action name="actionScan_points">
+   <property name="text">
+    <string>Scan points</string>
    </property>
   </action>
  </widget>
