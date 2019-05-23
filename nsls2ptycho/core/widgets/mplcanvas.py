@@ -91,12 +91,13 @@ class MplCanvas(FigureCanvas):
         num_plots = yValues.shape[1]
         if len(self.line_handlers) == 0:
             for i in range(num_plots):
-                h = self.axes.plot(xValues, yValues[:,i])
+                h = self.axes.semilogy(xValues, yValues[:,i])
                 self.line_handlers.append(h[0])
         else:
             for hidx, h in enumerate(self.line_handlers):
                 h.set_data(xValues, yValues[:,hidx])
             self.axes.tick_params(axis='both', labelsize=8)
+            self.axes.set_yscale('log')
             self.axes.relim(visible_only=True)
             #self.axes.autoscale(tight=True)
             #self.axes.autoscale_view(tight=True)
