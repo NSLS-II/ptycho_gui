@@ -9,7 +9,7 @@ from nsls2ptycho.core.ptycho_param import Param
 from nsls2ptycho.core.ptycho_recon import PtychoReconWorker, PtychoReconFakeWorker, HardWorker
 from nsls2ptycho.core.ptycho_qt_utils import PtychoStream
 from nsls2ptycho.core.widgets.mplcanvas import load_image_pil
-from nsls2ptycho.core.ptycho.parse_config import parse_config
+from nsls2ptycho.core.ptycho.utils import parse_config
 from nsls2ptycho._version import __version__
 
 # databroker related
@@ -69,6 +69,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.ck_bragg_flag.clicked.connect(self.updateBraggFlg)
         self.ck_pc_flag.clicked.connect(self.updatePcFlg)
         self.ck_position_correction_flag.clicked.connect(self.updateCorrFlg)
+        self.ck_refine_data_flag.clicked.connect(self.updateRefineDataFlg)
 
         self.btn_recon_start.clicked.connect(self.start)
         self.btn_recon_stop.clicked.connect(self.stop)
@@ -306,6 +307,12 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         p.norm_prb_amp_flag = self.ck_norm_prb_amp_flag.isChecked()
         p.weak_obj_flag = self.ck_weak_obj_flag.isChecked()
         p.ms_pie_flag = self.ck_ms_pie_flag.isChecked()
+
+        p.refine_data_flag     = self.ck_refine_data_flag.isChecked()
+        p.refine_data_start_it = int(self.sp_refine_data_start_it.value())
+        p.refine_data_interval = int(self.sp_refine_data_interval.value())
+        p.refine_data_step     = float(self.sp_refine_data_step.value())
+
         # TODO: organize them
         #self.ck_init_obj_dpc_flag.setChecked(p.init_obj_dpc_flag) 
         #self.ck_mask_prb_flag.setChecked(p.mask_prb_flag)
@@ -421,6 +428,11 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.ck_mesh_flag.setChecked(p.mesh_flag)
         self.ck_ms_pie_flag.setChecked(p.ms_pie_flag)
         self.ck_sf_flag.setChecked(p.sf_flag)
+
+        self.ck_refine_data_flag.setChecked(p.refine_data_flag)
+        self.sp_refine_data_start_it.setValue(p.refine_data_start_it)
+        self.sp_refine_data_interval.setValue(p.refine_data_interval)
+        self.sp_refine_data_step.setValue(p.refine_data_step)    
 
         # batch param group, necessary?
 
@@ -830,6 +842,14 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.sp_position_correction_start.setEnabled(flag)
         self.sp_position_correction_step.setEnabled(flag)
         self.param.position_correction_flag = flag
+
+
+    def updateRefineDataFlg(self):
+        flag = self.ck_refine_data_flag.isChecked()
+        self.sp_refine_data_start_it.setEnabled(flag)
+        self.sp_refine_data_interval.setEnabled(flag)
+        self.sp_refine_data_step.setEnabled(flag)
+        self.param.refine_data_flag = flag
 
 
     def setMPIfile(self):

@@ -121,6 +121,12 @@ class Param(object):
         self.sigma2 = 5E-5
         self.beta = 0.9
 
+        # data refinement
+        self.refine_data_flag = False
+        self.refine_data_start_it = 10
+        self.refine_data_interval = 5
+        self.refine_data_step = 0.05
+
         # GUI related 
         self.gui = True
         self.display_interval = 5 # plot every 5 steps

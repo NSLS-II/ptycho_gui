@@ -1981,6 +1981,9 @@
          </item>
          <item>
           <widget class="QSpinBox" name="sp_refine_data_start_it">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="maximum">
             <number>100000000</number>
            </property>
@@ -2011,6 +2014,9 @@
          </item>
          <item>
           <widget class="QSpinBox" name="sp_refine_data_interval">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="maximum">
             <number>100000000</number>
            </property>
@@ -2041,6 +2047,9 @@
          </item>
          <item>
           <widget class="QDoubleSpinBox" name="sp_refine_data_step">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="maximum">
             <double>1.000000000000000</double>
            </property>
