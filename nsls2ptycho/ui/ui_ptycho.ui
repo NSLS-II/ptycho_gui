@@ -1929,19 +1929,6 @@
        <attribute name="title">
         <string>Advanced options 2</string>
        </attribute>
-       <widget class="QCheckBox" name="ck_profiler_flag">
-        <property name="geometry">
-         <rect>
-          <x>20</x>
-          <y>90</y>
-          <width>111</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Line Profiler</string>
-        </property>
-       </widget>
        <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
@@ -2063,7 +2050,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>20</x>
@@ -2158,6 +2145,35 @@
            </property>
            <property name="checked">
             <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>90</y>
+          <width>321</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_21">
+         <item>
+          <widget class="QCheckBox" name="ck_profiler_flag">
+           <property name="text">
+            <string>Line Profiler</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="ck_postprocessing_flag">
+           <property name="text">
+            <string>Perform post-processing</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -2389,8 +2405,15 @@
     <addaction name="actionMonitor"/>
     <addaction name="actionScan_points"/>
    </widget>
+   <widget class="QMenu" name="menuOptions">
+    <property name="title">
+     <string>Options</string>
+    </property>
+    <addaction name="actionClear_shared_memory"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuWindows"/>
+   <addaction name="menuOptions"/>
   </widget>
   <action name="menu_import_config">
    <property name="text">
@@ -2434,6 +2457,11 @@
   <action name="actionScan_points">
    <property name="text">
     <string>Scan points</string>
+   </property>
+  </action>
+  <action name="actionClear_shared_memory">
+   <property name="text">
+    <string>Clear shared memory</string>
    </property>
   </action>
  </widget>

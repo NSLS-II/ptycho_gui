@@ -136,6 +136,7 @@ class Param(object):
         self.preview_flag = True  # turn on live preview
         self.cal_error_flag = True  # whether to calculate error in chi (fields)
         self.save_config_history = True 
+        self.postprocessing_flag = True  # whether to call save_recon() to output and process results
 
         self.init_obj_dpc_flag = False
         self.prb_center_flag = False

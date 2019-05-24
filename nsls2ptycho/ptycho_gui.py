@@ -70,6 +70,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.ck_pc_flag.clicked.connect(self.updatePcFlg)
         self.ck_position_correction_flag.clicked.connect(self.updateCorrFlg)
         self.ck_refine_data_flag.clicked.connect(self.updateRefineDataFlg)
+        self.ck_postprocessing_flag.clicked.connect(self.showNoPostProcessingWarning)
 
         self.btn_recon_start.clicked.connect(self.start)
         self.btn_recon_stop.clicked.connect(self.stop)
@@ -314,6 +315,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         p.refine_data_step     = float(self.sp_refine_data_step.value())
 
         p.profiler_flag        = self.ck_profiler_flag.isChecked()
+        p.postprocessing_flag  = self.ck_postprocessing_flag.isChecked()
 
         # TODO: organize them
         #self.ck_init_obj_dpc_flag.setChecked(p.init_obj_dpc_flag) 
@@ -437,6 +439,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.sp_refine_data_step.setValue(p.refine_data_step)
 
         self.ck_profiler_flag.setChecked(p.profiler_flag)
+        self.ck_postprocessing_flag.setChecked(p.postprocessing_flag)
 
         # batch param group, necessary?
 
@@ -854,6 +857,11 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.sp_refine_data_interval.setEnabled(flag)
         self.sp_refine_data_step.setEnabled(flag)
         self.param.refine_data_flag = flag
+
+
+    def showNoPostProcessingWarning(self):
+        if not self.ck_postprocessing_flag.isChecked():
+            print("[WARNING] Post-processing is turned off. No result will be written to disk!", file=sys.stderr)
 
 
     def setMPIfile(self):
