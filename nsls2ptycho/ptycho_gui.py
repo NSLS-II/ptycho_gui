@@ -5,6 +5,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog, QAction
 
 from nsls2ptycho.ui import ui_ptycho
+from nsls2ptycho.core.utils import clean_shared_memory
 from nsls2ptycho.core.ptycho_param import Param
 from nsls2ptycho.core.ptycho_recon import PtychoReconWorker, PtychoReconFakeWorker, HardWorker
 from nsls2ptycho.core.ptycho_qt_utils import PtychoStream
@@ -83,6 +84,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.menu_export_config.triggered.connect(self.exportConfig)
         self.menu_clear_config_history.triggered.connect(self.removeConfigHistory)
         self.menu_save_config_history.triggered.connect(self.saveConfigHistory)
+        self.actionClear_shared_memory.triggered.connect(self.clearSharedMemory)
 
         self.btn_MPI_file.clicked.connect(self.setMPIfile)
         self.btn_gpu_all = [self.btn_gpu_0, self.btn_gpu_1, self.btn_gpu_2, self.btn_gpu_3]
@@ -124,6 +126,11 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.ck_weak_obj_flag.setEnabled(False)
         #self.cb_alg_flag. addItem("PIE")
         #self.cb_alg2_flag.addItem("PIE")
+        # TODO: find a way to register the live windows so that they can be opened anytime
+        self.menuWindows.setEnabled(False)
+        #self.actionROI.setEnabled(False)
+        #self.actionMonitor.setEnabled(False)
+        #self.actionScan_points.setEnabled(False)
 
         #if self.menu_save_config_history.isChecked(): # TODO: think of a better way...
         self.retrieveConfigHistory()
@@ -862,6 +869,14 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
     def showNoPostProcessingWarning(self):
         if not self.ck_postprocessing_flag.isChecked():
             print("[WARNING] Post-processing is turned off. No result will be written to disk!", file=sys.stderr)
+
+
+    def clearSharedMemory(self):
+        message = "Are you sure you want to clear the shared memory segments currently left in /dev/shm? "\
+                  "The safest way to do so is to ensure you have only one window (that is, this one) opened on this machine."
+        ans = QtWidgets.QMessageBox.question(self, "Warning", message, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+        if ans == QtWidgets.QMessageBox.Yes:
+            clean_shared_memory()
 
 
     def setMPIfile(self):
