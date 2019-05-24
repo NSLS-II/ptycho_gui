@@ -5,11 +5,12 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog, QAction
 
 from nsls2ptycho.ui import ui_ptycho
+from nsls2ptycho.core.utils import clean_shared_memory
 from nsls2ptycho.core.ptycho_param import Param
 from nsls2ptycho.core.ptycho_recon import PtychoReconWorker, PtychoReconFakeWorker, HardWorker
 from nsls2ptycho.core.ptycho_qt_utils import PtychoStream
 from nsls2ptycho.core.widgets.mplcanvas import load_image_pil
-from nsls2ptycho.core.ptycho.parse_config import parse_config
+from nsls2ptycho.core.ptycho.utils import parse_config
 from nsls2ptycho._version import __version__
 
 # databroker related
@@ -69,6 +70,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.ck_bragg_flag.clicked.connect(self.updateBraggFlg)
         self.ck_pc_flag.clicked.connect(self.updatePcFlg)
         self.ck_position_correction_flag.clicked.connect(self.updateCorrFlg)
+        self.ck_refine_data_flag.clicked.connect(self.updateRefineDataFlg)
+        self.ck_postprocessing_flag.clicked.connect(self.showNoPostProcessingWarning)
 
         self.btn_recon_start.clicked.connect(self.start)
         self.btn_recon_stop.clicked.connect(self.stop)
@@ -81,6 +84,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.menu_export_config.triggered.connect(self.exportConfig)
         self.menu_clear_config_history.triggered.connect(self.removeConfigHistory)
         self.menu_save_config_history.triggered.connect(self.saveConfigHistory)
+        self.actionClear_shared_memory.triggered.connect(self.clearSharedMemory)
 
         self.btn_MPI_file.clicked.connect(self.setMPIfile)
         self.btn_gpu_all = [self.btn_gpu_0, self.btn_gpu_1, self.btn_gpu_2, self.btn_gpu_3]
@@ -122,6 +126,11 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.ck_weak_obj_flag.setEnabled(False)
         #self.cb_alg_flag. addItem("PIE")
         #self.cb_alg2_flag.addItem("PIE")
+        # TODO: find a way to register the live windows so that they can be opened anytime
+        self.menuWindows.setEnabled(False)
+        #self.actionROI.setEnabled(False)
+        #self.actionMonitor.setEnabled(False)
+        #self.actionScan_points.setEnabled(False)
 
         #if self.menu_save_config_history.isChecked(): # TODO: think of a better way...
         self.retrieveConfigHistory()
@@ -295,7 +304,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         p.position_correction_start = self.sp_position_correction_start.value()
         p.position_correction_step = self.sp_position_correction_step.value()  
 
-        p.alpha = float(self.sp_alpha.value()*1.e-8)
+        p.sigma2 = float(self.sp_sigma2.value())
         p.beta = float(self.sp_beta.value())
         p.display_interval = int(self.sp_display_interval.value())
         p.preview_flag = self.ck_preview_flag.isChecked()
@@ -306,6 +315,15 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         p.norm_prb_amp_flag = self.ck_norm_prb_amp_flag.isChecked()
         p.weak_obj_flag = self.ck_weak_obj_flag.isChecked()
         p.ms_pie_flag = self.ck_ms_pie_flag.isChecked()
+
+        p.refine_data_flag     = self.ck_refine_data_flag.isChecked()
+        p.refine_data_start_it = int(self.sp_refine_data_start_it.value())
+        p.refine_data_interval = int(self.sp_refine_data_interval.value())
+        p.refine_data_step     = float(self.sp_refine_data_step.value())
+
+        p.profiler_flag        = self.ck_profiler_flag.isChecked()
+        p.postprocessing_flag  = self.ck_postprocessing_flag.isChecked()
+
         # TODO: organize them
         #self.ck_init_obj_dpc_flag.setChecked(p.init_obj_dpc_flag) 
         #self.ck_mask_prb_flag.setChecked(p.mask_prb_flag)
@@ -406,7 +424,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.sp_position_correction_start.setValue(p.position_correction_start)
         self.sp_position_correction_step.setValue(p.position_correction_step)
 
-        self.sp_alpha.setValue(p.alpha * 1e+8)
+        self.sp_sigma2.setValue(p.sigma2)
         self.sp_beta.setValue(p.beta)
         self.sp_display_interval.setValue(p.display_interval)
         self.ck_preview_flag.setChecked(p.preview_flag)
@@ -421,6 +439,14 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.ck_mesh_flag.setChecked(p.mesh_flag)
         self.ck_ms_pie_flag.setChecked(p.ms_pie_flag)
         self.ck_sf_flag.setChecked(p.sf_flag)
+
+        self.ck_refine_data_flag.setChecked(p.refine_data_flag)
+        self.sp_refine_data_start_it.setValue(p.refine_data_start_it)
+        self.sp_refine_data_interval.setValue(p.refine_data_interval)
+        self.sp_refine_data_step.setValue(p.refine_data_step)
+
+        self.ck_profiler_flag.setChecked(p.profiler_flag)
+        self.ck_postprocessing_flag.setChecked(p.postprocessing_flag)
 
         # batch param group, necessary?
 
@@ -830,6 +856,27 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.sp_position_correction_start.setEnabled(flag)
         self.sp_position_correction_step.setEnabled(flag)
         self.param.position_correction_flag = flag
+
+
+    def updateRefineDataFlg(self):
+        flag = self.ck_refine_data_flag.isChecked()
+        self.sp_refine_data_start_it.setEnabled(flag)
+        self.sp_refine_data_interval.setEnabled(flag)
+        self.sp_refine_data_step.setEnabled(flag)
+        self.param.refine_data_flag = flag
+
+
+    def showNoPostProcessingWarning(self):
+        if not self.ck_postprocessing_flag.isChecked():
+            print("[WARNING] Post-processing is turned off. No result will be written to disk!", file=sys.stderr)
+
+
+    def clearSharedMemory(self):
+        message = "Are you sure you want to clear the shared memory segments currently left in /dev/shm? "\
+                  "The safest way to do so is to ensure you have only one window (that is, this one) opened on this machine."
+        ans = QtWidgets.QMessageBox.question(self, "Warning", message, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+        if ans == QtWidgets.QMessageBox.Yes:
+            clean_shared_memory()
 
 
     def setMPIfile(self):

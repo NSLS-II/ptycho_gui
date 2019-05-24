@@ -52,3 +52,5 @@ def clean_shared_memory(pid=None):
                 s = SharedMemory("/"+shm)
                 s.close_fd()
                 s.unlink()
+
+    print("Done.")

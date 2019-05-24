@@ -118,8 +118,17 @@ class Param(object):
         self.position_correction_step = 10
 
         # reconstruction feedback parameters
-        self.alpha = 1.e-8
+        self.sigma2 = 5E-5
         self.beta = 0.9
+
+        # data refinement
+        self.refine_data_flag = False
+        self.refine_data_start_it = 10
+        self.refine_data_interval = 5
+        self.refine_data_step = 0.05
+
+        # line profiler
+        self.profiler_flag = False
 
         # GUI related 
         self.gui = True
@@ -127,6 +136,7 @@ class Param(object):
         self.preview_flag = True  # turn on live preview
         self.cal_error_flag = True  # whether to calculate error in chi (fields)
         self.save_config_history = True 
+        self.postprocessing_flag = True  # whether to call save_recon() to output and process results
 
         self.init_obj_dpc_flag = False
         self.prb_center_flag = False
