@@ -42,23 +42,24 @@ except ImportError:
 import nsls2ptycho.core.ptycho.build_cuda_source as bcs
 cubin_path = bcs.compile()
 
-# skip depending CuPy on OS X as the wheel is not provided
-if bcs.PLATFORM_DARWIN:
-    #for cubin in cubin_path:
-    #    os.remove(cubin)
-    cubin_path = []
-
 # if GPU support is needed, check if cupy exists
 if len(cubin_path) > 0:
-    cuda_ver = str(bcs._cuda_version)
-    major = str(int(cuda_ver[:-2])//10)
-    minor = str(int(cuda_ver[-2:])//10)
+    # skip depending CuPy on OS X as the wheel is not provided
+    if not bcs.PLATFORM_DARWIN:
+        cuda_ver = str(bcs._cuda_version)
+        major = str(int(cuda_ver[:-2])//10)
+        minor = str(int(cuda_ver[-2:])//10)
+        try:
+            import cupy
+        except ImportError:
+            cupy_ver = 'cupy-cuda'+major+minor
+            print("CuPy not found. Will install", cupy_ver+"...", file=sys.stderr)
+            REQUIREMENTS.append(cupy_ver+'>=6.0.0') # for experimental FFT plan feature and bug fix in __cuda_array_interface__
+    # ...and then if numba exists
     try:
-        import cupy
+        import numba
     except ImportError:
-        cupy_ver = 'cupy-cuda'+major+minor
-        print("CuPy not found. Will install", cupy_ver+"...", file=sys.stderr)
-        REQUIREMENTS.append(cupy_ver+'>=6.0.0') # for experimental FFT plan feature and bug fix in __cuda_array_interface__
+        REQUIREMENTS.append('numba>=0.41.0') # for bug fix in __cuda_array_interface__
 
 # Get __version__ variable
 exec(open(os.path.join(os.path.dirname(__file__), 'nsls2ptycho', '_version.py')).read())
