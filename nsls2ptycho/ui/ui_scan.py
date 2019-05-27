@@ -11,12 +11,12 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(360, 360)
+        MainWindow.resize(490, 360)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setMinimumSize(QtCore.QSize(360, 360))
         self.centralwidget.setObjectName("centralwidget")
         self.scatter_pt = MplCanvas(self.centralwidget)
-        self.scatter_pt.setGeometry(QtCore.QRect(5, 5, 350, 350))
+        self.scatter_pt.setGeometry(QtCore.QRect(5, 5, 480, 350))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)

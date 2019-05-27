@@ -34,12 +34,14 @@ class ScanWindow(QtWidgets.QMainWindow, ui_scan.Ui_MainWindow):
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
 
-    w = ReconStepWindow()
+    w = ScanWindow()
     w.show()
 
-    data = np.random.random((2, 300))
-    w.update_image(data, 4)
-    data = np.random.random((2, 300))
-    w.update_image(data, 4)
+    n_processes = 4
+    n_pts = 500
+    data = np.random.random((2, n_pts))
+    w.update_image(data, n_processes)
+    data = np.random.random((2, n_pts))
+    w.update_image(data, n_processes)
 
     sys.exit(app.exec_())
