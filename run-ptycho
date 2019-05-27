@@ -7,6 +7,10 @@ export LD_LIBRARY_PATH=${CUDA_HOME}/lib64:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=${CUDA_HOME}/extras/CUPTI/lib64:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=${CUDA_HOME}/nvvm/lib64:$LD_LIBRARY_PATH
 
+# Numba
+export NUMBAPRO_LIBDEVICE=/usr/local/cuda/nvvm/libdevice/
+export NUMBAPRO_NVVM=/usr/local/cuda/nvvm/lib64/libnvvm.so
+
 # use the production conda environment
 source /opt/conda/bin/activate ptycho_production
 
