@@ -7,6 +7,10 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
 
+import mpi4py
+mpi4py.rc.initialize = False
+from mpi4py import MPI
+
 from nsls2ptycho.core.ptycho.utils import split
 
 
@@ -26,9 +30,11 @@ def plot_point_process_distribution(pts, mpi_size, colormap=cm.jet):
         plt.scatter(pts[0, a[i][0]:a[i][1]], pts[1, a[i][0]:a[i][1]], c=colors[i])
     plt.show()
 
+
 def find_owner(filename):
     # from https://stackoverflow.com/a/1830635
     return getpwuid(os.stat(filename).st_uid).pw_name
+
 
 def clean_shared_memory(pid=None):
     '''
@@ -54,3 +60,52 @@ def clean_shared_memory(pid=None):
                 s.unlink()
 
     print("Done.")
+
+
+def get_mpi_num_processes(mpi_file_path):
+    # use MPI machine file if available, assuming each line of which is: 
+    # ip_address slots=n max-slots=n   --- Open MPI
+    # ip_address:n                     --- MPICH
+    with open(mpi_file_path, 'r') as f:
+        node_count = 0
+        if MPI.get_vendor()[0] == 'Open MPI':
+            for line in f:
+                line = line.split()
+                node_count += int(line[1].split('=')[-1])
+        elif 'MPICH' in MPI.get_vendor()[0]:
+            for line in f:
+                line = line.split(":")
+                node_count += int(line[1])
+        else:
+            # TODO: support MVAPICH?
+            raise RuntimeError("mpi4py is built on top of unrecognized MPI library. "
+                               "Only Open MPI and MPICH are tested.")
+
+    return node_count
+
+
+def use_mpi_machinefile(mpirun_command, mpi_file_path):
+    # use MPI machine file if available, assuming each line of which is: 
+    # ip_address slots=n max-slots=n   --- Open MPI
+    # ip_address:n                     --- MPICH
+    node_count = get_mpi_num_processes(mpi_file_path)
+
+    if MPI.get_vendor()[0] == 'Open MPI':
+        mpirun_command.insert(3, "-machinefile")
+        # use mpirun to find where MPI is installed
+        import shutil
+        path = os.path.split(shutil.which('mpirun'))[0] 
+        if path.endswith('bin'):
+            path = path[:-3]
+        mpirun_command[4:4] = ["--prefix", path, "-x", "PATH", "-x", "LD_LIBRARY_PATH"]
+    elif 'MPICH' in MPI.get_vendor()[0]:
+        mpirun_command.insert(-2, "-u") # force flush asap (MPICH is weird...)
+        mpirun_command.insert(3, "-f")
+    else:
+        # TODO: support MVAPICH?
+        raise RuntimeError("mpi4py is built on top of unrecognized MPI library. "
+                           "Only Open MPI and MPICH are tested.")
+    mpirun_command[2] = str(node_count) # use all available nodes
+    mpirun_command.insert(4, mpi_file_path)
+
+    return mpirun_command

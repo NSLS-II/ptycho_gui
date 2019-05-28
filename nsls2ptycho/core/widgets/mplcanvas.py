@@ -115,21 +115,23 @@ class MplCanvas(FigureCanvas):
             - mpi_size: number of MPI processes
             - colormap 
         '''
+        label_set = set([i  for i in range(9)] + [i  for i in range(mpi_size, mpi_size-6, -1)])
+        labels = []
+        idx = False
         if len(self.line_handlers) == 0:
             a = split(pts.shape[1], mpi_size)
             colors = colormap(np.linspace(0, 1, len(a)))
-            label_set = set([i  for i in range(9)] + [i  for i in range(mpi_size, mpi_size-6, -1)])
             for i in range(mpi_size):
                 if mpi_size <=15 or i in label_set:
                     label = 'Process %i'%i
-                    s = rcParams['lines.markersize']**2 # matplotlib default
+                    labels.append(label)
                 elif i==mpi_size-6 and i not in label_set:
                     label = r'    $\vdots$'
-                    s = 0
+                    labels.append(label)
+                    idx = True
                 else:
                     label = '_nolegend_' # matplotlib undocumented secret...
-                    s = rcParams['lines.markersize']**2 # matplotlib default
-                h = self.axes.scatter(pts[0, a[i][0]:a[i][1]], pts[1, a[i][0]:a[i][1]], c=colors[i], label=label, s=s)
+                h = self.axes.scatter(pts[0, a[i][0]:a[i][1]], pts[1, a[i][0]:a[i][1]], c=colors[i], label=label)
                 self.line_handlers.append(h)
         else: # assuming mpi_size is unchanged
             a = split(pts.shape[1], mpi_size)
@@ -144,7 +146,13 @@ class MplCanvas(FigureCanvas):
 
         # we have a rectangular window, make the plot align to its center left
         self.axes.set_aspect(aspect='equal', anchor='W')
-        self.axes.legend(bbox_to_anchor=(0.98, 1.0), fancybox=True)
+        legend = self.axes.legend(bbox_to_anchor=(0.98, 1.0), fancybox=True)
+
+        # for the label \vdots, remove its marker
+        if idx:
+            legend.legendHandles[9].set_sizes([0])
+            #self.axes.legend(legend.legendHandles, labels, bbox_to_anchor=(0.98, 1.0), fancybox=True)
+
         self.draw()
 
 

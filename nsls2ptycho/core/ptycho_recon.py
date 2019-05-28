@@ -1,9 +1,6 @@
 from PyQt5 import QtCore
 from datetime import datetime
 from nsls2ptycho.core.ptycho_param import Param
-import mpi4py
-mpi4py.rc.initialize = False
-from mpi4py import MPI
 import sys, os
 import pickle     # dump param into disk
 import subprocess # call mpirun from shell
@@ -17,6 +14,7 @@ except ImportError as ex:
     print('[!] Unable to import core.HXN_databroker packages some features will '
           'be unavailable')
     print('[!] (import error: {})'.format(ex))
+from nsls2ptycho.core.utils import use_mpi_machinefile
 
 
 class PtychoReconWorker(QtCore.QThread):
@@ -86,46 +84,16 @@ class PtychoReconWorker(QtCore.QThread):
         return stdout_2.split()
 
     def recon_api(self, param:Param, update_fcn=None):
-        # working version
+        # "1" is just a placeholder to be overwritten soon
+        mpirun_command = ["mpirun", "-n", "1", "python", "-W", "ignore", "-m","nsls2ptycho.core.ptycho.recon_ptycho_gui"]
+
         if param.gpu_flag:
-            num_processes = str(len(param.gpus))
+            mpirun_command[2] = str(len(param.gpus))
+        elif param.mpi_file_path == '':
+            mpirun_command[2] = str(param.processes) if param.processes > 1 else str(1)
         else:
-            num_processes = str(param.processes) if param.processes > 1 else str(1)
-        mpirun_command = ["mpirun", "-n", num_processes, "python", "-W", "ignore", "-m","nsls2ptycho.core.ptycho.recon_ptycho_gui"]
+            mpirun_command = use_mpi_machinefile(mpirun_command, param.mpi_file_path)
                 
-        if 'MPICH' in MPI.get_vendor()[0]:
-            mpirun_command.insert(-2, "-u") # force flush asap (MPICH is weird...)
-
-        # use MPI machine file if available, assuming each line of which is: 
-        # ip_address slots=n max-slots=n   --- Open MPI
-        # ip_address:n                     --- MPICH
-        if param.mpi_file_path != '':
-            with open(param.mpi_file_path, 'r') as f:
-                node_count = 0
-                if MPI.get_vendor()[0] == 'Open MPI':
-                    for line in f:
-                        line = line.split()
-                        node_count += int(line[1].split('=')[-1])
-                    mpirun_command.insert(3, "-machinefile")
-                    # use mpirun to find where MPI is installed
-                    import shutil
-                    path = os.path.split(shutil.which('mpirun'))[0] 
-                    if path[-3:] == 'bin':
-                        path = path[:-3]
-                    mpirun_command[4:4] = ["--prefix", path, "-x", "PATH", "-x", "LD_LIBRARY_PATH"]
-                elif 'MPICH' in MPI.get_vendor()[0]:
-                    for line in f:
-                        line = line.split(":")
-                        node_count += int(line[1])
-                    mpirun_command.insert(3, "-f")
-                else:
-                    raise RuntimeError("mpi4py is built on top of unrecognized MPI library. "
-                                       "Only Open MPI and MPICH are tested.")
-                mpirun_command[2] = str(node_count) # use all available nodes
-                mpirun_command.insert(4, param.mpi_file_path)
-                #param.gpus = range(node_count)
-                #print(" ".join(mpirun_command))
-
         try:
             self.return_value = None
             with subprocess.Popen(mpirun_command,

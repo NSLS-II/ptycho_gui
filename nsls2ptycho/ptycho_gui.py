@@ -5,7 +5,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog, QAction
 
 from nsls2ptycho.ui import ui_ptycho
-from nsls2ptycho.core.utils import clean_shared_memory
+from nsls2ptycho.core.utils import clean_shared_memory, get_mpi_num_processes
 from nsls2ptycho.core.ptycho_param import Param
 from nsls2ptycho.core.ptycho_recon import PtychoReconWorker, PtychoReconFakeWorker, HardWorker
 from nsls2ptycho.core.ptycho_qt_utils import PtychoStream
@@ -545,8 +545,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
                 # copied from nsls2ptycho/core/ptycho_recon.py
                 if self.param.gpu_flag:
                     num_processes = str(len(self.param.gpus))
-                else:
+                elif self.param.mpi_file_path == '':
                     num_processes = str(self.param.processes) if self.param.processes > 1 else str(1)
+                else:
+                    num_processes = str(get_mpi_num_processes(self.param.mpi_file_path))
                 self.scanWindow.update_image(self._scan_points, int(num_processes))
 
 
