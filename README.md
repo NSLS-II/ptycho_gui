@@ -10,6 +10,7 @@ The instruction below is **for admins who have the root priviledge** to install 
 #### Fully automatic way (recommended)
 1. Create a new conda environment named `ptycho_production`: `sudo /opt/conda/bin/conda create -p /opt/conda_envs/ptycho_production python=3.6 nsls2ptycho` (If you need beamline-specific packages, such as `hxntools` for HXN, append the package names in the `conda create` command. This helps resolve possible conflict/downgrade issues.) 
 The conda environment `ptycho_production` is activated under the hood using the `run-ptycho` script to be installed in the last step.
+2. `fix_conda_privileges.sh`
 2. `sudo -i` (switch to `root`)
 3. `/opt/conda_envs/ptycho_production/bin/pip install 'cupy-cudaXX>=6.0.0b3'`, where `XX` is your CUDA toolkit version, available from `nvcc --version`
 3. If needed, copy the script `run-ptycho` in the root of this repo to `/usr/local/bin/`: `sudo cp ./run-ptycho /usr/local/bin/`
