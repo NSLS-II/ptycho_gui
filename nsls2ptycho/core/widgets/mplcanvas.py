@@ -115,26 +115,26 @@ class MplCanvas(FigureCanvas):
             - mpi_size: number of MPI processes
             - colormap 
         '''
+        # only show up to 15 items in the legend to fit in the window
         label_set = set([i  for i in range(9)] + [i  for i in range(mpi_size, mpi_size-6, -1)])
-        labels = []
-        idx = False
+        #labels = []
+        too_long = False
+        a = split(pts.shape[1], mpi_size)
         if len(self.line_handlers) == 0:
-            a = split(pts.shape[1], mpi_size)
             colors = colormap(np.linspace(0, 1, len(a)))
             for i in range(mpi_size):
                 if mpi_size <=15 or i in label_set:
                     label = 'Process %i'%i
-                    labels.append(label)
+                    #labels.append(label)
                 elif i==mpi_size-6 and i not in label_set:
                     label = r'    $\vdots$'
-                    labels.append(label)
-                    idx = True
+                    #labels.append(label)
+                    too_long = True
                 else:
                     label = '_nolegend_' # matplotlib undocumented secret...
                 h = self.axes.scatter(pts[0, a[i][0]:a[i][1]], pts[1, a[i][0]:a[i][1]], c=colors[i], label=label)
                 self.line_handlers.append(h)
         else: # assuming mpi_size is unchanged
-            a = split(pts.shape[1], mpi_size)
             for i, h in enumerate(self.line_handlers):
                 h.set_offsets(np.array([pts[0, a[i][0]:a[i][1]], pts[1, a[i][0]:a[i][1]]]).transpose())
             # TODO: handle plot limits?
@@ -149,7 +149,7 @@ class MplCanvas(FigureCanvas):
         legend = self.axes.legend(bbox_to_anchor=(0.98, 1.0), fancybox=True)
 
         # for the label \vdots, remove its marker
-        if idx:
+        if too_long:
             legend.legendHandles[9].set_sizes([0])
             #self.axes.legend(legend.legendHandles, labels, bbox_to_anchor=(0.98, 1.0), fancybox=True)
 
