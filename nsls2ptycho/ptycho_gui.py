@@ -40,6 +40,10 @@ import mmap
 # set True for testing GUI changes
 _TEST = False
 
+# for shared memory
+mm_list = []
+shm_list = []
+
 
 class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
     def __init__(self, parent=None, param:Param=None):
@@ -138,6 +142,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.updateModeFlg()
         self.updateMultiSliceFlg()
         self.updateObjMaskFlg()
+        self.updateBraggFlg()
+        self.updatePcFlg()
+        self.updateCorrFlg()
+        self.updateRefineDataFlg()
         self.checkGpuAvail()
         self.updateGpuFlg()
         self.resetExperimentalParameters() # probably not necessary
@@ -567,29 +575,27 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
 
     def init_mmap(self):
-        global ptycho_shm0, ptycho_shm1, ptycho_shm2, ptycho_mm0, ptycho_mm1, ptycho_mm2
         p = self.param
         datasize = 8 if p.precision == 'single' else 16
         datatype = np.complex64 if p.precision == 'single' else np.complex128
 
-        ptycho_shm0 = SharedMemory("/"+p.shm_name+"_obj_size")
-        ptycho_mm0 = mmap.mmap(ptycho_shm0.fd, 0)
-        nx_obj = int.from_bytes(ptycho_mm0.read(8), byteorder='big')
-        ny_obj = int.from_bytes(ptycho_mm0.read(8), byteorder='big') # the file position has been moved by 8 bytes when we get nx_obj
+        global mm_list, shm_list
+        for i, name in enumerate(["/"+p.shm_name+"_obj_size", "/"+p.shm_name+"_prb", "/"+p.shm_name+"_obj"]):
+            shm_list.append(SharedMemory(name))
+            mm_list.append(mmap.mmap(shm_list[i].fd, 0))
 
-        ptycho_shm1 = SharedMemory("/"+p.shm_name+"_prb")
-        ptycho_mm1 = mmap.mmap(ptycho_shm1.fd, 0)
-        ptycho_shm2 = SharedMemory("/"+p.shm_name+"_obj")
-        ptycho_mm2 = mmap.mmap(ptycho_shm2.fd, 0)
+        nx_obj = int.from_bytes(mm_list[0].read(8), byteorder='big')
+        ny_obj = int.from_bytes(mm_list[0].read(8), byteorder='big') # the file position has been moved by 8 bytes when we get nx_obj
+
         if p.mode_flag:
-            self._prb = np.ndarray(shape=(p.n_iterations, p.prb_mode_num, p.nx, p.ny), dtype=datatype, buffer=ptycho_mm1, order='C')
-            self._obj = np.ndarray(shape=(p.n_iterations, p.obj_mode_num, nx_obj, ny_obj), dtype=datatype, buffer=ptycho_mm2, order='C')
+            self._prb = np.ndarray(shape=(p.n_iterations, p.prb_mode_num, p.nx, p.ny), dtype=datatype, buffer=mm_list[1], order='C')
+            self._obj = np.ndarray(shape=(p.n_iterations, p.obj_mode_num, nx_obj, ny_obj), dtype=datatype, buffer=mm_list[2], order='C')
         elif p.multislice_flag:
-            self._prb = np.ndarray(shape=(p.n_iterations, 1, p.nx, p.ny), dtype=datatype, buffer=ptycho_mm1, order='C')
-            self._obj = np.ndarray(shape=(p.n_iterations, p.slice_num, nx_obj, ny_obj), dtype=datatype, buffer=ptycho_mm2, order='C')
+            self._prb = np.ndarray(shape=(p.n_iterations, 1, p.nx, p.ny), dtype=datatype, buffer=mm_list[1], order='C')
+            self._obj = np.ndarray(shape=(p.n_iterations, p.slice_num, nx_obj, ny_obj), dtype=datatype, buffer=mm_list[2], order='C')
         else:
-            self._prb = np.ndarray(shape=(p.n_iterations, 1, p.nx, p.ny), dtype=datatype, buffer=ptycho_mm1, order='C')
-            self._obj = np.ndarray(shape=(p.n_iterations, 1, nx_obj, ny_obj), dtype=datatype, buffer=ptycho_mm2, order='C')
+            self._prb = np.ndarray(shape=(p.n_iterations, 1, p.nx, p.ny), dtype=datatype, buffer=mm_list[1], order='C')
+            self._obj = np.ndarray(shape=(p.n_iterations, 1, nx_obj, ny_obj), dtype=datatype, buffer=mm_list[2], order='C')
 
 
     def close_mmap(self):
@@ -598,17 +604,13 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         # the intermediate results after mmaps' are closed. A potential segfault is avoided 
         # by accessing the transformed results, which are buffered, not the original ones.
         try:
-            global ptycho_mm0, ptycho_mm1, ptycho_mm2, ptycho_shm0, ptycho_shm1, ptycho_shm2
-            ptycho_mm0.close()
-            ptycho_mm1.close()
-            ptycho_mm2.close()
-            ptycho_shm0.close_fd()
-            ptycho_shm1.close_fd()
-            ptycho_shm2.close_fd()
-            ptycho_shm0.unlink()
-            ptycho_shm1.unlink()
-            ptycho_shm2.unlink()
-            del ptycho_mm0, ptycho_mm1, ptycho_mm2, ptycho_shm0, ptycho_shm1, ptycho_shm2
+            global mm_list, shm_list
+            for mm, shm in zip(mm_list, shm_list):
+                mm.close()
+                shm.close_fd()
+                shm.unlink()
+            mm_list = []
+            shm_list = []
         except NameError:
             # either not using GUI, monitor is turned off, global variables are deleted or not yet created!
             # need to examine the last case
