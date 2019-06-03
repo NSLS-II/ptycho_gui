@@ -142,6 +142,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.updateModeFlg()
         self.updateMultiSliceFlg()
         self.updateObjMaskFlg()
+        self.updateBraggFlg()
+        self.updatePcFlg()
+        self.updateCorrFlg()
+        self.updateRefineDataFlg()
         self.checkGpuAvail()
         self.updateGpuFlg()
         self.resetExperimentalParameters() # probably not necessary
