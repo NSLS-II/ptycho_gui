@@ -142,6 +142,8 @@ class PtychoReconWorker(QtCore.QThread):
                             it, result = self._parse_message(stdout)
                             #print(result['probe_chi'])
                             update_fcn(it+1, result)
+                        elif stdout[0] == "shared" and update_fcn is not None:
+                            update_fcn(-1, "init_mmap")
 
                     if stderr:
                         stderr = stderr.decode('utf-8')

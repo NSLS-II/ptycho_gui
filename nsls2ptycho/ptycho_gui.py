@@ -630,7 +630,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
             if not _TEST and self.ck_preview_flag.isChecked():
                 try:
-                    if it == 1:
+                    if it == -1 and data == 'init_mmap':
                         try:
                             # the two npy are created by ptycho by this time
                             self.init_mmap()
