@@ -14,7 +14,7 @@ except ImportError as ex:
     print('[!] Unable to import core.HXN_databroker packages some features will '
           'be unavailable')
     print('[!] (import error: {})'.format(ex))
-from nsls2ptycho.core.utils import use_mpi_machinefile
+from nsls2ptycho.core.utils import use_mpi_machinefile, set_flush_early
 
 
 class PtychoReconWorker(QtCore.QThread):
@@ -87,12 +87,16 @@ class PtychoReconWorker(QtCore.QThread):
         # "1" is just a placeholder to be overwritten soon
         mpirun_command = ["mpirun", "-n", "1", "python", "-W", "ignore", "-m","nsls2ptycho.core.ptycho.recon_ptycho_gui"]
 
-        if param.gpu_flag:
-            mpirun_command[2] = str(len(param.gpus))
-        elif param.mpi_file_path == '':
-            mpirun_command[2] = str(param.processes) if param.processes > 1 else str(1)
+        if param.mpi_file_path == '':
+            if param.gpu_flag:
+                mpirun_command[2] = str(len(param.gpus))
+            else:
+                mpirun_command[2] = str(param.processes) if param.processes > 1 else str(1)
         else:
+            # regardless if GPU is used or not --- trust users to know this
             mpirun_command = use_mpi_machinefile(mpirun_command, param.mpi_file_path)
+
+        mpirun_command = set_flush_early(mpirun_command)
                 
         try:
             self.return_value = None

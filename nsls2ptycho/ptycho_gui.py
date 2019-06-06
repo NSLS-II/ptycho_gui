@@ -550,12 +550,14 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             else:
                 self._scan_points[0] *= -1.*self.param.x_direction
                 self._scan_points[1] *= self.param.y_direction
-                # copied from nsls2ptycho/core/ptycho_recon.py
-                if self.param.gpu_flag:
-                    num_processes = str(len(self.param.gpus))
-                elif self.param.mpi_file_path == '':
-                    num_processes = str(self.param.processes) if self.param.processes > 1 else str(1)
+                # borrowed from nsls2ptycho/core/ptycho_recon.py
+                if self.param.mpi_file_path == '':
+                    if self.param.gpu_flag:
+                        num_processes = str(len(self.param.gpus))
+                    else:
+                        num_processes = str(self.param.processes) if self.param.processes > 1 else str(1)
                 else:
+                    # regardless if GPU is used or not --- trust users to know this
                     num_processes = str(get_mpi_num_processes(self.param.mpi_file_path))
                 self.scanWindow.update_image(self._scan_points, int(num_processes))
 

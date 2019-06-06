@@ -65,21 +65,20 @@ def clean_shared_memory(pid=None):
 def get_mpi_num_processes(mpi_file_path):
     # use MPI machine file if available, assuming each line of which is: 
     # ip_address slots=n max-slots=n   --- Open MPI
-    # ip_address:n                     --- MPICH
+    # ip_address:n                     --- MPICH, MVAPICH
     with open(mpi_file_path, 'r') as f:
         node_count = 0
         if MPI.get_vendor()[0] == 'Open MPI':
             for line in f:
                 line = line.split()
                 node_count += int(line[1].split('=')[-1])
-        elif 'MPICH' in MPI.get_vendor()[0]:
+        elif 'MPICH' in MPI.get_vendor()[0] or 'MVAPICH' in MPI.get_vendor()[0]:
             for line in f:
                 line = line.split(":")
                 node_count += int(line[1])
         else:
-            # TODO: support MVAPICH?
             raise RuntimeError("mpi4py is built on top of unrecognized MPI library. "
-                               "Only Open MPI and MPICH are tested.")
+                               "Only Open MPI, MPICH, and MVAPICH are tested.")
 
     return node_count
 
@@ -87,7 +86,7 @@ def get_mpi_num_processes(mpi_file_path):
 def use_mpi_machinefile(mpirun_command, mpi_file_path):
     # use MPI machine file if available, assuming each line of which is: 
     # ip_address slots=n max-slots=n   --- Open MPI
-    # ip_address:n                     --- MPICH
+    # ip_address:n                     --- MPICH, MVAPICH
     node_count = get_mpi_num_processes(mpi_file_path)
 
     if MPI.get_vendor()[0] == 'Open MPI':
@@ -98,14 +97,18 @@ def use_mpi_machinefile(mpirun_command, mpi_file_path):
         if path.endswith('bin'):
             path = path[:-3]
         mpirun_command[4:4] = ["--prefix", path, "-x", "PATH", "-x", "LD_LIBRARY_PATH"]
-    elif 'MPICH' in MPI.get_vendor()[0]:
-        mpirun_command.insert(-2, "-u") # force flush asap (MPICH is weird...)
+    elif 'MPICH' in MPI.get_vendor()[0] or 'MVAPICH' in MPI.get_vendor()[0]:
         mpirun_command.insert(3, "-f")
     else:
-        # TODO: support MVAPICH?
         raise RuntimeError("mpi4py is built on top of unrecognized MPI library. "
-                           "Only Open MPI and MPICH are tested.")
+                           "Only Open MPI, MPICH, and MVAPICH are tested.")
     mpirun_command[2] = str(node_count) # use all available nodes
     mpirun_command.insert(4, mpi_file_path)
 
+    return mpirun_command
+
+
+def set_flush_early(mpirun_command):
+    if 'MPICH' in MPI.get_vendor()[0] or 'MVAPICH' in MPI.get_vendor()[0]:
+        mpirun_command.insert(-2, "-u") # force flush asap (MPICH is weird...)
     return mpirun_command
