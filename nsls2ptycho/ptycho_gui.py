@@ -582,7 +582,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         global mm_list, shm_list
         for i, name in enumerate(["/"+p.shm_name+"_obj_size", "/"+p.shm_name+"_prb", "/"+p.shm_name+"_obj"]):
             shm_list.append(SharedMemory(name))
-            mm_list.append(mmap.mmap(shm_list[i].fd, 0))
+            mm_list.append(mmap.mmap(shm_list[i].fd, shm_list[i].size))
 
         nx_obj = int.from_bytes(mm_list[0].read(8), byteorder='big')
         ny_obj = int.from_bytes(mm_list[0].read(8), byteorder='big') # the file position has been moved by 8 bytes when we get nx_obj
