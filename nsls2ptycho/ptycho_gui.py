@@ -639,7 +639,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
                         except ExistentialError:
                             # user may kill the process prematurely
                             self.stop()
-                    if it == self.param.n_iterations+1:
+                    elif it == self.param.n_iterations+1:
                         # reserve it=n_iterations+1 as the working space
                         self.reconStepWindow.current_max_iters = self.param.n_iterations
 
@@ -703,8 +703,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
                                 images.append( np.rot90(np.angle(data['prb_'+sol])) )
 
                         self.reconStepWindow.update_images(it, images)
-                    elif it % self.param.display_interval == 1 or (it >= 1 and self.param.display_interval == 1):
-                        # there could be synchronization problem? should have better solution...
+                    elif (it-1) % self.param.display_interval == 0:
                         if self.param.mode_flag:
                             images = []
                             for i in range(self.param.obj_mode_num):
