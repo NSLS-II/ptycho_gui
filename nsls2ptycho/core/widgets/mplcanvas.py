@@ -132,7 +132,7 @@ class MplCanvas(FigureCanvas):
                     too_long = True
                 else:
                     label = '_nolegend_' # matplotlib undocumented secret...
-                h = self.axes.scatter(pts[0, a[i][0]:a[i][1]], pts[1, a[i][0]:a[i][1]], c=colors[i], label=label)
+                h = self.axes.scatter(pts[0, a[i][0]:a[i][1]], pts[1, a[i][0]:a[i][1]], c=[colors[i]], label=label)
                 self.line_handlers.append(h)
         else: # assuming mpi_size is unchanged
             for i, h in enumerate(self.line_handlers):
