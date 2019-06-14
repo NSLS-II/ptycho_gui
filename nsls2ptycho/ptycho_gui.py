@@ -1110,13 +1110,6 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
             if self.cb_dataloader.currentText() == "Load from h5":
                 self._loadExpParamH5(scan_num)
-        except KeyError as ex: # for h5
-            if 'angle' in ex.args[0]:
-                self.sp_angle.setValue(15.) # backward compatibility for old datasets
-                print("angle not found, assuming 15...", file=sys.stderr)
-                self._loaded = True
-            else: # shouldn't happen, and we'd like to know (ex: old scan data from databroker)
-                self.exception_handler(ex)
         except OSError: # for h5
             print("[ERROR] h5 not found. Resetting...", file=sys.stderr, end='')
             self.resetExperimentalParameters()
@@ -1180,6 +1173,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         if self.cb_scan_type.findText(metadata['scan_type']) == -1:
             self.cb_scan_type.addItem(metadata['scan_type'])
         self.cb_scan_type.setCurrentText(metadata['scan_type'])
+        self._scan_points = metadata['points']
         print("done")
 
 
@@ -1212,7 +1206,11 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             self.sp_y_scan_range.setValue(f['y_range'].value)
             self.sp_num_points.setValue(nz)
             self.sp_ccd_pixel_um.setValue(f['ccd_pixel_um'].value)
-            self.sp_angle.setValue(f['angle'].value)
+            if 'angle' in f.keys():
+                self.sp_angle.setValue(f['angle'].value)
+            else:
+                self.sp_angle.setValue(15.) # backward compatibility for old datasets
+                print("angle not found, assuming 15...", file=sys.stderr)
             self._scan_points = f['points'][:] # for visualization purpose
             #self.cb_scan_type = ...
             # read the detector name and set it in GUI??
