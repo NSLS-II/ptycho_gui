@@ -80,6 +80,7 @@ class Param(object):
         self.gpu_flag = True      # whether to use GPU
         self.gpus = [1, 2, 3]     # should be a list of gpu numbers, ex: [0, 2, 3]
         self.gpu_batch_size = 256 # should be 4^n, ex: 4, 16, 64, 256, 1024, 4096, ...
+        self.use_NCCL = False
         self.mpi_file_path = ''   # full path to a valid MPI machine file
 
         ### [adv param group] ###

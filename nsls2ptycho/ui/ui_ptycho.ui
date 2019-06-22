@@ -2106,7 +2106,7 @@
          <item>
           <widget class="QRadioButton" name="rb_nccl">
            <property name="enabled">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="text">
             <string>NCCL (GPU only)</string>

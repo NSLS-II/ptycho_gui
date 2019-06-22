@@ -871,7 +871,7 @@ class Ui_MainWindow(object):
         spacerItem13 = QtWidgets.QSpacerItem(28, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_20.addItem(spacerItem13)
         self.rb_nccl = QtWidgets.QRadioButton(self.layoutWidget1)
-        self.rb_nccl.setEnabled(False)
+        self.rb_nccl.setEnabled(True)
         self.rb_nccl.setCheckable(True)
         self.rb_nccl.setChecked(False)
         self.rb_nccl.setObjectName("rb_nccl")

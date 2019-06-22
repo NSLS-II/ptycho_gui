@@ -331,6 +331,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
         p.profiler_flag        = self.ck_profiler_flag.isChecked()
         p.postprocessing_flag  = self.ck_postprocessing_flag.isChecked()
+        p.use_NCCL             = self.rb_nccl.isChecked()
 
         # TODO: organize them
         #self.ck_init_obj_dpc_flag.setChecked(p.init_obj_dpc_flag) 
@@ -455,6 +456,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
         self.ck_profiler_flag.setChecked(p.profiler_flag)
         self.ck_postprocessing_flag.setChecked(p.postprocessing_flag)
+        self.rb_nccl.setChecked(p.use_NCCL)
 
         # batch param group, necessary?
 
