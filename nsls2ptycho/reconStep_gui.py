@@ -24,6 +24,8 @@ class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
         self.pushButton_3.setEnabled(False)
         #self. ...
 
+        self.move(760, 0)
+
         self.reset_window(obj_num, prb_num, result_type_num)
 
     def reset_window(self, obj_num=1, prb_num=1, result_type_num=1, iterations=50, slider_interval=1):

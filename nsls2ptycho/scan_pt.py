@@ -10,7 +10,7 @@ class ScanWindow(QtWidgets.QMainWindow, ui_scan.Ui_MainWindow):
         super().__init__(parent)
         self.setupUi(self)
         QtWidgets.QApplication.setStyle('Plastique')
-
+        self.move(760+600, 0)
         self.reset_window()
 
     def reset_window(self):
