@@ -1268,9 +1268,11 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
 
     def _exportConfigHelper(self, filename:str):
+        keys = list(self.param.__dict__.keys())
+        keys.sort()
         with open(filename, 'w') as f:
             f.write("[GUI]\n")
-            for key in self.param.__dict__:
+            for key in keys:
                 # skip a few items related to databroker
                 if key == 'points' or key == 'ic' or key == 'mds_table':
                     continue
