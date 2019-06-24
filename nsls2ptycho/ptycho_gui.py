@@ -292,6 +292,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         p.start_update_probe = self.sp_start_update_probe.value()
         p.start_update_object = self.sp_start_update_object.value()
         p.ml_mode = self.cb_ml_mode.currentText()
+        p.ml_weight = self.sp_ml_weight.value()
         p.dm_version = self.sp_dm_version.value()
         p.cal_scan_pattern_flag = self.ck_cal_scal_pattern_flag.isChecked()
         p.nth = self.sp_nth.value()
@@ -413,6 +414,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.sp_start_update_probe.setValue(p.start_update_probe)
         self.sp_start_update_object.setValue(p.start_update_object)
         self.cb_ml_mode.setCurrentText(p.ml_mode)
+        self.sp_ml_weight.setValue(p.ml_weight)
         self.sp_dm_version.setValue(p.dm_version)
         self.ck_cal_scal_pattern_flag.setChecked(p.cal_scan_pattern_flag)
         self.sp_nth.setValue(p.nth)
@@ -542,10 +544,16 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
             # init scan window
             # TODO: optimize and refactor this part
-            if self.scanWindow is None:
-                self.scanWindow = ScanWindow()
-                self.scanWindow.reset_window()
-                self.scanWindow.show()
+            if self.ck_scan_pt_flag.isChecked():
+                if self.scanWindow is None:
+                    self.scanWindow = ScanWindow()
+                    self.scanWindow.reset_window()
+                    self.scanWindow.show()
+            else:
+                if self.scanWindow is not None:
+                    self.scanWindow.close()
+                    self.scanWindow = None
+                return
 
             if self._scan_points is None:
                 raise RuntimeError("Scan points were not read. This shouldn't happen. Abort.")
@@ -840,6 +848,9 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.btn_gpu_1.setEnabled(flag)
         self.btn_gpu_2.setEnabled(flag)
         self.btn_gpu_3.setEnabled(flag)
+        self.rb_nccl.setEnabled(flag)
+        if not flag and self.rb_nccl.isChecked():
+            self.rb_mpi.setChecked(True)
 
 
     def updateBraggFlg(self):

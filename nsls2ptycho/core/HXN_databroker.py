@@ -166,6 +166,7 @@ def save_data(db, param, scan_num:int, n:int, nn:int, cx:int, cy:int, threshold=
     
     # get data array
     data = np.zeros((num_frame, n, nn)) # nz*nx*ny
+    mask = []
     for i in range(num_frame):
         #print(param.mds_table.iat[i], file=sys.stderr)
         img = db.reg.retrieve(param.mds_table.iat[i])[0]
@@ -207,8 +208,15 @@ def save_data(db, param, scan_num:int, n:int, nn:int, cx:int, cy:int, threshold=
         #    return
         
         tmptmp = np.rot90(tmptmp, axes=(1,0)) #equivalent to np.flipud(tmptmp).T
+        if not np.sum(tmptmp) > 0.:
+            mask.append(i)
         data[i] = np.fft.fftshift(tmptmp)
 
+    if len(mask) > 0:
+        print("Removing the dark frames:", mask, file=sys.stderr)
+        data = np.delete(data, mask, axis=0)
+        param.points = np.delete(param.points, mask, axis=1)
+        param.nz = param.nz - len(mask)
     data[data < threshold] = 0.
     data = np.sqrt(data)
     # data array got

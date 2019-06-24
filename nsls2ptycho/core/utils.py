@@ -38,7 +38,8 @@ def find_owner(filename):
 
 def clean_shared_memory(pid=None):
     '''
-    This function cleans up shared memory segments created by the GUI or a buggy Open MPI.
+    This function cleans up shared memory segments created by the GUI
+    or a buggy Open MPI or CUDA.
     '''
     # this only works for linux that has /dev/shm
     if not sys.platform.startswith('linux'):
@@ -51,7 +52,9 @@ def clean_shared_memory(pid=None):
     user = getpass.getuser()   
 
     for shm in shm_list:
-        if (shm.startswith('ptycho') or shm.startswith('vader')) \
+        if (shm.startswith('ptycho') \
+            or shm.startswith('vader') \
+            or shm.startswith('cuda.shm')) \
            and user == find_owner('/dev/shm/'+shm):
 
             if (pid is None) or (pid is not None and pid in shm):
