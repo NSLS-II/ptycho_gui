@@ -54,7 +54,7 @@ def clean_shared_memory(pid=None):
     for shm in shm_list:
         if (shm.startswith('ptycho') \
             or shm.startswith('vader') \
-            or shm.startswith('cuda.shm')) \
+            or shm.startswith('cuda')) \
            and user == find_owner('/dev/shm/'+shm):
 
             if (pid is None) or (pid is not None and pid in shm):

@@ -654,6 +654,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
                         self.reconStepWindow.current_max_iters = self.param.n_iterations
 
                         p = self.param
+                        if not p.postprocessing_flag:
+                            return
                         work_dir = p.working_directory
                         scan_num = str(p.scan_num)
                         data_dir = work_dir+'/recon_result/S'+scan_num+'/'+p.sign+'/recon_data/'
