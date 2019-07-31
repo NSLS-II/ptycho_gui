@@ -998,7 +998,7 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_16">
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
           <item>
            <widget class="QCheckBox" name="ck_gpu_flag">
             <property name="layoutDirection">
@@ -1013,104 +1013,14 @@
            </widget>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <item>
-             <widget class="QPushButton" name="btn_gpu_0">
-              <property name="maximumSize">
-               <size>
-                <width>25</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">:checked {
-	background-color: rgba(255, 170, 0, 150);
-}</string>
-              </property>
-              <property name="text">
-               <string>0</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btn_gpu_1">
-              <property name="maximumSize">
-               <size>
-                <width>25</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">:checked {
-	background-color: rgba(255, 170, 0, 150);
-}</string>
-              </property>
-              <property name="text">
-               <string>1</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btn_gpu_2">
-              <property name="maximumSize">
-               <size>
-                <width>25</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">:checked {
-	background-color: rgba(255, 170, 0, 150);
-}</string>
-              </property>
-              <property name="text">
-               <string>2</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-              <property name="checked">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btn_gpu_3">
-              <property name="maximumSize">
-               <size>
-                <width>25</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">:checked {
-	background-color: rgba(255, 170, 0, 150);
-}</string>
-              </property>
-              <property name="text">
-               <string>3</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-              <property name="checked">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QLineEdit" name="le_gpus">
+            <property name="toolTip">
+             <string>Set the GPUs to be used. Example: 0, 2-3, 5</string>
+            </property>
+            <property name="text">
+             <string>0,1</string>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QLabel" name="label_51">
@@ -2093,8 +2003,44 @@
         <property name="geometry">
          <rect>
           <x>20</x>
+          <y>90</y>
+          <width>721</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_21">
+         <item>
+          <widget class="QCheckBox" name="ck_profiler_flag">
+           <property name="text">
+            <string>Line Profiler</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="ck_postprocessing_flag">
+           <property name="text">
+            <string>Perform post-processing</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="ck_scan_pt_flag">
+           <property name="text">
+            <string>Show scan-point distribution</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="layoutWidget">
+        <property name="geometry">
+         <rect>
+          <x>22</x>
           <y>50</y>
-          <width>476</width>
+          <width>680</width>
           <height>26</height>
          </rect>
         </property>
@@ -2107,19 +2053,6 @@
           </widget>
          </item>
          <item>
-          <spacer name="horizontalSpacer_14">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>28</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
           <widget class="QRadioButton" name="rb_mpi">
            <property name="text">
             <string>MPI</string>
@@ -2130,13 +2063,36 @@
           </widget>
          </item>
          <item>
+          <spacer name="horizontalSpacer_17">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>4</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="rb_cuda_mpi">
+           <property name="text">
+            <string>CUDA-aware MPI (GPU only)</string>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
           <spacer name="horizontalSpacer_15">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>28</width>
+             <width>4</width>
              <height>20</height>
             </size>
            </property>
@@ -2165,7 +2121,7 @@
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>28</width>
+             <width>4</width>
              <height>20</height>
             </size>
            </property>
@@ -2184,42 +2140,6 @@
            </property>
            <property name="checked">
             <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="">
-        <property name="geometry">
-         <rect>
-          <x>20</x>
-          <y>90</y>
-          <width>721</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_21">
-         <item>
-          <widget class="QCheckBox" name="ck_profiler_flag">
-           <property name="text">
-            <string>Line Profiler</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="ck_postprocessing_flag">
-           <property name="text">
-            <string>Perform post-processing</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="ck_scan_pt_flag">
-           <property name="text">
-            <string>Show scan-point distribution</string>
            </property>
           </widget>
          </item>

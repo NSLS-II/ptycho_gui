@@ -115,3 +115,35 @@ def set_flush_early(mpirun_command):
     if 'MPICH' in MPI.get_vendor()[0] or 'MVAPICH' in MPI.get_vendor()[0]:
         mpirun_command.insert(-2, "-u") # force flush asap (MPICH is weird...)
     return mpirun_command
+
+
+def parse_range(batch_items, every_nth_item = 1, reverse_sort = True):
+    '''
+    Note the range is inclusive on both ends.
+    Ex: 1238 - 1242 with step size 2 --> [1238, 1240, 1242]
+    '''
+    scan_range = []
+    scan_numbers = []
+
+    if batch_items == '':
+        raise ValueError("No item list is given for batch processing.")
+
+    # first parse items and separate them into two catogories
+    slist = batch_items.split(',')
+    for item in slist:
+        if '-' in item:
+            sublist = item.split('-')
+            scan_range.append((int(sublist[0].strip()), int(sublist[1].strip())))
+        elif len(item) == 0:  # for empty string
+            continue
+        else:
+            scan_numbers.append(int(item.strip()))
+
+    # next generate all legit items from the chosen ranges and make a sorted item list
+    for item in scan_range:
+        scan_numbers = scan_numbers + list(range(item[0], item[1]+1, every_nth_item))
+
+    if reverse_sort:
+        scan_numbers.sort(reverse=True)
+
+    return scan_numbers
