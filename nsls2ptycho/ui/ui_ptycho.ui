@@ -2320,6 +2320,113 @@
          </item>
         </layout>
        </widget>
+       <widget class="QCheckBox" name="ck_batch_run_flag">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>220</y>
+          <width>141</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Run reconstruction</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+       <widget class="QWidget" name="">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>190</y>
+          <width>644</width>
+          <height>31</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_16">
+         <item>
+          <widget class="QCheckBox" name="ck_batch_crop_flag">
+           <property name="toolTip">
+            <string>This is effective only when &quot;Load from databroker&quot; is set.</string>
+           </property>
+           <property name="text">
+            <string>Crop data:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_14">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>28</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_62">
+           <property name="text">
+            <string>x0</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="sp_batch_x0">
+           <property name="maximum">
+            <number>100000000</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_63">
+           <property name="text">
+            <string>y0</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="sp_batch_y0">
+           <property name="maximum">
+            <number>100000000</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_64">
+           <property name="text">
+            <string>w</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="sp_batch_width">
+           <property name="maximum">
+            <number>100000000</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_65">
+           <property name="text">
+            <string>h</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="sp_batch_height">
+           <property name="maximum">
+            <number>100000000</number>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </widget>
      </widget>
     </item>

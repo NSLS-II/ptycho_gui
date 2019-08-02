@@ -214,7 +214,7 @@ class MplCanvasTool(QtWidgets.QWidget):
         self.canvas.draw()
 
     def draw_image(self, image, cmap='gray', init_roi=False, use_log=False):
-        print(cmap, init_roi, use_log)
+        #print(cmap, init_roi, use_log)
         if use_log:
             print('log scale')
             image_data = np.nan_to_num(np.log(image + 1.))

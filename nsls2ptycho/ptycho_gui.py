@@ -29,7 +29,6 @@ from nsls2ptycho.scan_pt import ScanWindow
 import h5py
 import numpy as np
 from numpy import pi
-import matplotlib.pyplot as plt
 import traceback
 
 # for frontend-backend communication
@@ -46,6 +45,8 @@ shm_list = []
 
 
 class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
+    _mainwindow_signal = QtCore.pyqtSignal()
+
     def __init__(self, parent=None, param:Param=None):
         super().__init__(parent)
         self.setupUi(self)
@@ -76,6 +77,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.ck_position_correction_flag.clicked.connect(self.updateCorrFlg)
         self.ck_refine_data_flag.clicked.connect(self.updateRefineDataFlg)
         self.ck_postprocessing_flag.clicked.connect(self.showNoPostProcessingWarning)
+        self.ck_batch_crop_flag.clicked.connect(self.updateBatchCropDataFlg)
+        self.cb_dataloader.currentTextChanged.connect(self.updateBatchCropDataFlg)
 
         self.btn_recon_start.clicked.connect(self.start)
         self.btn_recon_stop.clicked.connect(self.stop)
@@ -144,6 +147,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.updatePcFlg()
         self.updateCorrFlg()
         self.updateRefineDataFlg()
+        self.updateBatchCropDataFlg()
         self.checkGpuAvail()
         self.updateGpuFlg()
         self.resetExperimentalParameters() # probably not necessary
@@ -180,8 +184,6 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.btn_recon_batch_start.setEnabled(True)
         self.btn_recon_batch_stop.setEnabled(False)
         self.recon_bar.setValue(0)
-        #plt.ioff()
-        plt.close('all')
         # close the mmap arrays
         # removing these arrays, can be changed later if needed
         if self._prb is not None:
@@ -573,11 +575,12 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
 
     def stop(self, batch_mode=False):
-        if self._ptycho_gpu_thread is not None and self._ptycho_gpu_thread.isRunning():
+        if self._ptycho_gpu_thread is not None:
             if batch_mode:
                 self._ptycho_gpu_thread.finished.disconnect(self._batch_manager)
-            self._ptycho_gpu_thread.kill() # first kill the mpi processes
-            self._ptycho_gpu_thread.quit() # then quit QThread gracefully
+            if self._ptycho_gpu_thread.isRunning():
+                self._ptycho_gpu_thread.kill() # first kill the mpi processes
+                self._ptycho_gpu_thread.quit() # then quit QThread gracefully
             self._ptycho_gpu_thread = None
             self.resetButtons()
             if self.reconStepWindow is not None:
@@ -883,6 +886,20 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.param.refine_data_flag = flag
 
 
+    def updateBatchCropDataFlg(self):
+        if self.cb_dataloader.currentText() != "Load from databroker":
+            flag = False
+            self.ck_batch_crop_flag.setChecked(flag)
+            self.ck_batch_crop_flag.setEnabled(flag)
+        else:
+            flag = self.ck_batch_crop_flag.isChecked()
+            self.ck_batch_crop_flag.setEnabled(True)
+        self.sp_batch_x0.setEnabled(flag)
+        self.sp_batch_y0.setEnabled(flag)
+        self.sp_batch_width.setEnabled(flag)
+        self.sp_batch_height.setEnabled(flag)
+
+
     def showNoPostProcessingWarning(self):
         if not self.ck_postprocessing_flag.isChecked():
             print("[WARNING] Post-processing is turned off. No result will be written to disk!", file=sys.stderr)
@@ -915,12 +932,14 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
 
     def batchStart(self):
-        '''
-        Currently only support load from h5. 
-        '''
-        if self.cb_dataloader.currentText() == "Load from databroker":
-            print("[WARNING] Batch mode with databroker is not yet supported. Abort.", file=sys.stderr)
+        if not self.ck_batch_crop_flag.isChecked() and not self.ck_batch_run_flag.isChecked():
+            print("[WARNING] Choose least one action (Crop or Run). Stop.", file=sys.stderr)
             return
+
+        if self.cb_dataloader.currentText() == "Load from databroker":
+            if not self.ck_batch_crop_flag.isChecked():
+                print("[WARNING] Batch mode with databroker is set, but \"Crop data\" is not.\n"
+                      "[WARNING] Will attempt to load h5 from working directory", file=sys.stderr)
         
         try:
             self._scan_numbers = parse_range(self.le_batch_items.text(), self.sp_batch_step.value())
@@ -944,10 +963,19 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         '''
         Brute-force abortion of the entire batch. No resumption is possible.
         '''
-        #self._ptycho_gpu_thread.finished.disconnect(self._batch_manager)
         self._scan_numbers = None
         self.le_scan_num.textChanged.connect(self.forceLoad)
         self.stop(True)
+        if self.roiWindow is not None:
+            if self.roiWindow._worker_thread is not None:
+                self.roiWindow._worker_thread.disconnect()
+                ## thread.terminate() freezes the whole GUI -- why?
+                #if self.roiWindow._worker_thread.isRunning():
+                #    self.roiWindow._worker_thread.terminate()
+                #    self.roiWindow._worker_thread.wait()
+                self.roiWindow._worker_thread = None
+            self.roiWindow = None
+        self.resetButtons()
 
 
     def _batch_manager(self):
@@ -958,19 +986,60 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         is not helping.
         '''
         # TODO: think what if anything goes wrong in the middle. Is this robust?
+        if self._scan_numbers is None:
+            return
+
         if len(self._scan_numbers) > 0:
             scan_num = self._scan_numbers.pop()
-            print("begin processing scan " + str(scan_num) + "...") 
+            print("[BATCH] begin processing scan " + str(scan_num) + "...")
             self.le_scan_num.setText(str(scan_num))
-            self.loadExpParam()
-            self.start(True) 
             self.btn_recon_batch_start.setEnabled(False)
             self.btn_recon_batch_stop.setEnabled(True)
+
+            if self.ck_batch_crop_flag.isChecked():
+                self._batch_crop()  # also handles "Run" if needed
+            elif self.ck_batch_run_flag.isChecked():
+                self._batch_run()  # h5 exists, just "Run"
+            else:
+                raise
         else:
-            print("batch processing complete!")
+            print("[BATCH] batch processing complete!")
             self._scan_numbers = None
             self.le_scan_num.textChanged.connect(self.forceLoad)
             self.resetButtons()
+            if self.roiWindow is not None:
+                self.roiWindow = None
+
+
+    def _batch_crop(self):
+        # ugly hack: pretend the ROI window exists, take the first frame for finding bad pixels,
+        # mimic human input, and run the reconstruction (if checked)
+
+        # first get params from databroker
+        eventloop = self._batch_eventloop = QtCore.QEventLoop()
+        self._mainwindow_signal.connect(eventloop.quit)
+        self.loadExpParam()
+        eventloop.exec()
+
+        # then invoke the h5 worker in RoiWindow
+        if self.roiWindow is None:
+            img = self._viewDataFrameBroker(0)
+            self.roiWindow = RoiWindow(image=img, main_window=self)
+        #self.roiWindow.roi_changed.connect(self._get_roi_slot)
+        self.roiWindow.canvas._eventHandler.set_curr_roi(self.roiWindow.canvas.ax,
+            (self.sp_batch_x0.value(), self.sp_batch_y0.value()),
+            self.sp_batch_width.value(), self.sp_batch_height.value())
+        #print("ROI:", self.roiWindow.canvas.get_red_roi())
+        self.roiWindow.save_to_h5()
+        #self.btn_recon_batch_stop.clicked.connect(self.roiWindow._worker_thread.terminate)
+        if not self.ck_batch_run_flag.isChecked():
+            self.roiWindow._worker_thread.finished.connect(self._batch_manager)
+        else:
+            self.roiWindow._worker_thread.finished.connect(self._batch_run)
+
+
+    def _batch_run(self):
+        self.start(True)
 
 
     def switchProbeBatch(self):
@@ -1081,7 +1150,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         print(x0, y0, width, height)
 
 
-    def loadExpParam(self): 
+    def loadExpParam(self):
         scan_num = self.le_scan_num.text()
 
         try:
@@ -1126,7 +1195,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         thread.start()
 
 
-    def _setExpParamBroker(self, it, metadata:dict):   
+    def _setExpParamBroker(self, it, metadata:dict):
         '''
         Notes:
         1. The parameter "it" is just a placeholder for the signal 
@@ -1155,6 +1224,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.cb_scan_type.setCurrentText(metadata['scan_type'])
         self._scan_points = metadata['points']
         print("done")
+        self._mainwindow_signal.emit()
 
 
     def setLoadButton(self):

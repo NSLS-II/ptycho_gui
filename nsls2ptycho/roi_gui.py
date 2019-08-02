@@ -183,6 +183,7 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
                                        self.cx, self.cy, threshold, badpixels, blue_rois)
         thread.finished.connect(lambda: self.btn_save_to_h5.setEnabled(True))
         thread.exception_handler = master.exception_handler
+        thread.setTerminationEnabled()
         self.btn_save_to_h5.setEnabled(False)
         thread.start()
 
