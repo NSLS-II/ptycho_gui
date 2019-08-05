@@ -1022,9 +1022,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         eventloop.exec()
 
         # then invoke the h5 worker in RoiWindow
-        if self.roiWindow is None:
-            img = self._viewDataFrameBroker(0)
-            self.roiWindow = RoiWindow(image=img, main_window=self)
+        if self.roiWindow is not None:
+            self.roiWindow.close()
+        img = self._viewDataFrameBroker(0)
+        self.roiWindow = RoiWindow(image=img, main_window=self)
         #self.roiWindow.roi_changed.connect(self._get_roi_slot)
         self.roiWindow.canvas._eventHandler.set_curr_roi(self.roiWindow.canvas.ax,
             (self.sp_batch_x0.value(), self.sp_batch_y0.value()),
