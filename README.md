@@ -37,8 +37,8 @@ sudo git pull origin master    # update backend
 
 ### On personal machines
 Basically the procedure is similar to those outlined above, except that we don't need `sudo`:
-1. Make sure you are granted access to the backend, currently hosted in [this private GitHub repo](https://github.com/leofang/ptycho)
-2. `git clone --recursive https://github.com/leofang/ptycho_gui.git` (during the process `git` will prompt you to enther your GitHub id and password for cloning the backend)
+1. Make sure you are granted access to the backend, currently hosted in [this private GitHub repo](https://github.com/NSLS-II/ptycho)
+2. `git clone --recursive https://github.com/NSLS-II/ptycho_gui.git` (during the process `git` will prompt you to enther your GitHub id and password for cloning the backend)
 3. Either use the current Conda environment, or create a new one, and then do 
 `conda install python=3.6 pyfftw pyqt=5 numpy scipy matplotlib pillow h5py posix_ipc databroker`
 4. If you need beamline-specific packages, install it now. Ex: `conda install hxntools`
