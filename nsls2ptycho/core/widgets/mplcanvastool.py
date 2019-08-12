@@ -310,12 +310,20 @@ class MplCanvasTool(QtWidgets.QWidget):
 
         for roi in all_roi:
             xy, width, height = roi
+            # canonicalize the ROI
+            x0, y0 = xy
+            if width < 0:
+                x0 += width
+                width = -width
+            if height < 0:
+                y0 += height
+                height = -height
             area = width * height
             if area > largest_area:
                 largest_area = area
                 largest_roi = (
-                    np.int(np.floor(xy[0] + 0.5)),
-                    np.int(np.floor(xy[1] + 0.5)),
+                    np.int(np.floor(x0 + 0.5)),
+                    np.int(np.floor(y0 + 0.5)),
                     np.int(np.round(width)),
                     np.int(np.round(height))
                 )
@@ -329,9 +337,17 @@ class MplCanvasTool(QtWidgets.QWidget):
         all_roi = []
         for roi in self._eventHandler.get_blue_roi():
             xy, width, height = roi
+            # canonicalize the ROI
+            x0, y0 = xy
+            if width < 0:
+                x0 += width
+                width = -width
+            if height < 0:
+                y0 += height
+                height = -height
             all_roi.append((
-                np.int(np.floor(xy[0] + 0.5)),
-                np.int(np.floor(xy[1] + 0.5)),
+                np.int(np.floor(x0 + 0.5)),
+                np.int(np.floor(y0 + 0.5)),
                 np.int(np.round(width)),
                 np.int(np.round(height))
             ))
