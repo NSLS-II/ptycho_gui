@@ -1018,7 +1018,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         # mimic human input, and run the reconstruction (if checked)
 
         # first get params from databroker
-        eventloop = self._batch_eventloop = QtCore.QEventLoop()
+        eventloop = QtCore.QEventLoop()
         self._mainwindow_signal.connect(eventloop.quit)
         self.loadExpParam()
         eventloop.exec()
@@ -1042,6 +1042,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
 
     def _batch_run(self):
+        self.loadExpParam()
         self.start(True)
 
 
@@ -1248,19 +1249,19 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         with h5py.File(working_dir+'/scan_'+scan_num+'.h5','r') as f:
             # this code is not robust enough as certain keys may not be present...
             print("h5 loaded, parsing experimental parameters...", end='')
-            self.sp_xray_energy.setValue(1.2398/f['lambda_nm'].value)
-            self.sp_detector_distance.setValue(f['z_m'].value)
+            self.sp_xray_energy.setValue(1.2398/f['lambda_nm'][()])
+            self.sp_detector_distance.setValue(f['z_m'][()])
             nz, nx, ny = f['diffamp'].shape
             self.sp_x_arr_size.setValue(nx)
             self.sp_y_arr_size.setValue(ny)
-            self.sp_x_step_size.setValue(f['dr_x'].value)
-            self.sp_y_step_size.setValue(f['dr_y'].value)
-            self.sp_x_scan_range.setValue(f['x_range'].value)
-            self.sp_y_scan_range.setValue(f['y_range'].value)
+            self.sp_x_step_size.setValue(f['dr_x'][()])
+            self.sp_y_step_size.setValue(f['dr_y'][()])
+            self.sp_x_scan_range.setValue(f['x_range'][()])
+            self.sp_y_scan_range.setValue(f['y_range'][()])
             self.sp_num_points.setValue(nz)
-            self.sp_ccd_pixel_um.setValue(f['ccd_pixel_um'].value)
+            self.sp_ccd_pixel_um.setValue(f['ccd_pixel_um'][()])
             if 'angle' in f.keys():
-                self.sp_angle.setValue(f['angle'].value)
+                self.sp_angle.setValue(f['angle'][()])
             else:
                 self.sp_angle.setValue(15.) # backward compatibility for old datasets
                 print("angle not found, assuming 15...", file=sys.stderr)
