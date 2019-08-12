@@ -117,7 +117,7 @@ def set_flush_early(mpirun_command):
     return mpirun_command
 
 
-def parse_range(batch_items, every_nth_item = 1, reverse_sort = True):
+def parse_range(batch_items, every_nth_item = 1, batch_processing = True):
     '''
     Note the range is inclusive on both ends.
     Ex: 1238 - 1242 with step size 2 --> [1238, 1240, 1242]
@@ -125,7 +125,7 @@ def parse_range(batch_items, every_nth_item = 1, reverse_sort = True):
     scan_range = []
     scan_numbers = []
 
-    if batch_items == '':
+    if batch_processing and batch_items == '':
         raise ValueError("No item list is given for batch processing.")
 
     # first parse items and separate them into two catogories
@@ -143,7 +143,7 @@ def parse_range(batch_items, every_nth_item = 1, reverse_sort = True):
     for item in scan_range:
         scan_numbers = scan_numbers + list(range(item[0], item[1]+1, every_nth_item))
 
-    if reverse_sort:
+    if batch_processing:
         scan_numbers.sort(reverse=True)
 
     return scan_numbers

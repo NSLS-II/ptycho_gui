@@ -274,7 +274,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         p.pha_max = float(self.sp_pha_max.value())
 
         p.gpu_flag = self.ck_gpu_flag.isChecked()
-        p.gpus = parse_range(self.le_gpus.text(), reverse_sort=False)
+        p.gpus = parse_range(self.le_gpus.text(), batch_processing=False)
         p.gpu_batch_size = int(self.cb_gpu_batch_size.currentText())
 
         # adv param group
@@ -845,6 +845,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             self.le_gpus.setText('')
             self.le_gpus.setEnabled(False)
             self.cb_gpu_batch_size.setEnabled(False)
+        else:
+            del cupy
 
 
     def updateGpuFlg(self):
