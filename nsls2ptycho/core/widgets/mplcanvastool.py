@@ -291,7 +291,7 @@ class MplCanvasTool(QtWidgets.QWidget):
     def use_logscale(self, state):
         if self.image is None: return
         if state:
-            self.image_data = np.nan_to_num(np.log(self.image + 1.))
+            self.image_data = np.log(np.clip(self.image, 1., None))
         else:
             self.image_data = self.image
         self.image_handler.set_data(self.image_data)

@@ -58,6 +58,35 @@
             </widget>
            </item>
            <item>
+            <widget class="QCheckBox" name="ck_extra_scans_flag">
+             <property name="toolTip">
+              <string>Enable additional scans (ex: dark frames) associated with the scan number on the left.</string>
+             </property>
+             <property name="text">
+              <string>Assoc. scans</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btn_set_extra_scans">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>40</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Set</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QPushButton" name="btn_choose_cwd">
              <property name="text">
               <string>working directory</string>

@@ -1,4 +1,4 @@
-from databroker import Broker
+from databroker import Broker, get_table
 import numpy as np
 import sys, os
 import h5py
@@ -8,100 +8,73 @@ except ModuleNotFoundError:
     # for test purpose
     from widgets.imgTools import rm_outlier_pixels
 
-from hxntools.handlers import register
 try:
-    # new mongo database
-    hxn_db = Broker.named('hxn')
-    register(hxn_db)
+    # TODO(leofang): RENAME THIS!!!!!   
+    hxn_db = Broker.named('csx')
 except FileNotFoundError:
-    print("hxn.yml not found. Unable to access HXN's database.", file=sys.stderr)
+    print("csx.yml not found. Unable to access CSX's database.", file=sys.stderr)
     hxn_db = None
+from csxtools.utils import get_fastccd_images
+
 
 #######################################
 
 
-def load_metadata(db, scan_num:int, det_name:str):
+def load_metadata(db, scan_num:int, det_name:str=''):
     '''
     Get all metadata for the given scan number and detector name
 
     Parameters:
         - db: 
-            a Broker instance. For HXN experiments they are db1, db2, and db_old
+            a Broker instance.
         - scan_num: int
             the scan number
         - det_name: str
-            the detector name
+            the detector name; not used in CSX
 
     Return:
         A dictionary that holds the metadata (except for those directly related to the image)
     '''
-    sid = scan_num
-    header = db[sid]
+    header = db[scan_num]
+    scan_data = header.table(fill=False, stream_name='primary')  # acquired counters during the scan/ct, images excluded
+    scan_supp = header.table(fill=False, stream_name='baseline') # supplementary information, images excluded
 
-    plan_args = header.start['plan_args']
     scan_type = header.start['plan_name']
-    scan_motors = header.start['motors']
-    items = [det_name, 'sclr1_ch3', 'sclr1_ch4'] + scan_motors
-    bl = db.get_table(header, stream_name='baseline')
-    df = db.get_table(header, fields=items, fill=False)
-    #images = db_old.get_images(db_old[sid], name=det_name)
+    plan_args = header.start['plan_args']
+    nz = header.start['num_points']
 
     # get energy_kev
-    dcm_th = bl.dcm_th[1]
-    energy_kev = 12.39842 / (2.*3.1355893 * np.sin(dcm_th * np.pi / 180.))
+    energy_kev = scan_supp.pgm_energy_setpoint.iat[0] / 1E+3
 
     # get scan_type, x_range, y_range, dr_x, dr_y
-    if scan_type == 'FlyPlan2D':
-        x_range = plan_args['scan_end1']-plan_args['scan_start1']
-        y_range = plan_args['scan_end2']-plan_args['scan_start2']
-        x_num = plan_args['num1']
-        y_num = plan_args['num2']
-        dr_x = 1.*x_range/x_num
-        dr_y = 1.*y_range/y_num
-        x_range = x_range - dr_x
-        y_range = y_range - dr_y
-    elif scan_type == 'rel_spiral_fermat' or scan_type == 'fermat':
-        x_range = plan_args['x_range']
-        y_range = plan_args['y_range']
-        dr_x = plan_args['dr']
+    extents = header.start['extents']
+    if scan_type.endswith('grid_scan'):
+        x_num = plan_args['args'][7]
+        y_num = plan_args['args'][3]
+        x_range = (extents[0][1] - extents[0][0]) * 1E+3
+        y_range = (extents[1][1] - extents[1][0]) * 1E+3
+        dr_x = x_range / (x_num - 1)
+        dr_y = y_range / (y_num - 1)
+    elif scan_type == 'spiral_continuous':
+        # The customized plan messed up...
+        x_range = (extents[0][1] - extents[0][0])/2 * 1E+3
+        y_range = (extents[1][1] - extents[1][0])/2 * 1E+3
+        # not available in CSX
+        dr_x = 0
         dr_y = 0
     else:
-        x_range = plan_args['args'][2]-plan_args['args'][1]
-        y_range = plan_args['args'][6]-plan_args['args'][5]
-        x_num = plan_args['args'][3]
-        y_num = plan_args['args'][7]
-        dr_x = 1.*x_range/x_num
-        dr_y = 1.*y_range/y_num
-        x_range = x_range - dr_x
-        y_range = y_range - dr_y
+        raise NotImplementedError("Ask Wen Hu to explain to Leo Fang.")
 
     # get points
-    num_frame, count = np.shape(df)
-    points = np.zeros((2, num_frame))
-    points[0] = np.array(df[scan_motors[0]])
-    points[1] = np.array(df[scan_motors[1]])
+    points = np.zeros((2, nz))
+    points[0] = scan_data.nanop_bx * 1E+3
+    points[1] = scan_data.nanop_bz * 1E+3
 
     # get angle, ic
-    if scan_motors[1] == 'ssy':
-        angle = 0#bl.zpsth[1]
-        ic = np.asfarray(df['sclr1_ch3'])
-    elif scan_motors[1] == 'zpssy':
-        angle = bl.zpsth[1]
-        ic = np.asfarray(df['sclr1_ch4'])
-    else:
-        angle = bl.dsth[1]
-        ic = np.asfarray(df['sclr1_ch4'])
+    angle = scan_supp.tardis_theta.iat[0]  # TODO(leofang): verify this
     
     # get ccd_pixel_um
-    ccd_pixel_um = 55.
-
-    # get diffamp dimensions (uncropped!)
-    nz, = df[det_name].shape
-    mds_table = df[det_name]
-
-    # get nx and ny by looking at the first image
-    img = db.reg.retrieve(mds_table.iat[0])[0]
-    nx, ny = img.shape # can also give a ValueError; TODO: come up a better way!
+    ccd_pixel_um = 30.
 
     # write everything we need to a dict
     metadata = dict()
@@ -113,12 +86,10 @@ def load_metadata(db, scan_num:int, det_name:str):
     metadata['y_range'] = y_range
     metadata['points'] = points
     metadata['angle'] = angle
-    metadata['ic'] = ic
     metadata['ccd_pixel_um'] = ccd_pixel_um
     metadata['nz'] = nz
-    metadata['nx'] = nx
-    metadata['ny'] = ny
-    metadata['mds_table'] = mds_table
+    metadata['nx'] = 960
+    metadata['ny'] = 960
 
     return metadata
 
@@ -261,12 +232,27 @@ def save_data(db, param, scan_num:int, n:int, nn:int, cx:int, cy:int, threshold=
         os.symlink(file_path, symlink_path)
 
 
-def get_single_image(db, frame_num, mds_table):
-    length = (mds_table.shape)[0] 
-    if frame_num >= length:
-        message = "[ERROR] The {0}-th frame doesn't exist. "
-        message += "Available frames for the chosen scan: [0, {1}]."
-        raise ValueError(message.format(frame_num, length-1))
+scan_image_itr_cache = {}
 
-    img = db.reg.retrieve(mds_table.iat[frame_num])[0]
-    return img
+
+def load_scan_image_itr(db, scan_num:int, dark8ID:int=None, dark2ID:int=None, dark1ID:int=None):
+    bgnd8 = db[dark8ID] if (dark8ID is not None) else None
+    bgnd2 = db[dark2ID] if (dark2ID is not None) else None
+    bgnd1 = db[dark1ID] if (dark1ID is not None) else None
+    if (bgnd8 is None) and (bgnd2 is None) and (bgnd1 is None):
+        dark_headers = None
+    else:
+        dark_headers = (bgnd8, bgnd2, bgnd1)
+    silcerator = get_fastccd_images(db[scan_num], dark_headers=dark_headers)
+    return silcerator
+
+
+def get_single_image(db, frame_num, scan_num:int, dark8ID:int=None, dark2ID:int=None, dark1ID:int=None):
+    key = (scan_num, dark8ID, dark2ID, dark1ID)
+    if key in scan_image_itr_cache:
+        return scan_image_itr_cache[key][frame_num]
+    else:
+        itr = load_scan_image_itr(db, scan_num, dark8ID, dark2ID, dark1ID)
+        scan_image_itr_cache[key] = itr
+        print(type(itr[frame_num]))
+        return np.mean(itr[frame_num], axis=0)
