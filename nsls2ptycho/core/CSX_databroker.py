@@ -14,10 +14,15 @@ try:
 except FileNotFoundError:
     print("csx.yml not found. Unable to access CSX's database.", file=sys.stderr)
     hxn_db = None
-from csxtools.utils import get_fastccd_images
+from csxtools.utils import get_fastccd_images, get_images_to_4D
 
 
 #######################################
+
+# CSX's fastccd detector has a vertical dark stride
+cs = 486     # pixel start point
+cl = 28      # width
+cedge = 988  # detector edge
 
 
 def load_metadata(db, scan_num:int, det_name:str=''):
@@ -71,7 +76,7 @@ def load_metadata(db, scan_num:int, det_name:str=''):
     points[1] = scan_data.nanop_bz * 1E+3
 
     # get angle, ic
-    angle = scan_supp.tardis_theta.iat[0]  # TODO(leofang): verify this
+    angle = 90 - scan_supp.tardis_theta.iat[0]  # TODO(leofang): verify this
     
     # get ccd_pixel_um
     ccd_pixel_um = 30.
@@ -90,11 +95,12 @@ def load_metadata(db, scan_num:int, det_name:str=''):
     metadata['nz'] = nz
     metadata['nx'] = 960
     metadata['ny'] = 960
+    metadata['z_m'] = 0.34
 
     return metadata
 
 
-def save_data(db, param, scan_num:int, n:int, nn:int, cx:int, cy:int, threshold=1., bad_pixels=None, zero_out=None):
+def save_data(db, param, scan_num:int, nx_prb:int, ny_prb:int, cx:int, cy:int, threshold=2., bad_pixels=None, zero_out=None):
     '''
     Save metadata and diffamp for the given scan number to a HDF5 file.
 
@@ -105,10 +111,10 @@ def save_data(db, param, scan_num:int, n:int, nn:int, cx:int, cy:int, threshold=
             a Param instance containing the metadata and other information from the GUI
         - scan_num: int
             the scan number
-        - n: int
-            the x dimension of the ROI window (=nx_prb)
-        - nn: int
-            the y dimension of the ROI window (=ny_prb)
+        - nx_prb: int
+            the x dimension of the ROI window
+        - ny_prb: int
+            the y dimension of the ROI window
         - cx: int
             x index of the center of mass
         - cy: int
@@ -123,82 +129,53 @@ def save_data(db, param, scan_num:int, n:int, nn:int, cx:int, cy:int, threshold=
     Notes:
         1. the detector distance is assumed existent as param.z_m
     '''
+    if bad_pixels is not None:
+        print("[WARNING] Bad-pixel removal is not yet supported for CSX.", file=sys.stderr)
+        bad_pixels = None
+
+    if zero_out is not None:
+        print("[WARNING] Zero masks are not yet supported for CSX.", file=sys.stderr)
+        zero_out = None
+
     det_distance_m = param.z_m
     det_pixel_um = param.ccd_pixel_um
     num_frame = param.nz
     angle = param.angle
     lambda_nm = param.lambda_nm
-    ic = param.ic
-    #energy_kev = param.energy_kev
 
-    #print('energy:', energy_kev)
-    #print('angle: ', angle)
-    #lambda_nm = 1.2398/energy_kev
-    x_pixel_m = lambda_nm * 1.e-9 * det_distance_m / (n * det_pixel_um * 1e-6)
-    y_pixel_m = lambda_nm * 1.e-9 * det_distance_m / (nn * det_pixel_um * 1e-6)
-    x_depth_of_field_m = lambda_nm * 1.e-9 / (n/2 * det_pixel_um*1.e-6 / det_distance_m)**2
-    y_depth_of_field_m = lambda_nm * 1.e-9 / (nn/2 * det_pixel_um*1.e-6 / det_distance_m)**2
-    #print('pixel size: ', x_pixel_m, y_pixel_m)
-    #print('depth of field: ', x_depth_of_field_m, y_depth_of_field_m)
+    x_pixel_m = lambda_nm * 1.e-9 * det_distance_m / (nx_prb * det_pixel_um * 1e-6)
+    y_pixel_m = lambda_nm * 1.e-9 * det_distance_m / (ny_prb * det_pixel_um * 1e-6)
+    x_depth_of_field_m = lambda_nm * 1.e-9 / (nx_prb / 2 * det_pixel_um*1.e-6 / det_distance_m)**2
+    y_depth_of_field_m = lambda_nm * 1.e-9 / (ny_prb / 2 * det_pixel_um*1.e-6 / det_distance_m)**2
+    #x_depth_of_field_m = 1e-6
+    #y_depth_of_field_m = 1e-6
     
-    # get data array
-    data = np.zeros((num_frame, n, nn)) # nz*nx*ny
-    mask = []
-    for i in range(num_frame):
-        #print(param.mds_table.iat[i], file=sys.stderr)
-        img = db.reg.retrieve(param.mds_table.iat[i])[0]
-        #img = np.rot90(img, axes=(1,0)) #equivalent to tt = np.flipud(tt).T
-        ny, nx = np.shape(img)
+    # retrieve scan coordinates
+    points = param.points
+    ## retrieve scan coordinates from Databroker
+    #scan_data = db[scan_num].table(fill=False, stream_name='primary')  # acquired counters during the scan/ct, images excluded
+    #points = np.zeros((2, num_frame))
+    #points[0] = scan_data.nanop_bx * 1000.
+    #points[1] = scan_data.nanop_bz * 1000.
 
-        img = img * ic[0] / ic[i]
+    # get the slicerator corresponding to the scan number
+    key = expand_partial_key(scan_num)
+    itr = scan_image_itr_cache[key]
+    assert num_frame == len(itr)
 
-        if bad_pixels is not None:
-            img = rm_outlier_pixels(img, bad_pixels[0], bad_pixels[1])
+    # get raw data
+    images_stack = get_images_to_4D(itr)
+    raw_mean_data = preprocess_image(images_stack)
 
-        if zero_out is not None:
-            for blue_roi in zero_out:
-                x0 = blue_roi[0]
-                y0 = blue_roi[1]
-                w = blue_roi[2]
-                h = blue_roi[3]
-                img[y0:y0+h, x0:x0+w] = 0.
+    # construct data array
+    diffamp = np.empty((num_frame, nx_prb, ny_prb))
+    diffamp[...] = np.rot90(raw_mean_data[:, cy-ny_prb//2:cy+ny_prb//2, cx-nx_prb//2:cx+nx_prb//2], axes=(2, 1))  # equivalent to np.flipud(arr).T
+    diffamp = np.fft.fftshift(diffamp, axes=(1, 2))
+    diffamp = np.sqrt(diffamp)
+    diffamp[diffamp < threshold] = 0.
+    assert diffamp.shape == (num_frame, nx_prb, ny_prb)
+    print('array size:', diffamp.shape)
 
-        if n < nx:
-            # assuming n=nn???
-            #print(nx, ny, file=sys.stderr)
-            #print(cx-n//2, cx+n//2, cy-nn//2, cy+nn//2, file=sys.stderr)
-            #tmptmp = img[cx-n//2:cx+n//2, cy-nn//2:cy+nn//2]
-            tmptmp = img[cy-nn//2:cy+nn//2, cx-n//2:cx+n//2]
-            #print(tmptmp.shape, file=sys.stderr)
-        else: 
-            raise Exception("zero padding not completed yet")
-            # # is this part necessary???
-            # #tmptmp = t
-            # tmptmp = np.zeros((n, n))
-            # #tmptmp[3:-3,:] = t[:,cy-n//2:cy+n//2]
-            # tmptmp[4:-8, :] = img[:, cy-n//2:cy+n//2]
-
-        #if i == 0:
-        #    import matplotlib.pyplot as plt
-        #    plt.imshow(tmptmp, vmin=np.min(img), vmax=np.max(img))
-        #    plt.savefig("ttttt.png")
-        #    return
-        
-        tmptmp = np.rot90(tmptmp, axes=(1,0)) #equivalent to np.flipud(tmptmp).T
-        if not np.sum(tmptmp) > 0.:
-            mask.append(i)
-        data[i] = np.fft.fftshift(tmptmp)
-
-    if len(mask) > 0:
-        print("Removing the dark frames:", mask, file=sys.stderr)
-        data = np.delete(data, mask, axis=0)
-        param.points = np.delete(param.points, mask, axis=1)
-        param.nz = param.nz - len(mask)
-    data[data < threshold] = 0.
-    data = np.sqrt(data)
-    # data array got
-    print('array size:', np.shape(data))
-    
     # create a folder
     try:
         os.mkdir(param.working_directory + '/h5_data/')
@@ -207,21 +184,20 @@ def save_data(db, param, scan_num:int, n:int, nn:int, cx:int, cy:int, threshold=
 
     file_path = param.working_directory + '/h5_data/scan_' + str(scan_num) + '.h5'
     with h5py.File(file_path, 'w') as hf:
-        dset = hf.create_dataset('diffamp', data=data)
-        dset = hf.create_dataset('points', data=param.points)
+        dset = hf.create_dataset('diffamp', data=diffamp)
+        dset = hf.create_dataset('points', data=points)
         dset = hf.create_dataset('x_range', data=param.x_range)
         dset = hf.create_dataset('y_range', data=param.y_range)
         dset = hf.create_dataset('dr_x', data=param.dr_x)
         dset = hf.create_dataset('dr_y', data=param.dr_y)
-        dset = hf.create_dataset('z_m', data=det_distance_m)
-        dset = hf.create_dataset('lambda_nm', data=lambda_nm)
-        dset = hf.create_dataset('ccd_pixel_um', data=det_pixel_um)
-        dset = hf.create_dataset('angle', data=angle)
-        dset = hf.create_dataset('ic', data=ic)
-        dset = hf.create_dataset('x_pixel_m', data=x_pixel_m)
-        dset = hf.create_dataset('y_pixel_m', data=y_pixel_m)
-        dset = hf.create_dataset('x_depth_field_m', data=x_depth_of_field_m)
-        dset = hf.create_dataset('y_depth_field_m', data=y_depth_of_field_m)
+        dset = hf.create_dataset('z_m',data=det_distance_m)
+        dset = hf.create_dataset('lambda_nm',data=lambda_nm)
+        dset = hf.create_dataset('ccd_pixel_um',data=det_pixel_um)
+        dset = hf.create_dataset('angle',data=angle)
+        dset = hf.create_dataset('x_pixel_m',data=x_pixel_m)
+        dset = hf.create_dataset('y_pixel_m',data=y_pixel_m)
+        dset = hf.create_dataset('x_depth_field_m',data=x_depth_of_field_m)
+        dset = hf.create_dataset('y_depth_field_m',data=y_depth_of_field_m)
 
     # symlink so ptycho can find it
     try:
@@ -250,9 +226,61 @@ def load_scan_image_itr(db, scan_num:int, dark8ID:int=None, dark2ID:int=None, da
 def get_single_image(db, frame_num, scan_num:int, dark8ID:int=None, dark2ID:int=None, dark1ID:int=None):
     key = (scan_num, dark8ID, dark2ID, dark1ID)
     if key in scan_image_itr_cache:
-        return scan_image_itr_cache[key][frame_num]
+        return preprocess_image(scan_image_itr_cache[key][frame_num])
     else:
         itr = load_scan_image_itr(db, scan_num, dark8ID, dark2ID, dark1ID)
         scan_image_itr_cache[key] = itr
-        print(type(itr[frame_num]))
-        return np.mean(itr[frame_num], axis=0)
+        return preprocess_image(itr[frame_num])
+
+
+def preprocess_image(img):
+    # average over the axis corresponding to the same scan point,
+    # and then remove the stripe
+    if img.ndim == 3:
+        axis = 0
+        stack = np.hstack
+    elif img.ndim == 4:
+        axis = 1
+        stack = np.dstack
+    else:
+        raise ValueError("The image array's shape is not supported.")
+
+    img = np.nan_to_num(img, copy=False)
+    img[img < 0.] = 0.  # needed due to dark subtraction
+    img = np.mean(img, axis=axis)
+    img = stack((img[..., :cs], img[..., cs+cl:cedge]))
+    return img
+
+
+def expand_partial_key(scan_num:int):
+    # get the full key based on scan_num
+    # We don't wanna guess the dark IDs, so we rely on cached info
+    related_keys = {}
+    for key in scan_image_itr_cache:
+        if scan_num in key:
+            # sort key based on the number of provided dark IDs
+            # prefer a complete info
+            if key[3] is not None:
+                related_keys[4] = key
+                break  # shortcut
+            elif key[2] is not None:
+                related_keys[3] = key
+            elif key[1] is not None:
+                related_keys[2] = key
+            else:
+                related_keys[1] = key
+
+    if 4 in related_keys:
+        key = related_keys[4]
+    elif 3 in related_keys:
+        key = related_keys[3]
+    elif 2 in related_keys:
+        key = related_keys[2]
+    elif 1 in related_keys:
+        key = related_keys[1]
+        print("[WARNING] Proceeding without dark IDs...", file=sys.stderr)
+    else:
+        raise ValueError("Data for scan number", scan_num, "not found. Forget to click load?")
+    print("Found", key, "from", related_keys)
+
+    return key
