@@ -1239,7 +1239,9 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
         # update experimental parameters
         self.sp_xray_energy.setValue(metadata['xray_energy_kev'])
-        #self.sp_detector_distance.setValue(f['z_m'].value) # don't know how to handle this...
+        if 'z_m' in metadata:
+            print("[WARNING] Retrieved and updated the detector distance (from a hard-coded source).", file=sys.stderr)
+            self.sp_detector_distance.setValue(metadata['z_m'])
         self.sp_x_arr_size.setValue(metadata['nx'])
         self.sp_y_arr_size.setValue(metadata['ny'])
         self.sp_num_points.setValue(metadata['nz'])
@@ -1247,6 +1249,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.sp_y_step_size.setValue(metadata['dr_y'])
         self.sp_x_scan_range.setValue(metadata['x_range'])
         self.sp_y_scan_range.setValue(metadata['y_range'])
+        self.sp_ccd_pixel_um.setValue(metadata['ccd_pixel_um'])
         self.sp_angle.setValue(metadata['angle'])
         if self.cb_scan_type.findText(metadata['scan_type']) == -1:
             self.cb_scan_type.addItem(metadata['scan_type'])
@@ -1279,17 +1282,17 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             nz, nx, ny = f['diffamp'].shape
             self.sp_x_arr_size.setValue(nx)
             self.sp_y_arr_size.setValue(ny)
+            self.sp_num_points.setValue(nz)
             self.sp_x_step_size.setValue(f['dr_x'][()])
             self.sp_y_step_size.setValue(f['dr_y'][()])
             self.sp_x_scan_range.setValue(f['x_range'][()])
             self.sp_y_scan_range.setValue(f['y_range'][()])
-            self.sp_num_points.setValue(nz)
             self.sp_ccd_pixel_um.setValue(f['ccd_pixel_um'][()])
             if 'angle' in f.keys():
                 self.sp_angle.setValue(f['angle'][()])
             else:
                 self.sp_angle.setValue(15.) # backward compatibility for old datasets
-                print("angle not found, assuming 15...", file=sys.stderr)
+                print("[WARNING] angle not found, assuming 15...", file=sys.stderr)
             self._scan_points = f['points'][:] # for visualization purpose
             #self.cb_scan_type = ...
             # read the detector name and set it in GUI??
