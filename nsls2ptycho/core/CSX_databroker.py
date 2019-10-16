@@ -9,11 +9,10 @@ except ModuleNotFoundError:
     from widgets.imgTools import rm_outlier_pixels
 
 try:
-    # TODO(leofang): RENAME THIS!!!!!   
-    hxn_db = Broker.named('csx')
+    csx_db = Broker.named('csx')
 except FileNotFoundError:
     print("csx.yml not found. Unable to access CSX's database.", file=sys.stderr)
-    hxn_db = None
+    csx_db = None
 from csxtools.utils import get_fastccd_images, get_images_to_4D
 
 

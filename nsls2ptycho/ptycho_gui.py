@@ -15,7 +15,7 @@ from nsls2ptycho.core.ptycho.utils import parse_config
 from nsls2ptycho._version import __version__
 
 # databroker related
-from nsls2ptycho.core.CSX_databroker import hxn_db, load_metadata, get_single_image, get_detector_names
+from nsls2ptycho.core.databroker import db, load_metadata, get_single_image, get_detector_names
 
 from nsls2ptycho.reconStep_gui import ReconStepWindow
 from nsls2ptycho.roi_gui import RoiWindow
@@ -174,7 +174,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
     @db.setter
     def db(self, scan_id:int):
         # TODO: this should be configured based on selected beamline profile!
-        self._db = hxn_db
+        self._db = db
 
 
     def resetButtons(self):
@@ -1225,8 +1225,6 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         #metadata = load_metadata(self.db, scan_id, det_name)
         self.param.__dict__ = {**self.param.__dict__, **metadata} # for Python 3.5+ only
 
-        print(metadata, file=sys.stderr)
-
         # get the mds keys to the image (diffamp) array 
         self._mds_table = metadata.get('mds_table')
 
@@ -1424,7 +1422,7 @@ def main():
     app.aboutToQuit.connect(w.destructor)
 
     sys.stdout = console_stdout
-    #sys.stderr = console_stderr
+    sys.stderr = console_stderr
     sys.exit(app.exec_())
 
 
