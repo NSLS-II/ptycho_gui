@@ -8,12 +8,8 @@ from fcntl import fcntl, F_GETFL, F_SETFL
 from os import O_NONBLOCK
 import numpy as np
 import traceback
-try:
-    from nsls2ptycho.core.CSX_databroker import load_metadata, save_data
-except ImportError as ex:
-    print('[!] Unable to import core.HXN_databroker packages some features will '
-          'be unavailable')
-    print('[!] (import error: {})'.format(ex))
+
+from nsls2ptycho.core.databroker import load_metadata, save_data
 from nsls2ptycho.core.utils import use_mpi_machinefile, set_flush_early
 
 
