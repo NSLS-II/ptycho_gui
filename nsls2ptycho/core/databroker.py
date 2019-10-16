@@ -2,8 +2,6 @@ import json
 import os, sys
 import platform
 
-from databroker import Broker
-
 
 # ***************************** "Public API" *****************************
 # The following functions must exist in nsls2ptycho/core/*_databroker.py,
