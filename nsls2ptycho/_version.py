@@ -1,2 +1,2 @@
 #TODO: use versioneer instead
-__version__ = '1.4.0b1'
+__version__ = '1.4.0b2'
