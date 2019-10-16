@@ -17,7 +17,17 @@ except FileNotFoundError:
 from csxtools.utils import get_fastccd_images, get_images_to_4D
 
 
-#######################################
+# ***************************** "Public API" *****************************
+# The following functions must exist in nsls2ptycho/core/*_databroker.py,
+# but the function signatures do not need to agree across modules
+# (obviously, it is impossible for all beamlines to have the same setup).
+#   - load_metadata
+#   - save_data
+#   - get_single_image
+#   - get_detector_names
+# Other function must not be imported in the GUI.
+# ************************************************************************
+
 
 # CSX's fastccd detector has a vertical dark stride
 cs = 486     # pixel start point
@@ -159,13 +169,13 @@ def save_data(db, param, scan_num:int, nx_prb:int, ny_prb:int, cx:int, cy:int, t
     #points[1] = scan_data.nanop_bz * 1000.
 
     # get the slicerator corresponding to the scan number
-    key = expand_partial_key(scan_num)
+    key = _expand_partial_key(scan_num)
     itr = scan_image_itr_cache[key]
     assert num_frame == len(itr)
 
     # get raw data
     images_stack = get_images_to_4D(itr)
-    raw_mean_data = preprocess_image(images_stack)
+    raw_mean_data = _preprocess_image(images_stack)
 
     # construct data array
     diffamp = np.empty((num_frame, nx_prb, ny_prb))
@@ -211,7 +221,7 @@ def save_data(db, param, scan_num:int, nx_prb:int, ny_prb:int, cx:int, cy:int, t
 scan_image_itr_cache = {}
 
 
-def load_scan_image_itr(db, scan_num:int, dark8ID:int=None, dark2ID:int=None, dark1ID:int=None):
+def _load_scan_image_itr(db, scan_num:int, dark8ID:int=None, dark2ID:int=None, dark1ID:int=None):
     bgnd8 = db[dark8ID] if (dark8ID is not None) else None
     bgnd2 = db[dark2ID] if (dark2ID is not None) else None
     bgnd1 = db[dark1ID] if (dark1ID is not None) else None
@@ -224,16 +234,17 @@ def load_scan_image_itr(db, scan_num:int, dark8ID:int=None, dark2ID:int=None, da
 
 
 def get_single_image(db, frame_num, scan_num:int, dark8ID:int=None, dark2ID:int=None, dark1ID:int=None):
+    # TODO: use mds_table here
     key = (scan_num, dark8ID, dark2ID, dark1ID)
     if key in scan_image_itr_cache:
-        return preprocess_image(scan_image_itr_cache[key][frame_num])
+        return _preprocess_image(scan_image_itr_cache[key][frame_num])
     else:
-        itr = load_scan_image_itr(db, scan_num, dark8ID, dark2ID, dark1ID)
+        itr = _load_scan_image_itr(db, scan_num, dark8ID, dark2ID, dark1ID)
         scan_image_itr_cache[key] = itr
-        return preprocess_image(itr[frame_num])
+        return _preprocess_image(itr[frame_num])
 
 
-def preprocess_image(img):
+def _preprocess_image(img):
     # average over the axis corresponding to the same scan point,
     # and then remove the stripe
     if img.ndim == 3:
@@ -252,7 +263,7 @@ def preprocess_image(img):
     return img
 
 
-def expand_partial_key(scan_num:int):
+def _expand_partial_key(scan_num:int):
     # get the full key based on scan_num
     # We don't wanna guess the dark IDs, so we rely on cached info
     related_keys = {}
@@ -284,3 +295,13 @@ def expand_partial_key(scan_num:int):
     print("Found", key, "from", related_keys)
 
     return key
+
+
+def get_detector_names(db, scan_num:int):
+    '''
+    Returns
+    -------
+        list: detectors used in the scan or available in the beamline
+    '''
+    # TODO: make it more robust, like reading from databroker?
+    return ['fccd']

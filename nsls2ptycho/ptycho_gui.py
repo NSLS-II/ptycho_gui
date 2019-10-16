@@ -15,13 +15,7 @@ from nsls2ptycho.core.ptycho.utils import parse_config
 from nsls2ptycho._version import __version__
 
 # databroker related
-try:
-    from nsls2ptycho.core.CSX_databroker import hxn_db, load_metadata, get_single_image
-    from hxntools.scan_info import ScanInfo
-except ImportError as ex:
-    print('[!] Unable to import hxntools-related packages some features will '
-          'be unavailable')
-    print('[!] (import error: {})'.format(ex))
+from nsls2ptycho.core.CSX_databroker import hxn_db, load_metadata, get_single_image, get_detector_names
 
 from nsls2ptycho.reconStep_gui import ReconStepWindow
 from nsls2ptycho.roi_gui import RoiWindow
@@ -1139,7 +1133,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
                     items.append(int(list_widget.item(idx).text()))
     #                items.append(list_widget.item(idx).data(QtCore.Qt.UserRole))#.toPyObject())
     #            items = [item.text() for item in list_widget.items()]
-            print(items, self._db)
+    #        print(items, self._db)
             return get_single_image(self._db, frame_num, scan_num, *items)
 
 
@@ -1199,18 +1193,17 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.db = scan_id # set the correct database
         header = self.db[scan_id]
 
-        det_name = ''
-#        # get the list of detector names; TODO: a better way without ScanInfo?
-#        scan = ScanInfo(header)
-#        det_name = self.cb_detectorkind.currentText()
-#        det_name_exists = False
-#        self.cb_detectorkind.clear()
-#        for detector_name in scan.filestore_keys:
-#            self.cb_detectorkind.addItem(detector_name)
-#            if det_name == detector_name:
-#                det_name_exists = True
-#        if not det_name_exists:
-#            det_name = self.cb_detectorkind.currentText()
+        # get the list of detector names
+        det_names = get_detector_names(self.db, scan_id)
+        det_name = self.cb_detectorkind.currentText()
+        det_name_exists = False
+        self.cb_detectorkind.clear()
+        for detector_name in det_names:
+            self.cb_detectorkind.addItem(detector_name)
+            if det_name == detector_name:
+                det_name_exists = True
+        if not det_name_exists:
+            det_name = self.cb_detectorkind.currentText()
 
         # get metadata
         thread = self._worker_thread \

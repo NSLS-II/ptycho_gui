@@ -9,6 +9,7 @@ except ModuleNotFoundError:
     from widgets.imgTools import rm_outlier_pixels
 
 from hxntools.handlers import register
+from hxntools.scan_info import ScanInfo
 try:
     # new mongo database
     hxn_db = Broker.named('hxn')
@@ -17,7 +18,17 @@ except FileNotFoundError:
     print("hxn.yml not found. Unable to access HXN's database.", file=sys.stderr)
     hxn_db = None
 
-#######################################
+
+# ***************************** "Public API" *****************************
+# The following functions must exist in nsls2ptycho/core/*_databroker.py,
+# but the function signatures do not need to agree across modules
+# (obviously, it is impossible for all beamlines to have the same setup).
+#   - load_metadata
+#   - save_data
+#   - get_single_image
+#   - get_detector_names
+# Other function must not be imported in the GUI.
+# ************************************************************************
 
 
 def load_metadata(db, scan_num:int, det_name:str):
@@ -270,3 +281,14 @@ def get_single_image(db, frame_num, mds_table):
 
     img = db.reg.retrieve(mds_table.iat[frame_num])[0]
     return img
+
+
+def get_detector_names(db, scan_num:int):
+    '''
+    Returns
+    -------
+        list: detectors used in the scan or available in the beamline
+    '''
+    # TODO: a better way without ScanInfo?
+    scan = ScanInfo(db[scan_num])
+    return [key for key in scan.filestore_keys]
