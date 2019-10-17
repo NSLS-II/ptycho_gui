@@ -15,7 +15,7 @@ from nsls2ptycho.core.ptycho.utils import parse_config
 from nsls2ptycho._version import __version__
 
 # databroker related
-from nsls2ptycho.core.databroker import db, load_metadata, get_single_image, get_detector_names
+from nsls2ptycho.core.databroker_api import db, load_metadata, get_single_image, get_detector_names
 
 from nsls2ptycho.reconStep_gui import ReconStepWindow
 from nsls2ptycho.roi_gui import RoiWindow
