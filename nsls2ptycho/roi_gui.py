@@ -6,14 +6,7 @@ import numpy as np
 from nsls2ptycho.core.widgets.imgTools import find_outlier_pixels, find_brightest_pixels, rm_outlier_pixels
 from nsls2ptycho.core.ptycho_recon import HardWorker
 from nsls2ptycho.core.widgets.badpixel_dialog import BadPixelDialog
-
-
-try:
-    from nsls2ptycho.core.HXN_databroker import save_data
-except ImportError as ex:
-    print('[!] Unable to import core.HXN_databroker packages some features will '
-          'be unavailable')
-    print('[!] (import error: {})'.format(ex))
+from nsls2ptycho.core.databroker_api import save_data
 
 
 class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):

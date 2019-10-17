@@ -8,12 +8,8 @@ from fcntl import fcntl, F_GETFL, F_SETFL
 from os import O_NONBLOCK
 import numpy as np
 import traceback
-try:
-    from nsls2ptycho.core.HXN_databroker import load_metadata, save_data
-except ImportError as ex:
-    print('[!] Unable to import core.HXN_databroker packages some features will '
-          'be unavailable')
-    print('[!] (import error: {})'.format(ex))
+
+from nsls2ptycho.core.databroker_api import load_metadata, save_data
 from nsls2ptycho.core.utils import use_mpi_machinefile, set_flush_early
 
 
@@ -244,11 +240,6 @@ class HardWorker(QtCore.QThread):
             if metadata['nz'] == 0:
                 raise ValueError("nz = 0")
             #print("databroker connected, parsing experimental parameters...", end='')
-            # get nx and ny by looking at the first image
-            img = self.args[0].reg.retrieve(metadata['mds_table'].iat[0])[0]
-            nx, ny = img.shape # can also give a ValueError; TODO: come up a better way!
-            metadata['nx'] = nx
-            metadata['ny'] = ny
 
             update_fcn(0, metadata) # 0 is just a placeholder
 

@@ -9,18 +9,13 @@ from nsls2ptycho.core.utils import clean_shared_memory, get_mpi_num_processes, p
 from nsls2ptycho.core.ptycho_param import Param
 from nsls2ptycho.core.ptycho_recon import PtychoReconWorker, PtychoReconFakeWorker, HardWorker
 from nsls2ptycho.core.ptycho_qt_utils import PtychoStream
+from nsls2ptycho.core.widgets.list_widget import ListWidget
 from nsls2ptycho.core.widgets.mplcanvas import load_image_pil
 from nsls2ptycho.core.ptycho.utils import parse_config
 from nsls2ptycho._version import __version__
 
 # databroker related
-try:
-    from nsls2ptycho.core.HXN_databroker import hxn_db, load_metadata
-    from hxntools.scan_info import ScanInfo
-except ImportError as ex:
-    print('[!] Unable to import hxntools-related packages some features will '
-          'be unavailable')
-    print('[!] (import error: {})'.format(ex))
+from nsls2ptycho.core.databroker_api import db, load_metadata, get_single_image, get_detector_names
 
 from nsls2ptycho.reconStep_gui import ReconStepWindow
 from nsls2ptycho.roi_gui import RoiWindow
@@ -62,6 +57,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.cb_dataloader.currentTextChanged.connect(self.setLoadButton)
         self.btn_load_scan.clicked.connect(self.loadExpParam)
         self.btn_view_frame.clicked.connect(self.viewDataFrame)
+        self.ck_extra_scans_flag.clicked.connect(self.updateExtraScansFlg)
+        self.btn_set_extra_scans.clicked.connect(self.setExtraScans)
 
         #self.le_scan_num.editingFinished.connect(self.forceLoad) # too sensitive, why?
         self.le_scan_num.textChanged.connect(self.forceLoad)
@@ -116,6 +113,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self._loaded = False        # whether the user has loaded metadata or not (from either databroker or h5)
         self._scan_numbers = None   # a list of scan numbers for batch mode
         self._scan_points = None    # an array of shape (2, N) holding the scan coordinates
+        self._extra_scans_dialog = None
         self._batch_prb_filename = None  # probe's filename template for batch mode
         self._batch_obj_filename = None  # object's filename template for batch mode
         self._config_path = os.path.expanduser("~") + "/.ptycho_gui/.ptycho_gui_config"
@@ -140,6 +138,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         #if self.menu_save_config_history.isChecked(): # TODO: think of a better way...
         self.retrieveConfigHistory()
         self.update_gui_from_param()
+        self.updateExtraScansFlg()
         self.updateModeFlg()
         self.updateMultiSliceFlg()
         self.updateObjMaskFlg()
@@ -175,7 +174,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
     @db.setter
     def db(self, scan_id:int):
         # TODO: this should be configured based on selected beamline profile!
-        self._db = hxn_db
+        self._db = db
 
 
     def resetButtons(self):
@@ -795,6 +794,18 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             self.param.set_working_directory(dirname)
             self.le_working_directory.setText(dirname)
 
+
+    def updateExtraScansFlg(self):
+        self.btn_set_extra_scans.setEnabled(self.ck_extra_scans_flag.isChecked())
+
+
+    def setExtraScans(self):
+        if self._extra_scans_dialog is None:
+            self._extra_scans_dialog = ListWidget()
+            self._extra_scans_dialog.setWindowTitle('Set associated scan numbers')
+        self._extra_scans_dialog.show()
+            
+
     def modeMultiSliceGuard(self):
         '''
         Currently our ptycho code does not support simultaneous mode + multi-slice reconstruction.
@@ -1109,16 +1120,21 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
     #@profile
     def _viewDataFrameBroker(self, frame_num:int):
         # assuming at this point the user has clicked "load" 
-        if self._mds_table is None:
+        if not self._loaded:
             raise RuntimeError("[ERROR] Need to click the \"load\" button before viewing.")
-        length = (self._mds_table.shape)[0] 
-        if frame_num >= length:
-            message = "[ERROR] The {0}-th frame doesn't exist. "
-            message += "Available frames for the chosen scan: [0, {1}]."
-            raise ValueError(message.format(frame_num, length-1))
-
-        img = self.db.reg.retrieve(self._mds_table.iat[frame_num])[0]
-        return img
+        if self._mds_table is not None:
+            return get_single_image(self._db, frame_num, self._mds_table)
+        else:
+            scan_num = int(self.le_scan_num.text())
+            items = []
+            if self._extra_scans_dialog is not None:
+                list_widget = self._extra_scans_dialog.listWidget
+                for idx in range(list_widget.count()):
+                    items.append(int(list_widget.item(idx).text()))
+    #                items.append(list_widget.item(idx).data(QtCore.Qt.UserRole))#.toPyObject())
+    #            items = [item.text() for item in list_widget.items()]
+    #        print(items, self._db)
+            return get_single_image(self._db, frame_num, scan_num, *items)
 
 
     #@profile
@@ -1177,12 +1193,12 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.db = scan_id # set the correct database
         header = self.db[scan_id]
 
-        # get the list of detector names; TODO: a better way without ScanInfo?
-        scan = ScanInfo(header)
+        # get the list of detector names
+        det_names = get_detector_names(self.db, scan_id)
         det_name = self.cb_detectorkind.currentText()
         det_name_exists = False
         self.cb_detectorkind.clear()
-        for detector_name in scan.filestore_keys:
+        for detector_name in det_names:
             self.cb_detectorkind.addItem(detector_name)
             if det_name == detector_name:
                 det_name_exists = True
@@ -1210,11 +1226,13 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.param.__dict__ = {**self.param.__dict__, **metadata} # for Python 3.5+ only
 
         # get the mds keys to the image (diffamp) array 
-        self._mds_table = metadata['mds_table']
+        self._mds_table = metadata.get('mds_table')
 
         # update experimental parameters
         self.sp_xray_energy.setValue(metadata['xray_energy_kev'])
-        #self.sp_detector_distance.setValue(f['z_m'].value) # don't know how to handle this...
+        if 'z_m' in metadata:
+            print("[WARNING] Retrieved and updated the detector distance (from a hard-coded source).", file=sys.stderr)
+            self.sp_detector_distance.setValue(metadata['z_m'])
         self.sp_x_arr_size.setValue(metadata['nx'])
         self.sp_y_arr_size.setValue(metadata['ny'])
         self.sp_num_points.setValue(metadata['nz'])
@@ -1222,6 +1240,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.sp_y_step_size.setValue(metadata['dr_y'])
         self.sp_x_scan_range.setValue(metadata['x_range'])
         self.sp_y_scan_range.setValue(metadata['y_range'])
+        self.sp_ccd_pixel_um.setValue(metadata['ccd_pixel_um'])
         self.sp_angle.setValue(metadata['angle'])
         if self.cb_scan_type.findText(metadata['scan_type']) == -1:
             self.cb_scan_type.addItem(metadata['scan_type'])
@@ -1254,17 +1273,17 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             nz, nx, ny = f['diffamp'].shape
             self.sp_x_arr_size.setValue(nx)
             self.sp_y_arr_size.setValue(ny)
+            self.sp_num_points.setValue(nz)
             self.sp_x_step_size.setValue(f['dr_x'][()])
             self.sp_y_step_size.setValue(f['dr_y'][()])
             self.sp_x_scan_range.setValue(f['x_range'][()])
             self.sp_y_scan_range.setValue(f['y_range'][()])
-            self.sp_num_points.setValue(nz)
             self.sp_ccd_pixel_um.setValue(f['ccd_pixel_um'][()])
             if 'angle' in f.keys():
                 self.sp_angle.setValue(f['angle'][()])
             else:
                 self.sp_angle.setValue(15.) # backward compatibility for old datasets
-                print("angle not found, assuming 15...", file=sys.stderr)
+                print("[WARNING] angle not found, assuming 15...", file=sys.stderr)
             self._scan_points = f['points'][:] # for visualization purpose
             #self.cb_scan_type = ...
             # read the detector name and set it in GUI??

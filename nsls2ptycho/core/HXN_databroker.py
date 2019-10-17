@@ -9,6 +9,7 @@ except ModuleNotFoundError:
     from widgets.imgTools import rm_outlier_pixels
 
 from hxntools.handlers import register
+from hxntools.scan_info import ScanInfo
 try:
     # new mongo database
     hxn_db = Broker.named('hxn')
@@ -17,7 +18,17 @@ except FileNotFoundError:
     print("hxn.yml not found. Unable to access HXN's database.", file=sys.stderr)
     hxn_db = None
 
-#######################################
+
+# ***************************** "Public API" *****************************
+# The following functions must exist in nsls2ptycho/core/*_databroker.py,
+# but the function signatures do not need to agree across modules
+# (obviously, it is impossible for all beamlines to have the same setup).
+#   - load_metadata
+#   - save_data
+#   - get_single_image
+#   - get_detector_names
+# Other function must not be imported in the GUI.
+# ************************************************************************
 
 
 def load_metadata(db, scan_num:int, det_name:str):
@@ -99,6 +110,10 @@ def load_metadata(db, scan_num:int, det_name:str):
     nz, = df[det_name].shape
     mds_table = df[det_name]
 
+    # get nx and ny by looking at the first image
+    img = db.reg.retrieve(mds_table.iat[0])[0]
+    nx, ny = img.shape # can also give a ValueError; TODO: come up a better way!
+
     # write everything we need to a dict
     metadata = dict()
     metadata['xray_energy_kev'] = energy_kev
@@ -112,6 +127,8 @@ def load_metadata(db, scan_num:int, det_name:str):
     metadata['ic'] = ic
     metadata['ccd_pixel_um'] = ccd_pixel_um
     metadata['nz'] = nz
+    metadata['nx'] = nx
+    metadata['ny'] = ny
     metadata['mds_table'] = mds_table
 
     return metadata
@@ -253,3 +270,25 @@ def save_data(db, param, scan_num:int, n:int, nn:int, cx:int, cy:int, threshold=
     except FileExistsError:
         os.remove(symlink_path)
         os.symlink(file_path, symlink_path)
+
+
+def get_single_image(db, frame_num, mds_table):
+    length = (mds_table.shape)[0] 
+    if frame_num >= length:
+        message = "[ERROR] The {0}-th frame doesn't exist. "
+        message += "Available frames for the chosen scan: [0, {1}]."
+        raise ValueError(message.format(frame_num, length-1))
+
+    img = db.reg.retrieve(mds_table.iat[frame_num])[0]
+    return img
+
+
+def get_detector_names(db, scan_num:int):
+    '''
+    Returns
+    -------
+        list: detectors used in the scan or available in the beamline
+    '''
+    # TODO: a better way without ScanInfo?
+    scan = ScanInfo(db[scan_num])
+    return [key for key in scan.filestore_keys]
