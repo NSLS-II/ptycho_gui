@@ -21,7 +21,7 @@ get_detector_names = None
 db = None
 
 
-def load_HXN():
+def _load_HXN():
     import nsls2ptycho.core.HXN_databroker as hxn_databroker
     global load_metadata, save_data, get_single_image, get_detector_names, db
     load_metadata = hxn_databroker.load_metadata
@@ -32,7 +32,7 @@ def load_HXN():
     print("HXN's Databroker is enabled.", file=sys.stderr)
 
 
-def load_CSX():
+def _load_CSX():
     import nsls2ptycho.core.CSX_databroker as csx_databroker
     global load_metadata, save_data, get_single_image, get_detector_names, db
     load_metadata = csx_databroker.load_metadata
@@ -59,9 +59,9 @@ try:
         beamline_name = None
 
     if beamline_name == 'HXN':
-        load_HXN()
+        _load_HXN()
     elif beamline_name == 'CSX':
-        load_CSX()
+        _load_CSX()
     else:
         raise RuntimeError("[WARNING] Cannot detect the beamline name. Databroker is disabled.")
 except RuntimeError as ex:
