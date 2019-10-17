@@ -138,22 +138,7 @@
             <widget class="QComboBox" name="cb_detectorkind">
              <item>
               <property name="text">
-               <string>merlin1</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>merlin2</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>timepix1</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>timepix2</string>
+               <string></string>
               </property>
              </item>
             </widget>

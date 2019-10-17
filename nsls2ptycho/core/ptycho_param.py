@@ -31,7 +31,7 @@ class Param(object):
         ### [Data] ###
         self.scan_num = '34784'       # scan number
         self.working_directory = get_working_directory()
-        self.detectorkind = 'merlin1' # ['merlin1', 'merlin2', 'timepix1', 'timepix2']
+        self.detectorkind = ''        # used to be chosen from ['merlin1', 'merlin2', 'timepix1', 'timepix2']
         self.frame_num = 0            # frame number to check
 
         ### [Experimental parameters] ###
@@ -183,7 +183,7 @@ class Param(object):
         return ['lucy', 'wiener'].index(self.pc_alg)
 
     def get_detector_kind_index(self):
-        return ['merlin1', 'merlin2', 'timepix1', 'timepix2'].index(self.detectorkind)
+        return [''].index(self.detectorkind)
 
     def get_scan_type_index(self):
         return ['mesh', 'spiral', 'fly'].index(self.scan_type)
