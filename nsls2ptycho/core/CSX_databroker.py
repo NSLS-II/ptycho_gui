@@ -159,10 +159,6 @@ def save_data(db, param, scan_num:int, nx_prb:int, ny_prb:int, cx:int, cy:int, t
         print("[WARNING] Bad-pixel removal is not yet supported for CSX.", file=sys.stderr)
         bad_pixels = None
 
-    if zero_out is not None:
-        print("[WARNING] Zero masks are not yet supported for CSX.", file=sys.stderr)
-        zero_out = None
-
     det_distance_m = param.z_m
     det_pixel_um = param.ccd_pixel_um
     num_frame = param.nz
@@ -191,7 +187,7 @@ def save_data(db, param, scan_num:int, nx_prb:int, ny_prb:int, cx:int, cy:int, t
 
     # get raw data
     images_stack = get_images_to_4D(itr)
-    raw_mean_data = _preprocess_image(images_stack)
+    raw_mean_data = _preprocess_image(images_stack, zero_out)
 
     # construct data array
     diffamp = np.empty((num_frame, nx_prb, ny_prb))
@@ -260,7 +256,7 @@ def get_single_image(db, frame_num, scan_num:int, dark8ID:int=None, dark2ID:int=
         return _preprocess_image(itr[frame_num])
 
 
-def _preprocess_image(img):
+def _preprocess_image(img, zero_out=None):
     # average over the axis corresponding to the same scan point,
     # and then remove the stripe
     if img.ndim == 3:
@@ -275,6 +271,12 @@ def _preprocess_image(img):
     img = np.nan_to_num(img, copy=False)
     img[img < 0.] = 0.  # needed due to dark subtraction
     img = np.mean(img, axis=axis)
+
+    if zero_out is not None:
+        for blue_roi in zero_out:
+            x0, y0, w, h = blue_roi
+            img[..., y0:y0+h, x0:x0+w] = 0.
+
     img = stack((img[..., :cs], img[..., cs+cl:cedge]))
     return img
 

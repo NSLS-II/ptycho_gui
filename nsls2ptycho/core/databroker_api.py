@@ -66,3 +66,6 @@ try:
         raise RuntimeError("[WARNING] Cannot detect the beamline name. Databroker is disabled.")
 except RuntimeError as ex:
     print(ex, file=sys.stderr)
+
+
+del config_path, hostname, json, os, platform, sys
