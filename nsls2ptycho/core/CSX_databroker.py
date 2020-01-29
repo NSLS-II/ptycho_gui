@@ -61,29 +61,46 @@ def load_metadata(db, scan_num:int, det_name:str=''):
     energy_kev = scan_supp.pgm_energy_setpoint.iat[0] / 1E+3
 
     # get scan_type, x_range, y_range, dr_x, dr_y
-    extents = header.start['extents']
     if scan_type.endswith('grid_scan'):
+        extents = header.start['extents']
         x_num = plan_args['args'][7]
         y_num = plan_args['args'][3]
         x_range = (extents[0][1] - extents[0][0]) * 1E+3
         y_range = (extents[1][1] - extents[1][0]) * 1E+3
         dr_x = x_range / (x_num - 1)
         dr_y = y_range / (y_num - 1)
+
+        # get points
+        points = np.zeros((2, nz))
+        points[0] = scan_data.nanop_bx * 1E+3
+        points[1] = scan_data.nanop_bz * 1E+3
     elif scan_type == 'spiral_continuous':
+        extents = header.start['extents']
         # The customized plan messed up...
         x_range = (extents[0][1] - extents[0][0])/2 * 1E+3
         y_range = (extents[1][1] - extents[1][0])/2 * 1E+3
         # not available in CSX
         dr_x = 0
         dr_y = 0
+
+        # get points
+        points = np.zeros((2, nz))
+        points[0] = scan_data.nanop_bx * 1E+3
+        points[1] = scan_data.nanop_bz * 1E+3
+    elif scan_type == 'scan_nd':  # for custom plans with a zone plate
+        # this is a mesh scan, but a lot of info is missing in the plan...
+        # set the missing values to zero
+        x_range = 0
+        y_range = 0
+        dr_x = 0
+        dr_y = 0
+
+        # get points (from top motors, not bottom ones!)
+        points = np.zeros((2, nz))
+        points[0] = scan_data.nanop_tx * 1E+3
+        points[1] = scan_data.nanop_tz * 1E+3
     else:
         raise NotImplementedError("Ask Wen Hu to explain to Leo Fang.")
-
-    # get points
-    points = np.zeros((2, nz))
-    points[0] = scan_data.nanop_bx * 1E+3
-    points[1] = scan_data.nanop_bz * 1E+3
-
     # get angle, ic
     angle = 90 - scan_supp.tardis_theta.iat[0]  # TODO(leofang): verify this
     
