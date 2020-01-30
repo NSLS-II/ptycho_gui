@@ -28,7 +28,7 @@ from csxtools.utils import get_fastccd_images, get_images_to_4D
 # ************************************************************************
 
 
-# CSX's fastccd detector has a vertical dark stride
+# CSX's fastccd detector has a vertical dark stripe
 cs = 486     # pixel start point
 cl = 28      # width
 cedge = 988  # detector edge
@@ -271,13 +271,14 @@ def _preprocess_image(img, zero_out=None):
     img = np.nan_to_num(img, copy=False)
     img[img < 0.] = 0.  # needed due to dark subtraction
     img = np.mean(img, axis=axis)
+    img = stack((img[..., :cs], img[..., cs+cl:cedge]))
 
+    # The coordinates we got from GUI have the stripe removed
     if zero_out is not None:
         for blue_roi in zero_out:
             x0, y0, w, h = blue_roi
             img[..., y0:y0+h, x0:x0+w] = 0.
 
-    img = stack((img[..., :cs], img[..., cs+cl:cedge]))
     return img
 
 
