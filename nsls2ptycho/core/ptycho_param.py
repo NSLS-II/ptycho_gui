@@ -105,9 +105,9 @@ class Param(object):
 
         # param for Bragg mode
         self.bragg_flag = False
-        self.bragg_theta = 69.41
-        self.bragg_gamma = 33.4
-        self.bragg_delta = 15.458
+        self.bragg_theta = 0.
+        self.bragg_gamma = 0.
+        self.bragg_delta = 0.
 
         # partial coherence parameter
         self.pc_flag = False
