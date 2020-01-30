@@ -45,31 +45,31 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         self.sp_threshold.setValue(1.0)
         self._worker_thread = None
 
-    def reset_window(self, image=None, main_window=None):
-        '''
-        called from outside 
-        '''
-        self.canvas.reset()
-        # TODO: reset bad pixels stored in canvas
-        if image is not None:
-            self.canvas.draw_image(image)
+    # def reset_window(self, image=None, main_window=None):
+    #     '''
+    #     called from outside 
+    #     '''
+    #     self.canvas.reset()
+    #     # TODO: reset bad pixels stored in canvas
+    #     if image is not None:
+    #         self.canvas.draw_image(image)
 
-        #self.badpixels = None
-        #self.offset_x = None
-        #self.offset_y = None
+    #     #self.badpixels = None
+    #     #self.offset_x = None
+    #     #self.offset_y = None
 
-        self.main_window = main_window
-        self.roi_width = None
-        self.roi_height = None
-        self.cx = None
-        self.cy = None
-        self.sp_threshold.setValue(1.0)
-        self._worker_thread = None
+    #     self.main_window = main_window
+    #     self.roi_width = None
+    #     self.roi_height = None
+    #     self.cx = None
+    #     self.cy = None
+    #     self.sp_threshold.setValue(1.0)
+    #     self._worker_thread = None
 
-        #self.btn_badpixels_brightest.setChecked(False)
-        self.btn_badpixels_outliers.setChecked(False)
-        self.ck_show_badpixels.setChecked(False)
-        self.btn_badpixels_correct.setChecked(False)
+    #     #self.btn_badpixels_brightest.setChecked(False)
+    #     self.btn_badpixels_outliers.setChecked(False)
+    #     self.ck_show_badpixels.setChecked(False)
+    #     self.btn_badpixels_correct.setChecked(False)
        
     def open_badpixel_dialog(self):
         badpixels = self.canvas.get_badpixels()

@@ -1087,7 +1087,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             return
 
         if not self._loaded:
-            print("[WARNING] Remember to click \"Load\" before proceeding!", file=sys.stderr) 
+            print("[WARNING] Remember to click \"Load\" before proceeding!", file=sys.stderr)
             return
 
         frame_num = self.sp_fram_num.value()
@@ -1111,9 +1111,9 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         else:
             if self.roiWindow is None:
                 self.roiWindow = RoiWindow(image=img, main_window=self)
-            else:
-                self.roiWindow.reset_window(image=img, main_window=self)
-            #self.roiWindow.roi_changed.connect(self._get_roi_slot)
+            #else:
+            #    self.roiWindow.reset_window(image=img, main_window=self)
+            ##self.roiWindow.roi_changed.connect(self._get_roi_slot)
             self.roiWindow.show()
 
 
@@ -1360,6 +1360,11 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         This can avoid handling many weird exceptions.
         '''
         self._loaded = False
+
+        # if there's a roiWindow, we should close it and reopen to flush out old data
+        if self.roiWindow is not None:
+            self.roiWindow.close()
+            self.roiWindow = None
 
 
     def exception_handler(self, ex):
