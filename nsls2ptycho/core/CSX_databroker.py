@@ -13,7 +13,7 @@ try:
 except FileNotFoundError:
     print("csx.yml not found. Unable to access CSX's database.", file=sys.stderr)
     csx_db = None
-from csxtools.utils import get_fastccd_images, get_images_to_4D
+from csxtools.utils import get_fastccd_images, get_images_to_4D, get_fastccd_flatfield
 
 
 # ***************************** "Public API" *****************************
@@ -187,7 +187,7 @@ def save_data(db, param, scan_num:int, nx_prb:int, ny_prb:int, cx:int, cy:int, t
 
     # get raw data
     images_stack = get_images_to_4D(itr)
-    raw_mean_data = _preprocess_image(images_stack, zero_out)
+    raw_mean_data = _preprocess_image(images_stack, bad_pixels, zero_out)
 
     # construct data array
     diffamp = np.empty((num_frame, nx_prb, ny_prb))
@@ -229,34 +229,58 @@ def save_data(db, param, scan_num:int, nx_prb:int, ny_prb:int, cx:int, cy:int, t
         os.remove(symlink_path)
         os.symlink(file_path, symlink_path)
 
+'''
+For actual scans:
+    key : value = (scan num, dark8 num, dark2 num, dark1 num) : slicerator
 
+For flat-field scans:
+    key : value = (scan num, dark8 num, dark2 num, dark1 num) : flat image
+'''
 scan_image_itr_cache = {}
 
 
-def _load_scan_image_itr(db, scan_num:int, dark8ID:int=None, dark2ID:int=None, dark1ID:int=None):
-    bgnd8 = db[dark8ID] if (dark8ID is not None) else None
-    bgnd2 = db[dark2ID] if (dark2ID is not None) else None
-    bgnd1 = db[dark1ID] if (dark1ID is not None) else None
+def _load_scan_image_itr(db, scan_num:int, dark8:int=None, dark2:int=None, dark1:int=None, key_flat:tuple=None):
+    bgnd8 = db[dark8] if (dark8 is not None) else None
+    bgnd2 = db[dark2] if (dark2 is not None) else None
+    bgnd1 = db[dark1] if (dark1 is not None) else None
     if (bgnd8 is None) and (bgnd2 is None) and (bgnd1 is None):
         dark_headers = None
     else:
         dark_headers = (bgnd8, bgnd2, bgnd1)
-    silcerator = get_fastccd_images(db[scan_num], dark_headers=dark_headers)
+
+    flat_scan_num, flat_scan_dark8, flat_scan_num_dark2, flat_scan_dark1 = key_flat
+    if flat_scan_num is not None:
+        flat_im = scan_image_itr_cache.get(key_flat)  # load flat field image from cache
+        if flat_im is None:
+            flat_im = get_fastccd_flatfield(db[flat_scan_num], dark=(db[flat_scan_dark8], db[flat_scan_num_dark2], db[flat_scan_dark1]))
+            scan_image_itr_cache[key_flat] = flat_im
+        roi = [0, 0, 960, 1000]  # the entire detector; TODO: remove the hard-coded value?
+    else:
+        flat_im = None
+        roi = None
+
+    silcerator = get_fastccd_images(db[scan_num], dark_headers=dark_headers, flat=flat_im, roi=roi)
     return silcerator
 
 
-def get_single_image(db, frame_num, scan_num:int, dark8ID:int=None, dark2ID:int=None, dark1ID:int=None):
+def get_single_image(db, frame_num, scan_num:int, dark8:int=None, dark2:int=None, dark1:int=None,
+                     flat_scan_num:int=None, flat_scan_dark8:int=None, flat_scan_num_dark2:int=None, flat_scan_dark1:int=None):
     # TODO: use mds_table here
-    key = (scan_num, dark8ID, dark2ID, dark1ID)
+    key_flat = (flat_scan_num, flat_scan_dark8, flat_scan_num_dark2, flat_scan_dark1)
+    key = (scan_num, dark8, dark2, dark1, key_flat)
+
     if key in scan_image_itr_cache:
         return _preprocess_image(scan_image_itr_cache[key][frame_num])
     else:
-        itr = _load_scan_image_itr(db, scan_num, dark8ID, dark2ID, dark1ID)
+        itr = _load_scan_image_itr(db, scan_num, dark8, dark2, dark1, key_flat)
         scan_image_itr_cache[key] = itr
         return _preprocess_image(itr[frame_num])
 
 
-def _preprocess_image(img, zero_out=None):
+def _preprocess_image(img, bad_pixels=None, zero_out=None):
+    # TODO: support this
+    assert bad_pixels is None
+
     # average over the axis corresponding to the same scan point,
     # and then remove the stripe
     if img.ndim == 3:
@@ -290,6 +314,9 @@ def _expand_partial_key(scan_num:int):
         if scan_num in key:
             # sort key based on the number of provided dark IDs
             # prefer a complete info
+            if key[4][0] is not None:  # found match with flat-field
+                related_keys[5] = key
+                break  # shortcut
             if key[3] is not None:
                 related_keys[4] = key
                 break  # shortcut
@@ -300,7 +327,9 @@ def _expand_partial_key(scan_num:int):
             else:
                 related_keys[1] = key
 
-    if 4 in related_keys:
+    if 5 in related_keys:
+        key = related_keys[5]
+    elif 4 in related_keys:
         key = related_keys[4]
     elif 3 in related_keys:
         key = related_keys[3]
@@ -311,7 +340,7 @@ def _expand_partial_key(scan_num:int):
         print("[WARNING] Proceeding without dark IDs...", file=sys.stderr)
     else:
         raise ValueError("Data for scan number", scan_num, "not found. Forget to click load?")
-    print("Found", key, "from", related_keys)
+    print("Found", key) # "from", related_keys)
 
     return key
 
