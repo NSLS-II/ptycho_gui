@@ -1,4 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
+from nsls2ptycho.core.utils import parse_range
 from nsls2ptycho.ui import ui_list_dialog
 
 
@@ -21,6 +22,7 @@ class ListWidget(QtWidgets.QDialog, ui_list_dialog.Ui_Form):
         super().__init__(parent)
         self.setupUi(self)
         QtWidgets.QApplication.setStyle('Plastique')
+        self.setObjectName("Assoc.Scans")
 
         self.listWidget.setDragDropMode(QtWidgets.QAbstractItemView.DragDrop)
         self.listWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
@@ -36,12 +38,15 @@ class ListWidget(QtWidgets.QDialog, ui_list_dialog.Ui_Form):
         self.btn_add_item.clicked.connect(self.add_item)
         self.btn_rm_item.clicked.connect(self.remove_item)
 #        self.btn_close.clicked.connect(self.close_dialog)
-#
+
+        self.le_input.setToolTip(QtCore.QCoreApplication.translate("Assoc.Scans", "Set scan numbers and ranges. Example: 128-131, 137-139"))
+
 #    def close_dialog(self):
 #        self.destroy()
 
     def add_item(self):
-        self.listWidget.addItem(str(self.le_input.text()))
+        items = parse_range(self.le_input.text(), batch_processing=False)
+        self.listWidget.addItems([str(item) for item in items])
         self.le_input.setText('')
         #self.listWidget.sortItems()
 
