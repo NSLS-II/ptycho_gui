@@ -182,7 +182,7 @@ def save_data(db, param, scan_num:int, n:int, nn:int, cx:int, cy:int, threshold=
     #print('depth of field: ', x_depth_of_field_m, y_depth_of_field_m)
     
     # get data array
-    data = np.zeros((num_frame, n, nn)) # nz*nx*ny
+    data = np.zeros((num_frame, n//2*2, nn//2*2)) # nz*nx*ny
     mask = []
     for i in range(num_frame):
         #print(param.mds_table.iat[i], file=sys.stderr)

@@ -190,7 +190,7 @@ def save_data(db, param, scan_num:int, nx_prb:int, ny_prb:int, cx:int, cy:int, t
     raw_mean_data = _preprocess_image(images_stack, bad_pixels, zero_out)
 
     # construct data array
-    diffamp = np.empty((num_frame, nx_prb, ny_prb))
+    diffamp = np.empty((num_frame, nx_prb//2*2, ny_prb//2*2))
     diffamp[...] = np.rot90(raw_mean_data[:, cy-ny_prb//2:cy+ny_prb//2, cx-nx_prb//2:cx+nx_prb//2], axes=(2, 1))  # equivalent to np.flipud(arr).T
     diffamp = np.fft.fftshift(diffamp, axes=(1, 2))
     diffamp = np.sqrt(diffamp)
