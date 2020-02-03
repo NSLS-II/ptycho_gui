@@ -7,15 +7,15 @@ from PyQt5.QtWidgets import QFileDialog, QAction
 from nsls2ptycho.ui import ui_ptycho
 from nsls2ptycho.core.utils import clean_shared_memory, get_mpi_num_processes, parse_range
 from nsls2ptycho.core.ptycho_param import Param
-from nsls2ptycho.core.ptycho_recon import PtychoReconWorker, PtychoReconFakeWorker, HardWorker
-from nsls2ptycho.core.ptycho_qt_utils import PtychoStream
+from nsls2ptycho.core.workers import PtychoReconWorker, PtychoReconFakeWorker, HardWorker
+from nsls2ptycho.core.qt_utils import PtychoStream
 from nsls2ptycho.core.widgets.list_widget import ListWidget
 from nsls2ptycho.core.widgets.mplcanvas import load_image_pil
 from nsls2ptycho.core.ptycho.utils import parse_config
 from nsls2ptycho._version import __version__
 
 # databroker related
-from nsls2ptycho.core.databroker_api import db, load_metadata, get_single_image, get_detector_names, beamline_name
+from nsls2ptycho.core.databroker import db, load_metadata, get_single_image, get_detector_names, beamline_name
 
 from nsls2ptycho.reconStep_gui import ReconStepWindow
 from nsls2ptycho.roi_gui import RoiWindow
@@ -561,7 +561,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             else:
                 self._scan_points[0] *= -1.*self.param.x_direction
                 self._scan_points[1] *= self.param.y_direction
-                # borrowed from nsls2ptycho/core/ptycho_recon.py
+                # borrowed from nsls2ptycho/core/workers.py
                 if self.param.mpi_file_path == '':
                     if self.param.gpu_flag:
                         num_processes = str(len(self.param.gpus))

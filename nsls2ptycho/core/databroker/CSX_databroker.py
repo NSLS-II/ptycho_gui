@@ -17,7 +17,7 @@ from csxtools.utils import get_fastccd_images, get_images_to_4D, get_fastccd_fla
 
 
 # ***************************** "Public API" *****************************
-# The following functions must exist in nsls2ptycho/core/*_databroker.py,
+# The following functions must exist in nsls2ptycho.core.databroker,
 # but the function signatures do not need to agree across modules
 # (obviously, it is impossible for all beamlines to have the same setup).
 #   - load_metadata

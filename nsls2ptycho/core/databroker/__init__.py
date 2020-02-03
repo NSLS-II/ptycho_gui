@@ -4,7 +4,7 @@ import platform
 
 
 # ***************************** "Public API" *****************************
-# The following functions must exist in nsls2ptycho/core/*_databroker.py,
+# The following functions must exist in nsls2ptycho.core.databroker,
 # but the function signatures do not need to agree across modules
 # (obviously, it is impossible for all beamlines to have the same setup).
 #   - load_metadata
@@ -22,7 +22,7 @@ db = None
 
 
 def _load_HXN():
-    import nsls2ptycho.core.HXN_databroker as hxn_databroker
+    from . import HXN_databroker as hxn_databroker
     global load_metadata, save_data, get_single_image, get_detector_names, db
     load_metadata = hxn_databroker.load_metadata
     save_data = hxn_databroker.save_data
@@ -33,7 +33,7 @@ def _load_HXN():
 
 
 def _load_CSX():
-    import nsls2ptycho.core.CSX_databroker as csx_databroker
+    from . import CSX_databroker as csx_databroker
     global load_metadata, save_data, get_single_image, get_detector_names, db
     load_metadata = csx_databroker.load_metadata
     save_data = csx_databroker.save_data
