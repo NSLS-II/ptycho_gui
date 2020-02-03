@@ -29,8 +29,9 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         self.btn_badpixels_correct.clicked.connect(self.correct_badpixels)
         self.ck_show_badpixels.clicked.connect(self.show_badpixels)
         self.btn_save_to_h5.clicked.connect(self.save_to_h5)
-        self.ck_logscale.clicked.connect(self.use_logscale)
+        self.ck_logscale.toggled.connect(self.use_logscale)
         self.actionBadpixels.triggered.connect(self.open_badpixel_dialog)
+        self.canvas.btn_home.clicked.connect(self.reset_window)
 
         # badpixels
         self.badpixel_dialog = None
@@ -45,31 +46,30 @@ class RoiWindow(QtWidgets.QMainWindow, ui_roi.Ui_MainWindow):
         self.sp_threshold.setValue(1.0)
         self._worker_thread = None
 
-    # def reset_window(self, image=None, main_window=None):
-    #     '''
-    #     called from outside 
-    #     '''
-    #     self.canvas.reset()
-    #     # TODO: reset bad pixels stored in canvas
-    #     if image is not None:
-    #         self.canvas.draw_image(image)
+    def reset_window(self):
+        # When this function is called, self.canvas._on_reset() is also called
 
-    #     #self.badpixels = None
-    #     #self.offset_x = None
-    #     #self.offset_y = None
+        #self.canvas.reset()
+        # TODO: reset bad pixels stored in canvas
+        #if image is not None:
+        #    self.canvas.draw_image(image)
 
-    #     self.main_window = main_window
-    #     self.roi_width = None
-    #     self.roi_height = None
-    #     self.cx = None
-    #     self.cy = None
-    #     self.sp_threshold.setValue(1.0)
-    #     self._worker_thread = None
+        #self.badpixels = None
+        #self.offset_x = None
+        #self.offset_y = None
 
-    #     #self.btn_badpixels_brightest.setChecked(False)
-    #     self.btn_badpixels_outliers.setChecked(False)
-    #     self.ck_show_badpixels.setChecked(False)
-    #     self.btn_badpixels_correct.setChecked(False)
+        self.roi_width = None
+        self.roi_height = None
+        self.cx = None
+        self.cy = None
+        self.sp_threshold.setValue(1.0)
+        self._worker_thread = None
+
+        #self.btn_badpixels_brightest.setChecked(False)
+        self.btn_badpixels_outliers.setChecked(False)
+        self.btn_badpixels_correct.setChecked(False)
+        self.ck_show_badpixels.setChecked(False)
+        self.ck_logscale.setChecked(False)
        
     def open_badpixel_dialog(self):
         badpixels = self.canvas.get_badpixels()
