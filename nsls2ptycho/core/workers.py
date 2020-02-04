@@ -81,7 +81,7 @@ class PtychoReconWorker(QtCore.QThread):
 
     def recon_api(self, param:Param, update_fcn=None):
         # "1" is just a placeholder to be overwritten soon
-        mpirun_command = ["mpirun", "-n", "1", "python", "-W", "ignore", "-m","nsls2ptycho.core.ptycho.recon_ptycho_gui"]
+        mpirun_command = ["mpirun", "-n", "1", "python", "-W", "ignore", "-m","nsls2ptycho.core.backends.ptycho.recon_ptycho_gui"]
 
         if param.mpi_file_path == '':
             if param.gpu_flag:

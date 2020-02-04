@@ -11,7 +11,7 @@ from nsls2ptycho.core.workers import PtychoReconWorker, PtychoReconFakeWorker, H
 from nsls2ptycho.core.qt_utils import PtychoStream
 from nsls2ptycho.core.widgets.list_widget import ListWidget
 from nsls2ptycho.core.widgets.mplcanvas import load_image_pil
-from nsls2ptycho.core.ptycho.utils import parse_config
+from nsls2ptycho.core.backends.ptycho.utils import parse_config
 from nsls2ptycho._version import __version__
 
 # databroker related
