@@ -11,7 +11,7 @@ import csv
 import numpy as np
 from PIL import Image
 
-from nsls2ptycho.core.backends.ptycho.utils import split
+from nsls2ptycho.backend.ptycho.utils import split
 
 
 def load_image_pil(path):

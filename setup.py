@@ -24,12 +24,12 @@ except ImportError:
     from glob import glob
     extensions = []
     # this doesn't work because setuptools doesn't support glob pattern...
-    #extensions = [Extension("*", ["nsls2ptycho/core/backends/ptycho/*.c"])]
-    for filename in glob("nsls2ptycho/core/backends/ptycho/*.c"):
+    #extensions = [Extension("*", ["nsls2ptycho/backend/ptycho/*.c"])]
+    for filename in glob("nsls2ptycho/backend/ptycho/*.c"):
         mod = os.path.basename(filename)[:-2]
-        extensions.append(Extension("nsls2ptycho.core.backends.ptycho."+mod, [filename]))
+        extensions.append(Extension("nsls2ptycho.backend.ptycho."+mod, [filename]))
 else:
-    extensions = cythonize("nsls2ptycho/core/backends/ptycho/*.pyx")
+    extensions = cythonize("nsls2ptycho/backend/ptycho/*.pyx")
 
 # see if PyQt5 is already installed --- pip and conda use different names...
 try:
@@ -39,7 +39,7 @@ except ImportError:
 
 # for generating .cubin files
 # TODO: add a flag to do this only if GPU support is needed?
-import nsls2ptycho.core.backends.ptycho.build_cuda_source as bcs
+import nsls2ptycho.backend.ptycho.build_cuda_source as bcs
 cubin_path = bcs.compile()
 
 # if GPU support is needed, check if cupy exists
@@ -73,14 +73,14 @@ setup(name=NAME,
       #packages=find_packages(),
       packages=["nsls2ptycho",
                 "nsls2ptycho.core",
-                "nsls2ptycho.core.backends",
-                "nsls2ptycho.core.backends.ptycho",
-                "nsls2ptycho.core.databroker",
+                "nsls2ptycho.backend",
+                "nsls2ptycho.backend.ptycho",
+                "nsls2ptycho.databroker",
                 "nsls2ptycho.core.widgets",
                 "nsls2ptycho.ui"],
       entry_points={
           'gui_scripts': ['run-ptycho = nsls2ptycho.ptycho_gui:main'],
-          'console_scripts': ['run-ptycho-backend = nsls2ptycho.core.backends.ptycho.recon_ptycho_gui:main']
+          'console_scripts': ['run-ptycho-backend = nsls2ptycho.backend.ptycho.recon_ptycho_gui:main']
       },
       install_requires=REQUIREMENTS,
       #extras_require={'GPU': 'cupy'}, # this will build cupy from source, may not be the best practice!

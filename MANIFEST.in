@@ -1,1 +1,1 @@
-include nsls2ptycho/core/backends/ptycho/*.cubin
+include nsls2ptycho/backend/ptycho/*.cubin

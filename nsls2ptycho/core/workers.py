@@ -1,16 +1,17 @@
-from PyQt5 import QtCore
 from datetime import datetime
-from nsls2ptycho.core.ptycho_param import Param
 import sys, os
 import pickle     # dump param into disk
 import subprocess # call mpirun from shell
 from fcntl import fcntl, F_GETFL, F_SETFL
 from os import O_NONBLOCK
-import numpy as np
 import traceback
 
-from nsls2ptycho.core.databroker import load_metadata, save_data
+import numpy as np
+from PyQt5 import QtCore
+
+from nsls2ptycho.core.ptycho_param import Param
 from nsls2ptycho.core.utils import use_mpi_machinefile, set_flush_early
+from nsls2ptycho.databroker import load_metadata, save_data
 
 
 class PtychoReconWorker(QtCore.QThread):
@@ -81,7 +82,7 @@ class PtychoReconWorker(QtCore.QThread):
 
     def recon_api(self, param:Param, update_fcn=None):
         # "1" is just a placeholder to be overwritten soon
-        mpirun_command = ["mpirun", "-n", "1", "python", "-W", "ignore", "-m","nsls2ptycho.core.backends.ptycho.recon_ptycho_gui"]
+        mpirun_command = ["mpirun", "-n", "1", "python", "-W", "ignore", "-m","nsls2ptycho.backend.ptycho.recon_ptycho_gui"]
 
         if param.mpi_file_path == '':
             if param.gpu_flag:

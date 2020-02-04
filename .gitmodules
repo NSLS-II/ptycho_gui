@@ -1,3 +1,3 @@
-[submodule "nsls2ptycho/core/backends/ptycho"]
-	path = nsls2ptycho/core/backends/ptycho
+[submodule "nsls2ptycho/backend/ptycho"]
+	path = nsls2ptycho/backend/ptycho
 	url = ../ptycho.git

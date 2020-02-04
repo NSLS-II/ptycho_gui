@@ -11,11 +11,11 @@ from nsls2ptycho.core.workers import PtychoReconWorker, PtychoReconFakeWorker, H
 from nsls2ptycho.core.qt_utils import PtychoStream
 from nsls2ptycho.core.widgets.list_widget import ListWidget
 from nsls2ptycho.core.widgets.mplcanvas import load_image_pil
-from nsls2ptycho.core.backends.ptycho.utils import parse_config
+from nsls2ptycho.backend.ptycho.utils import parse_config
 from nsls2ptycho._version import __version__
 
 # databroker related
-from nsls2ptycho.core.databroker import db, load_metadata, get_single_image, get_detector_names, beamline_name
+from nsls2ptycho.databroker import db, load_metadata, get_single_image, get_detector_names, beamline_name
 
 from nsls2ptycho.reconStep_gui import ReconStepWindow
 from nsls2ptycho.roi_gui import RoiWindow

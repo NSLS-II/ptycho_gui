@@ -11,7 +11,7 @@ import mpi4py
 mpi4py.rc.initialize = False
 from mpi4py import MPI
 
-from nsls2ptycho.core.backends.ptycho.utils import split
+from nsls2ptycho.backend.ptycho.utils import split
 
 
 # DEPRECARED: migrated to nsls2ptycho.core.widgets.mplcanvas
