@@ -1458,7 +1458,13 @@
              <number>3</number>
             </property>
             <property name="value">
-             <double>69.409999999999997</double>
+             <double>0.0</double>
+            </property>
+            <property name="minimum">
+             <double>-180</double>
+            </property>
+            <property name="maximum">
+             <double>180</double>
             </property>
            </widget>
           </item>
@@ -1471,7 +1477,13 @@
              <number>3</number>
             </property>
             <property name="value">
-             <double>15.460000000000001</double>
+             <double>0.0</double>
+            </property>
+            <property name="minimum">
+             <double>-180</double>
+            </property>
+            <property name="maximum">
+             <double>180</double>
             </property>
            </widget>
           </item>
@@ -1501,7 +1513,13 @@
              <number>3</number>
             </property>
             <property name="value">
-             <double>33.399999999999999</double>
+             <double>0.0</double>
+            </property>
+            <property name="minimum">
+             <double>-180</double>
+            </property>
+            <property name="maximum">
+             <double>180</double>
             </property>
            </widget>
           </item>

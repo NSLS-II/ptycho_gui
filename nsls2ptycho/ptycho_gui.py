@@ -15,7 +15,7 @@ from nsls2ptycho.core.ptycho.utils import parse_config
 from nsls2ptycho._version import __version__
 
 # databroker related
-from nsls2ptycho.core.databroker_api import db, load_metadata, get_single_image, get_detector_names
+from nsls2ptycho.core.databroker_api import db, load_metadata, get_single_image, get_detector_names, beamline_name
 
 from nsls2ptycho.reconStep_gui import ReconStepWindow
 from nsls2ptycho.roi_gui import RoiWindow
@@ -1087,7 +1087,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             return
 
         if not self._loaded:
-            print("[WARNING] Remember to click \"Load\" before proceeding!", file=sys.stderr) 
+            print("[WARNING] Remember to click \"Load\" before proceeding!", file=sys.stderr)
             return
 
         frame_num = self.sp_fram_num.value()
@@ -1111,9 +1111,9 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         else:
             if self.roiWindow is None:
                 self.roiWindow = RoiWindow(image=img, main_window=self)
-            else:
-                self.roiWindow.reset_window(image=img, main_window=self)
-            #self.roiWindow.roi_changed.connect(self._get_roi_slot)
+            #else:
+            #    self.roiWindow.reset_window(image=img, main_window=self)
+            ##self.roiWindow.roi_changed.connect(self._get_roi_slot)
             self.roiWindow.show()
 
 
@@ -1254,8 +1254,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         if self.cb_dataloader.currentText() == "Load from databroker":
             self.cb_detectorkind.setEnabled(True)
             self.cb_scan_type.setEnabled(True)
-            #print("[WARNING] Currently detector distance is unavailable in Databroker and must be set manually!", file=sys.stderr)
-            print("[WARNING] Detector distance is unavailable in Databroker, assumed to be 0.5m", file=sys.stderr)
+            if beamline_name == 'HXN':
+                #print("[WARNING] Currently detector distance is unavailable in Databroker and must be set manually!", file=sys.stderr)
+                print("[WARNING] Detector distance is unavailable in Databroker, assumed to be 0.5m", file=sys.stderr)
+                self.sp_detector_distance.setValue(0.5)
         if self.cb_dataloader.currentText() == "Load from h5":
             self.cb_detectorkind.setEnabled(False)
             self.cb_scan_type.setEnabled(False) # do we ever write scan type to h5???
@@ -1341,7 +1343,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
     def resetExperimentalParameters(self):
         self.sp_xray_energy.setValue(0)
-        self.sp_detector_distance.setValue(0.5)
+        self.sp_detector_distance.setValue(0)
         self.sp_x_arr_size.setValue(0)
         self.sp_y_arr_size.setValue(0)
         self.sp_x_step_size.setValue(0)
@@ -1358,6 +1360,11 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         This can avoid handling many weird exceptions.
         '''
         self._loaded = False
+
+        # if there's a roiWindow, we should close it and reopen to flush out old data
+        if self.roiWindow is not None:
+            self.roiWindow.close()
+            self.roiWindow = None
 
 
     def exception_handler(self, ex):

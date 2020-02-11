@@ -45,8 +45,8 @@ class MplCanvasTool(QtWidgets.QWidget):
 
         self.image = None
         self.image_data = None
-        self.overlay = None
         self.image_handler = None
+        self.overlay = None
         self.overlay_handler = None
         self.reset()
 
@@ -163,6 +163,31 @@ class MplCanvasTool(QtWidgets.QWidget):
             self._ids = self._eventHandler.zoom_pan_factory(self.ax)
 
     def _on_reset(self):
+        # clear bad pixels to restore a clean state
+        # TODO: investigate why self.clear_overlay() is not working
+        self.overlay = None
+        self.set_overlay([], [])
+
+        # clear all ROIs (red and blue)
+        for sp in self._roi_all:
+            sp.valueChanged.disconnect(self._update_roi_canvas)
+        self._eventHandler.roi_changed.disconnect(self._update_roi)
+
+        for sp in self._roi_all:
+            sp.setValue(0.)
+
+        self._eventHandler.ref_rect = None
+        self._eventHandler.ref_idx = -1
+        for rect in self._eventHandler.all_rect:
+            rect.remove()
+        self._eventHandler.all_rect = []
+        #self.ax.figure.canvas.draw()
+        #self.canvas.draw()
+
+        for sp in self._roi_all:
+            sp.valueChanged.connect(self._update_roi_canvas)
+        self._eventHandler.roi_changed.connect(self._update_roi)
+
         if self.image_handler:
             width = self.image.shape[1]
             height = self.image.shape[0]
@@ -204,9 +229,9 @@ class MplCanvasTool(QtWidgets.QWidget):
     def reset(self):
         for sp in self._roi_all:
             sp.setValue(0.)
-        self.image_handler = None
         self.image = None
         self.image_data = None
+        self.image_handler = None
         self.overlay = None
         self.overlay_handler = None
         self.ax.clear()
@@ -214,6 +239,7 @@ class MplCanvasTool(QtWidgets.QWidget):
         self.canvas.draw()
 
     def draw_image(self, image, cmap='gray', init_roi=False, use_log=False):
+        # TODO: merge this function and use_logscale()
         #print(cmap, init_roi, use_log)
         if use_log:
             print('log scale')
@@ -289,6 +315,7 @@ class MplCanvasTool(QtWidgets.QWidget):
         self.canvas.draw()
 
     def use_logscale(self, state):
+        # TODO: merge this function and draw_image()
         if self.image is None: return
         if state:
             self.image_data = np.log(np.clip(self.image, 1., None))

@@ -126,7 +126,7 @@ class EventHandler(QObject):
 
         ax.figure.canvas.draw()
 
-    def _find_closest_rect(self, x, y, delta=2.):
+    def _find_closest_rect(self, x, y, delta=10.):
         min_dist = 9999999.
         ref_rect = None
         ref_idx = -1
@@ -231,7 +231,7 @@ class EventHandler(QObject):
             self.coord_x_ratio = event.xdata / event.x
             self.coord_y_ratio = (ax.get_ylim()[0] - event.ydata) / event.y
 
-            ref_rect, ref_idx = self._find_closest_rect(event.xdata, event.ydata, delta=2.)
+            ref_rect, ref_idx = self._find_closest_rect(event.xdata, event.ydata)
             self.rect_x0 = None
             self.rect_y0 = None
 
@@ -241,11 +241,10 @@ class EventHandler(QObject):
                 self.rect_y0 = event.ydata
 
                 # make solid line for all existing roi
-                for rect in self.all_rect: rect.set_linestyle('solid')
-
+                for rect in self.all_rect:
+                    rect.set_linestyle('solid')
             # left click, select an existing roi
             elif event.button == 1 and ref_rect is not None and ref_idx >= 0:
-
                 if event.dblclick:
                     clr = RED_EDGECOLOR
                     if self.ref_rect.get_edgecolor() == RED_EDGECOLOR:
@@ -260,7 +259,6 @@ class EventHandler(QObject):
                     # make solid line for all existing roi except the selected one
                     for rect in self.all_rect: rect.set_linestyle('solid')
                     self.ref_rect.set_linestyle('dashed')
-
             # right click, delete the selected roi
             elif event.button == 3 and ref_rect is not None and ref_idx >=0:
                 self.ref_rect = ref_rect
