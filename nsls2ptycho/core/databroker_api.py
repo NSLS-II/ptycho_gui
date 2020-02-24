@@ -22,10 +22,7 @@ db = None
 
 
 def _load_HXN():
-    try:
-        import nsls2ptycho.core.HXN_databroker as hxn_databroker
-    except ImportError:
-        raise RuntimeError("[WARNING] Databroker is not found and so disabled.")
+    import nsls2ptycho.core.HXN_databroker as hxn_databroker
     global load_metadata, save_data, get_single_image, get_detector_names, db
     load_metadata = hxn_databroker.load_metadata
     save_data = hxn_databroker.save_data
@@ -36,10 +33,7 @@ def _load_HXN():
 
 
 def _load_CSX():
-    try:
-        import nsls2ptycho.core.CSX_databroker as csx_databroker
-    except ImportError:
-        raise RuntimeError("[WARNING] Databroker is not found and so disabled.")
+    import nsls2ptycho.core.CSX_databroker as csx_databroker
     global load_metadata, save_data, get_single_image, get_detector_names, db
     load_metadata = csx_databroker.load_metadata
     save_data = csx_databroker.save_data
@@ -70,6 +64,8 @@ try:
         _load_CSX()
     else:
         raise RuntimeError("[WARNING] Cannot detect the beamline name. Databroker is disabled.")
+except ImportError:
+    print("[WARNING] Databroker is not found and so disabled.", file=sys.stderr)
 except RuntimeError as ex:
     print(ex, file=sys.stderr)
 
