@@ -2,7 +2,7 @@
 
 jobs:
 - job: linux
-  pool: Default
+  pool: Azure Pipelines
   timeoutInMinutes: 10
   strategy:
     maxParallel: 1
