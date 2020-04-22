@@ -1,0 +1,22 @@
+# -*- mode: yaml -*-
+
+jobs:
+- job: linux
+  pool: Default
+  timeoutInMinutes: 10
+  strategy:
+    maxParallel: 1
+  steps:
+  - script: |
+       hostname
+       uname
+    displayName: Ensure the right machine
+  - script: |
+       conda create -n _azure_test -c conda-forge python=3.7
+       conda activate _azure_test
+       python --version
+    displayName: Create Conda environment
+  - script: |
+       conda deactivate _azure_test
+       conda env remove -n _azure_test
+    displayName: Remove Conda environment
