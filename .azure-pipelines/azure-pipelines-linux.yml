@@ -18,13 +18,13 @@ jobs:
        hostname
     displayName: Ensure the right machine
   - script: |
-       conda create -n _azure_test -c conda-forge -y python=3.7 \
+       conda create -n _azure_runner -c conda-forge -y python=3.7 \
          pyfftw pyqt=5 numpy scipy matplotlib pillow h5py posix_ipc databroker openmpi mpi4py numba
-       source activate _azure_test
+       source $HOME/miniconda3/bin/activate _azure_runner
        conda list
        python --version
        pip install -v .
        conda deactivate
-       conda env remove -n _azure_test
+       conda env remove -n _azure_runner
     displayName: Test Conda environment
     #failOnStderr: true  # pip and conda print warnings to stderr...
