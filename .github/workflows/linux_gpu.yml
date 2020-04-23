@@ -30,6 +30,7 @@ jobs:
         
       env:
         GIT_EXEC_PATH: /home/leofang/miniconda3/envs/GH_action_runner/libexec/git-core
+        PATH: "/home/leofang/miniconda3/envs/GH_action_runner/:$PATH"
 
     - name: Chekout
       # this has git >= 2.18 installed, needed at the checkout stage
