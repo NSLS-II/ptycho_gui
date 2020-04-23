@@ -2,7 +2,10 @@
 
 jobs:
 - job: linux
-  pool: Default
+  pool:
+    name: Default
+    demands:
+    - gpu -equals true
   timeoutInMinutes: 10
   strategy:
     maxParallel: 1
