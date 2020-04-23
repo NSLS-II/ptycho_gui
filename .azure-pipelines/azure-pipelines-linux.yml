@@ -7,6 +7,8 @@ jobs:
   strategy:
     maxParallel: 1
   steps:
+  - checkout: self
+    submodules: true
   - script: |
        hostname
     displayName: Ensure the right machine
