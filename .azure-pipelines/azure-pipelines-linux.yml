@@ -19,7 +19,7 @@ jobs:
        source activate _azure_test
        conda list
        python --version
-       pwd  # where am i?
+       cd ptycho_gui && pip install -v .
        conda deactivate
        conda env remove -n _azure_test
     displayName: Test Conda environment
