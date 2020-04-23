@@ -21,6 +21,14 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+    - name: TEST
+      run: |
+        which git 
+        git --version
+        
+      env:
+        GIT_EXEC_PATH: /home/leofang/miniconda3/envs/GH_action_runner/libexec/git-core
+
     - name: Chekout
       # this has git >= 2.18 installed, needed at the checkout stage
       #run: source activate GH_action_runner
