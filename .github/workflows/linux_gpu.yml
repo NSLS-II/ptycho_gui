@@ -44,14 +44,15 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       uses: actions/checkout@v2
       
-      # this needs git >= 2.18, which is not yet available on the local runner
       with:
         submodules: true
+        # a personal access token is added as a secret to this repo
         token: ${{ secrets.GH_ACTIONS_TOKEN }}
-        
+    
+     # actions/checkout@v2 requires git >= 2.18 for checking out submodules,
+     # which is not yet available on the local runner
       env:
         PATH: /home/leofang/miniconda3/envs/GH_action_runner/bin:/home/leofang/miniconda3/condabin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
-        #GIT_EXEC_PATH: /home/leofang/miniconda3/envs/GH_action_runner/libexec/git-core
 
     # Runs a single command using the runners shell
     - name: Ensure the right machine
@@ -60,13 +61,15 @@ jobs:
     # Runs a set of commands using the runners shell
     - name: Test Conda environment
       run: |
-        pwd
-        ls -l
-        conda create -n _azure_test -c conda-forge -y python=3.7 \
+        echo $PATH
+        which git
+        conda env list
+        conda create -n _azure_test_github -c conda-forge -y python=3.7 \
           pyfftw pyqt=5 numpy scipy matplotlib pillow h5py posix_ipc databroker openmpi mpi4py numba
-        source activate _azure_test
+        source activate _azure_test_github
+        echo $PATH
         conda list
         python --version
         pip install -v .
         conda deactivate
-        conda env remove -n _azure_test
+        conda env remove -n _azure_test_github
