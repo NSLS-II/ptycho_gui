@@ -22,15 +22,16 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     - name: TEST
+      echo "::add-path::/home/leofang/miniconda3/envs/GH_action_runner/bin/"
       run: |
         echo $PATH
         which git 
         git --version
-        echo $GIT_EXEC_PATH
+        #echo $GIT_EXEC_PATH
         
       env:
-        GIT_EXEC_PATH: /home/leofang/miniconda3/envs/GH_action_runner/libexec/git-core
-        PATH: /home/leofang/miniconda3/envs/GH_action_runner/bin/:$PATH
+        #GIT_EXEC_PATH: /home/leofang/miniconda3/envs/GH_action_runner/libexec/git-core
+        #PATH: /home/leofang/miniconda3/envs/GH_action_runner/bin/:$PATH
 
     - name: Chekout
       # this has git >= 2.18 installed, needed at the checkout stage
