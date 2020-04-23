@@ -1,5 +1,3 @@
-# This is a basic workflow to help you get started with Actions
-
 name: CI
 
 # Controls when the action will run. Triggers the workflow on push or pull request
@@ -16,31 +14,10 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: [self-hosted, linux, gpu]
-    
-    #runs-on: ubuntu-18.04
-    
-    #env:
-        #GIT_EXEC_PATH: /home/leofang/miniconda3/envs/GH_action_runner/libexec/git-core
-      #PATH: /home/leofang/miniconda3/envs/GH_action_runner/bin/:$PATH
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    #- name: TEST
-    #  #echo "::add-path::/home/leofang/miniconda3/envs/GH_action_runner/bin/"
-    #  run: |
-    #    source activate GH_action_runner
-    #    which git 
-    #    git --version
-    #    #echo $GIT_EXEC_PATH
-        
-      #env:
-        #GIT_EXEC_PATH: /home/leofang/miniconda3/envs/GH_action_runner/libexec/git-core
-        #PATH: /home/leofang/miniconda3/envs/GH_action_runner/bin/:$PATH
-
     - name: Chekout
-      # this has git >= 2.18 installed, needed at the checkout stage
-      #run: source activate GH_action_runner
-
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       uses: actions/checkout@v2
       
@@ -48,11 +25,6 @@ jobs:
         submodules: true
         # a personal access token is added as a secret to this repo
         token: ${{ secrets.GH_ACTIONS_TOKEN }}
-    
-     # actions/checkout@v2 requires git >= 2.18 for checking out submodules,
-     # which is not yet available on the local runner
-     # env:
-     #   PATH: /home/leofang/miniconda3/envs/GH_action_runner/bin:/home/leofang/miniconda3/condabin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
 
     # Runs a single command using the runners shell
     - name: Ensure the right machine
@@ -61,15 +33,9 @@ jobs:
     # Runs a set of commands using the runners shell
     - name: Test Conda environment
       run: |
-        echo $PATH
-        which git
-        conda env list
         conda create -n _azure_test_github -c conda-forge -y python=3.7 \
           pyfftw pyqt=5 numpy scipy matplotlib pillow h5py posix_ipc databroker openmpi mpi4py numba
         source $HOME/miniconda3/bin/activate _azure_test_github
-        
-        echo $PATH
-        which git
         conda list
         python --version
         pip install -v .
