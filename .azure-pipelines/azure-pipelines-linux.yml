@@ -16,7 +16,7 @@ jobs:
     displayName: Ensure the right machine
   - script: |
        conda create -n _azure_test -c conda-forge -y python=3.7 \
-         pyfftw pyqt=5 numpy scipy matplotlib pillow h5py posix_ipc databroker openmpi mpi4py
+         pyfftw pyqt=5 numpy scipy matplotlib pillow h5py posix_ipc databroker openmpi mpi4py numba
        source activate _azure_test
        conda list
        python --version
@@ -24,4 +24,4 @@ jobs:
        conda deactivate
        conda env remove -n _azure_test
     displayName: Test Conda environment
-    failOnStderr: true
+    #failOnStderr: true  # pip and conda print warnings to stderr...
