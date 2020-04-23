@@ -21,7 +21,7 @@ jobs:
     steps:
     # this has git >= 2.18 installed, needed at the checkout stage
     - name: Activate the Conda environment
-      run: conda activate GH_action_runner
+      run: source activate GH_action_runner
       
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
