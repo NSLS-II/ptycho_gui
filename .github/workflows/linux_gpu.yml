@@ -23,14 +23,14 @@ jobs:
     steps:
     - name: TEST
       run: |
+        echo $PATH
         which git 
         git --version
-        echo $PATH
         echo $GIT_EXEC_PATH
         
       env:
         GIT_EXEC_PATH: /home/leofang/miniconda3/envs/GH_action_runner/libexec/git-core
-        PATH: /home/leofang/miniconda3/envs/GH_action_runner/:$PATH
+        PATH: /home/leofang/miniconda3/envs/GH_action_runner/bin/:$PATH
 
     - name: Chekout
       # this has git >= 2.18 installed, needed at the checkout stage
