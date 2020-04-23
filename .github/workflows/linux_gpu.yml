@@ -18,18 +18,22 @@ jobs:
     runs-on: [self-hosted, linux, gpu]
     
     #runs-on: ubuntu-18.04
+    
+    env:
+        #GIT_EXEC_PATH: /home/leofang/miniconda3/envs/GH_action_runner/libexec/git-core
+      PATH: /home/leofang/miniconda3/envs/GH_action_runner/bin/:$PATH
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     - name: TEST
-      echo "::add-path::/home/leofang/miniconda3/envs/GH_action_runner/bin/"
+      #echo "::add-path::/home/leofang/miniconda3/envs/GH_action_runner/bin/"
       run: |
         echo $PATH
         which git 
         git --version
         #echo $GIT_EXEC_PATH
         
-      env:
+      #env:
         #GIT_EXEC_PATH: /home/leofang/miniconda3/envs/GH_action_runner/libexec/git-core
         #PATH: /home/leofang/miniconda3/envs/GH_action_runner/bin/:$PATH
 
@@ -44,8 +48,8 @@ jobs:
       with:
         submodules: true
         
-      env:
-        GIT_EXEC_PATH: /home/leofang/miniconda3/envs/GH_action_runner/libexec/git-core
+      #env:
+      #  GIT_EXEC_PATH: /home/leofang/miniconda3/envs/GH_action_runner/libexec/git-core
 
     # Runs a single command using the runners shell
     - name: Ensure the right machine
