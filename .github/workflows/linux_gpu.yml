@@ -25,13 +25,13 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    - name: TEST
-      #echo "::add-path::/home/leofang/miniconda3/envs/GH_action_runner/bin/"
-      run: |
-        echo "path is" $PATH
-        which git 
-        git --version
-        #echo $GIT_EXEC_PATH
+    #- name: TEST
+    #  #echo "::add-path::/home/leofang/miniconda3/envs/GH_action_runner/bin/"
+    #  run: |
+    #    source activate GH_action_runner
+    #    which git 
+    #    git --version
+    #    #echo $GIT_EXEC_PATH
         
       #env:
         #GIT_EXEC_PATH: /home/leofang/miniconda3/envs/GH_action_runner/libexec/git-core
@@ -51,8 +51,8 @@ jobs:
     
      # actions/checkout@v2 requires git >= 2.18 for checking out submodules,
      # which is not yet available on the local runner
-      env:
-        PATH: /home/leofang/miniconda3/envs/GH_action_runner/bin:/home/leofang/miniconda3/condabin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+     # env:
+     #   PATH: /home/leofang/miniconda3/envs/GH_action_runner/bin:/home/leofang/miniconda3/condabin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
 
     # Runs a single command using the runners shell
     - name: Ensure the right machine
@@ -67,7 +67,9 @@ jobs:
         conda create -n _azure_test_github -c conda-forge -y python=3.7 \
           pyfftw pyqt=5 numpy scipy matplotlib pillow h5py posix_ipc databroker openmpi mpi4py numba
         source activate _azure_test_github
+        
         echo $PATH
+        which git
         conda list
         python --version
         pip install -v .
