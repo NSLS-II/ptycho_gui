@@ -9,16 +9,14 @@ jobs:
   steps:
   - script: |
        hostname
-       whoami
-       pwd
-       ls -l
     displayName: Ensure the right machine
   - script: |
        conda create -n _azure_test -c conda-forge -y python=3.7
        source activate _azure_test
+       conda list
        python --version
     displayName: Create Conda environment
   - script: |
-       source deactivate _azure_test
+       conda deactivate _azure_test
        conda env remove -n _azure_test
     displayName: Remove Conda environment
