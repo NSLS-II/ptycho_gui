@@ -19,9 +19,9 @@ jobs:
     
     #runs-on: ubuntu-18.04
     
-    env:
+    #env:
         #GIT_EXEC_PATH: /home/leofang/miniconda3/envs/GH_action_runner/libexec/git-core
-      PATH: /home/leofang/miniconda3/envs/GH_action_runner/bin/:$PATH
+      #PATH: /home/leofang/miniconda3/envs/GH_action_runner/bin/:$PATH
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -48,8 +48,9 @@ jobs:
       with:
         submodules: true
         
-      #env:
-      #  GIT_EXEC_PATH: /home/leofang/miniconda3/envs/GH_action_runner/libexec/git-core
+      env:
+        PATH: /home/leofang/miniconda3/envs/GH_action_runner/bin:/home/leofang/miniconda3/condabin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+        #GIT_EXEC_PATH: /home/leofang/miniconda3/envs/GH_action_runner/libexec/git-core
 
     # Runs a single command using the runners shell
     - name: Ensure the right machine
