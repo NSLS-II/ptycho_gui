@@ -6,6 +6,8 @@ jobs:
   timeoutInMinutes: 10
   strategy:
     maxParallel: 1
+  workspace:
+    clean: all
   steps:
   - checkout: self
     submodules: true
