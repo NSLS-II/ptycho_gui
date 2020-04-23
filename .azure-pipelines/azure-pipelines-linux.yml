@@ -15,8 +15,6 @@ jobs:
        source activate _azure_test
        conda list
        python --version
-    displayName: Test Conda environment
-  - script: |
        conda deactivate
        conda env remove -n _azure_test
-    displayName: Remove Conda environment
+    displayName: Test Conda environment
