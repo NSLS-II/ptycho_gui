@@ -28,7 +28,7 @@ jobs:
     - name: TEST
       #echo "::add-path::/home/leofang/miniconda3/envs/GH_action_runner/bin/"
       run: |
-        echo $PATH
+        echo "path is" $PATH
         which git 
         git --version
         #echo $GIT_EXEC_PATH
