@@ -2,7 +2,7 @@
 
 jobs:
 - job: linux
-  pool: Azure Pipelines
+  pool: Default
   timeoutInMinutes: 10
   strategy:
     maxParallel: 1
@@ -12,7 +12,7 @@ jobs:
        uname
     displayName: Ensure the right machine
   - script: |
-       conda create -n _azure_test -c conda-forge python=3.7
+       conda create -n _azure_test -c conda-forge -y python=3.7
        conda activate _azure_test
        python --version
     displayName: Create Conda environment
