@@ -47,6 +47,7 @@ jobs:
       # this needs git >= 2.18, which is not yet available on the local runner
       with:
         submodules: true
+        token: ${{ secrets.GITHUB_TOKEN }}
         
       env:
         PATH: /home/leofang/miniconda3/envs/GH_action_runner/bin:/home/leofang/miniconda3/condabin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
