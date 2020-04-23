@@ -66,7 +66,7 @@ jobs:
         conda env list
         conda create -n _azure_test_github -c conda-forge -y python=3.7 \
           pyfftw pyqt=5 numpy scipy matplotlib pillow h5py posix_ipc databroker openmpi mpi4py numba
-        conda activate _azure_test_github
+        source $HOME/miniconda3/bin/activate _azure_test_github
         
         echo $PATH
         which git
