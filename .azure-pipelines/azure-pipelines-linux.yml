@@ -23,3 +23,4 @@ jobs:
        conda deactivate
        conda env remove -n _azure_test
     displayName: Test Conda environment
+    failOnStderr: true
