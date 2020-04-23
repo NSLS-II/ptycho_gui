@@ -29,8 +29,11 @@ jobs:
       uses: actions/checkout@v2
       
       # this needs git >= 2.18, which is not yet available on the local runner
-      #with:
-      #  submodules: true
+      with:
+        submodules: true
+        
+      env:
+        GIT_EXEC_PATH: /home/leofang/miniconda3/envs/GH_action_runner/libexec/git-core
 
     # Runs a single command using the runners shell
     - name: Ensure the right machine
@@ -41,7 +44,6 @@ jobs:
       run: |
         pwd
         ls -l
-        git submodule update --init
         conda create -n _azure_test -c conda-forge -y python=3.7 \
           pyfftw pyqt=5 numpy scipy matplotlib pillow h5py posix_ipc databroker openmpi mpi4py numba
         source activate _azure_test
