@@ -3,7 +3,7 @@
 jobs:
 - job: linux
   pool:
-    name: Default
+    name: BNL-machines
     demands:
     - gpu -equals true
   timeoutInMinutes: 10
