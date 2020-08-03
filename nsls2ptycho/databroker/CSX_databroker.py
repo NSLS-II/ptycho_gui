@@ -254,12 +254,10 @@ def _load_scan_image_itr(db, scan_num:int, dark8:int=None, dark2:int=None, dark1
         if flat_im is None:
             flat_im = get_fastccd_flatfield(db[flat_scan_num], dark=(db[flat_scan_dark8], db[flat_scan_num_dark2], db[flat_scan_dark1]))
             scan_image_itr_cache[key_flat] = flat_im
-        roi = [0, 0, 960, 1000]  # the entire detector; TODO: remove the hard-coded value?
     else:
         flat_im = None
-        roi = None
 
-    silcerator = get_fastccd_images(db[scan_num], dark_headers=dark_headers, flat=flat_im, roi=roi)
+    silcerator = get_fastccd_images(db[scan_num], dark_headers=dark_headers, flat=flat_im)
     return silcerator
 
 

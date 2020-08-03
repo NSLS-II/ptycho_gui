@@ -64,6 +64,8 @@ try:
         _load_CSX()
     else:
         raise RuntimeError("[WARNING] Cannot detect the beamline name. Databroker is disabled.")
+except ImportError:
+    print("[WARNING] Databroker is not found and so disabled.", file=sys.stderr)
 except RuntimeError as ex:
     print(ex, file=sys.stderr)
 

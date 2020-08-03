@@ -1,0 +1,4 @@
+# -*- mode: yaml -*-
+
+jobs:
+  - template: ./.azure-pipelines/azure-pipelines-linux.yml

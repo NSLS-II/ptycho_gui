@@ -338,6 +338,15 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
         # batch param group, necessary?
 
+        # from the associate scan number window
+        if self._extra_scans_dialog is not None:
+            scans = self._extra_scans_dialog.listWidget
+            num_items = scans.count()
+            p.asso_scan_numbers = [scans.item(i).text() for i in range(num_items)]
+        else:
+            # do not erase this, as keeping it has no harm
+            pass
+
 
     def update_gui_from_param(self):
         p = self.param
@@ -803,6 +812,11 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         if self._extra_scans_dialog is None:
             self._extra_scans_dialog = ListWidget()
             self._extra_scans_dialog.setWindowTitle('Set associated scan numbers')
+            # read from param if there are any asso scans leftover from last time
+            p = self.param
+            if len(p.asso_scan_numbers) > 0:
+                scans = self._extra_scans_dialog.listWidget
+                scans.addItems([str(item) for item in p.asso_scan_numbers])
         self._extra_scans_dialog.show()
             
 
@@ -1386,6 +1400,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
                 self.roiWindow.close()
             if self.scanWindow is not None:
                 self.scanWindow.close()
+            if self._extra_scans_dialog is not None:
+                self._extra_scans_dialog.close()
             event.accept()
         else:
             event.ignore()
