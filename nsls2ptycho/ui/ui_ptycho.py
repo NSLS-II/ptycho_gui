@@ -2,11 +2,13 @@
 
 # Form implementation generated from reading ui file 'nsls2ptycho/ui/ui_ptycho.ui'
 #
-# Created by: PyQt5 UI code generator 5.9.2
+# Created by: PyQt5 UI code generator 5.12.3
 #
 # WARNING! All changes made in this file will be lost!
 
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -238,9 +240,15 @@ class Ui_MainWindow(object):
         self.cb_alg_flag.addItem("")
         self.cb_alg_flag.addItem("")
         self.cb_alg_flag.addItem("")
+        self.cb_alg_flag.addItem("")
+        self.cb_alg_flag.addItem("")
+        self.cb_alg_flag.addItem("")
         self.horizontalLayout_4.addWidget(self.cb_alg_flag)
         self.cb_alg2_flag = QtWidgets.QComboBox(self.tab)
         self.cb_alg2_flag.setObjectName("cb_alg2_flag")
+        self.cb_alg2_flag.addItem("")
+        self.cb_alg2_flag.addItem("")
+        self.cb_alg2_flag.addItem("")
         self.cb_alg2_flag.addItem("")
         self.cb_alg2_flag.addItem("")
         self.cb_alg2_flag.addItem("")
@@ -1114,11 +1122,17 @@ class Ui_MainWindow(object):
         self.cb_alg_flag.setItemText(2, _translate("MainWindow", "ML"))
         self.cb_alg_flag.setItemText(3, _translate("MainWindow", "DM_real"))
         self.cb_alg_flag.setItemText(4, _translate("MainWindow", "RAAR"))
+        self.cb_alg_flag.setItemText(5, _translate("MainWindow", "mADMM"))
+        self.cb_alg_flag.setItemText(6, _translate("MainWindow", "PM"))
+        self.cb_alg_flag.setItemText(7, _translate("MainWindow", "APG"))
         self.cb_alg2_flag.setItemText(0, _translate("MainWindow", "DM"))
         self.cb_alg2_flag.setItemText(1, _translate("MainWindow", "ER"))
         self.cb_alg2_flag.setItemText(2, _translate("MainWindow", "ML"))
         self.cb_alg2_flag.setItemText(3, _translate("MainWindow", "DM_real"))
         self.cb_alg2_flag.setItemText(4, _translate("MainWindow", "RAAR"))
+        self.cb_alg2_flag.setItemText(5, _translate("MainWindow", "mADMM"))
+        self.cb_alg2_flag.setItemText(6, _translate("MainWindow", "PM"))
+        self.cb_alg2_flag.setItemText(7, _translate("MainWindow", "APG"))
         self.label_54.setText(_translate("MainWindow", "Precision"))
         self.cb_precision_flag.setItemText(0, _translate("MainWindow", "double"))
         self.cb_precision_flag.setItemText(1, _translate("MainWindow", "single"))
@@ -1246,4 +1260,3 @@ class Ui_MainWindow(object):
         self.actionMonitor.setText(_translate("MainWindow", "Monitor"))
         self.actionScan_points.setText(_translate("MainWindow", "Scan points"))
         self.actionClear_shared_memory.setText(_translate("MainWindow", "Clear shared memory"))
-
