@@ -20,7 +20,8 @@ def get_working_directory():
     return working_dir
 
 
-supported_alg = ['DM', 'ER', 'ML', 'DM_real', 'RAAR', 'PIE', 'mADMM', 'PM', 'APG']
+supported_alg = ['DM', 'ER', 'ML', 'DM_real', 'RAAR', #'PIE',
+                 'mADMM', 'PM', 'APG']
 
 
 class Param(object):
