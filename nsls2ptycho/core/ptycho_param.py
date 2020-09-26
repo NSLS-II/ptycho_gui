@@ -20,6 +20,10 @@ def get_working_directory():
     return working_dir
 
 
+supported_alg = ['DM', 'ER', 'ML', 'DM_real', 'RAAR', #'PIE',
+                 'mADMM', 'PM', 'APG']
+
+
 class Param(object):
     """
     ptychography reconstruction parameters
@@ -171,14 +175,14 @@ class Param(object):
 
     def get_alg_flg_index(self):
         # TODO: this is a temporary fix as PIE is currently disabled
-        return ['DM', 'ER', 'ML', 'DM_real', 'RAAR', 'PIE'].index(self.alg_flag)
+        return supported_alg.index(self.alg_flag)
 
     def get_ml_model_index(self):
         return ['Poisson'].index(self.ml_mode)
 
     def get_alg2_flg_index(self):
         # TODO: this is a temporary fix as PIE is currently disabled
-        return ['DM', 'ER', 'ML', 'DM_real', 'RAAR', 'PIE'].index(self.alg2_flag)
+        return supported_alg.index(self.alg2_flag)
 
     def get_pc_alg_index(self):
         return ['lucy', 'wiener'].index(self.pc_alg)
