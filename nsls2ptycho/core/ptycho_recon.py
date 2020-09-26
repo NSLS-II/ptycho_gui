@@ -93,6 +93,9 @@ class PtychoReconWorker(QtCore.QThread):
             mpirun_command = use_mpi_machinefile(mpirun_command, param.mpi_file_path)
 
         mpirun_command = set_flush_early(mpirun_command)
+
+        # for CuPy v8.0+
+        os.environ['CUPY_ACCELERATORS'] = 'cub'
                 
         try:
             self.return_value = None
