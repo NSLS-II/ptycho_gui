@@ -58,6 +58,11 @@ Basically the procedure is similar to those outlined above, except that we don't
 ## References
 - *High-Performance Multi-Mode Ptychography Reconstruction on Distributed GPUs*, Z. Dong, Y.-L. L. Fang *et al.*, 2018 NYSDS, DOI:[10.1109/NYSDS.2018.8538964](https://doi.org/10.1109/NYSDS.2018.8538964)
 
+For users using the new solvers mADMM, PM, and APG, you are advised to cite additionlly the following paper:
+
+- *Ptychographic phase retrieval by proximal algorithms*, H. Yan, [New J. Phys. 22 023035 (2020)](https://doi.org/10.1088/1367-2630/ab704e).
+
+
 ## License
 MIT (subject to change)
 
