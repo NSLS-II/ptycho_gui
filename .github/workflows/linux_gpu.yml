@@ -34,7 +34,7 @@ jobs:
       
       with:
         submodules: true
-        token: ${{ secrets.GITHUB_TOKEN }}  # only GITHUB_TOKEN can be used by forked repos
+        token: ${{ secrets.GH_ACTIONS_TOKEN }}  # only GITHUB_TOKEN can be used by forked repos
 
     # Runs a single command using the runners shell
     - name: Ensure the right machine
