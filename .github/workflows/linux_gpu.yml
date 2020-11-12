@@ -23,8 +23,7 @@ jobs:
       
       with:
         submodules: true
-        # a personal access token is added as a secret to this repo
-        token: ${{ secrets.GH_ACTIONS_TOKEN }}
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     # Runs a single command using the runners shell
     - name: Ensure the right machine
