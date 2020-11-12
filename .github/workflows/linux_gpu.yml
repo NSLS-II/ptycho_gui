@@ -27,13 +27,15 @@ jobs:
         which git
         git --version
 
-    # Check out the repo recursively
+    # Check out the main
     - name: Chekout
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       uses: actions/checkout@v2
-      
+
+    - name: Init submodule
+      run: |
+        git submodule update --init
       with:
-        submodules: true
         token: ${{ secrets.GH_ACTIONS_TOKEN }}  # only GITHUB_TOKEN can be used by forked repos
 
     # Runs a single command using the runners shell
