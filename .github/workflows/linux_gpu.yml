@@ -17,13 +17,24 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+    # Create a Conda env and install a newer git there for git clone
+    - name:  Create Conda environment
+      run: |
+        conda create -n _github_runner -c conda-forge -y python=3.7 \
+          pyfftw pyqt=5 numpy scipy matplotlib pillow h5py posix_ipc databroker openmpi mpi4py numba
+        source $HOME/miniconda3/bin/activate _github_runner
+        conda install -c conda-forge -y git
+        which git
+        git --version
+
+    # Check out the repo recursively
     - name: Chekout
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       uses: actions/checkout@v2
       
       with:
         submodules: true
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.GITHUB_TOKEN }}  # only GITHUB_TOKEN can be used by forked repos
 
     # Runs a single command using the runners shell
     - name: Ensure the right machine
@@ -32,9 +43,6 @@ jobs:
     # Runs a set of commands using the runners shell
     - name: Test Conda environment
       run: |
-        conda create -n _github_runner -c conda-forge -y python=3.7 \
-          pyfftw pyqt=5 numpy scipy matplotlib pillow h5py posix_ipc databroker openmpi mpi4py numba
-        source $HOME/miniconda3/bin/activate _github_runner
         conda list
         python --version
         pip install -v .
