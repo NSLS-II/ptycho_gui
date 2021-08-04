@@ -42,7 +42,7 @@ Basically the procedure is similar to those outlined above, except that we don't
 3. Either use the current Conda environment, or create a new one, and then do 
 `conda install python=3.6 pyfftw pyqt=5 numpy scipy matplotlib pillow h5py posix_ipc databroker`
 4. If you need beamline-specific packages, install it now. Ex: `conda install hxntools`
-5. `conda install -c conda-forge openmpi mpi4py` (the `conda-forge` channel can be replaced by `lightsource2-tag`)
+5. `conda install -c conda-forge openmpi mpi4py`
 4. Enter the cloned directory: `cd ./ptycho_gui`
 5. `pip install .`
 
