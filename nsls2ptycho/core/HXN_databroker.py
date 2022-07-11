@@ -109,8 +109,8 @@ def load_metadata(db, scan_num:int, det_name:str):
         if v > 0:
             ic_closest_nonzero = v
             break
-    if ic_closest_nonzero is None:
-        for n in ic.size:
+    if ic_closest_nonzero is not None:
+        for n in range(ic.size):
             if ic[n] <= 0:
                 print(
                     f"Scaler value {ic[n]} with index {n} is replaced "
