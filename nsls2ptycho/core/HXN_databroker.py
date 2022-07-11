@@ -43,11 +43,17 @@ def array_ensure_positive_elements(arr, name="array"):
     name: str
         Data name to use in error messages.
     """
+    n_items_to_replace = sum(arr <= 0)
+    if not n_items_to_replace:
+        return
+
     v_closest_positive = None
     for v in arr:  # Initialize the algorithm with some valid value in case the 1st element is zero.
         if v > 0:
             v_closest_positive = v
             break
+
+    n_replaced = 0
     if v_closest_positive is not None:
         for n in range(arr.size):
             if arr[n] <= 0:
@@ -56,6 +62,9 @@ def array_ensure_positive_elements(arr, name="array"):
                     f"with the closest value {v_closest_positive}."
                 )
                 arr[n] = v_closest_positive
+                n_replaced += 1
+                if n_replaced == n_items_to_replace:
+                    break
             else:
                 v_closest_positive = arr[n]
     else:
