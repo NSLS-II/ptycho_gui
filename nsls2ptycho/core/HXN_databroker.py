@@ -31,6 +31,37 @@ except FileNotFoundError:
 # ************************************************************************
 
 
+def array_ensure_positive_elements(arr, name="array"):
+    """
+    Replace all zero or negative values in the array with the closest positive values.
+    Works only with 1D arrays.
+
+    Parameters
+    ----------
+    arr: numpy.ndarray
+        1D numpy array
+    name: str
+        Data name to use in error messages.
+    """
+    v_closest_positive = None
+    for v in arr:  # Initialize the algorithm with some valid value in case the 1st element is zero.
+        if v > 0:
+            v_closest_positive = v
+            break
+    if v_closest_positive is not None:
+        for n in range(arr.size):
+            if arr[n] <= 0:
+                print(
+                    f"{name.capitalize()} value {arr[n]} with index {n} is replaced "
+                    f"with the closest value {v_closest_positive}."
+                )
+                arr[n] = v_closest_positive
+            else:
+                v_closest_positive = arr[n]
+    else:
+        print(f"The {name} contains no positive non-zero values. Computations are likely to fail.")
+
+
 def load_metadata(db, scan_num:int, det_name:str):
     '''
     Get all metadata for the given scan number and detector name
@@ -102,25 +133,7 @@ def load_metadata(db, scan_num:int, det_name:str):
     else:
         angle = bl.dsth[1]
         ic = np.asfarray(df['sclr1_ch4'])
-
-    # Remove zeros from 'ic' (if possible)
-    ic_closest_nonzero = None
-    for v in ic:  # Initialize the algorithm with some valid value in case the 1st element is zero.
-        if v > 0:
-            ic_closest_nonzero = v
-            break
-    if ic_closest_nonzero is not None:
-        for n in range(ic.size):
-            if ic[n] <= 0:
-                print(
-                    f"Scaler value {ic[n]} with index {n} is replaced "
-                    f"with the closest value {ic_closest_nonzero}."
-                )
-                ic[n] = ic_closest_nonzero
-            else:
-                ic_closest_nonzero = ic[n]
-    else:
-        print("All scaler values are zero. Computation is likely to fail.")
+    array_ensure_positive_elements(ic, name="scaler")
 
     # get ccd_pixel_um
     ccd_pixel_um = 55.
