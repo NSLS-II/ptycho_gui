@@ -39,14 +39,23 @@ def array_ensure_positive_elements(arr, name="array"):
     Parameters
     ----------
     arr: numpy.ndarray
-        1D numpy array
+        Reference to 1D numpy array. The values are modified in place.
     name: str
         Data name to use in error messages.
+
+    Returns
+    -------
+    None
     """
     n_items_to_replace = sum(arr <= 0)
+
+    # Exit right away if there scaler data is valid (this should be true for correctly recorded scans)
     if not n_items_to_replace:
         return
 
+    # TODO: the algorithm may be implemented more efficiently if needed. Scalers are loaded only once
+    #       per reconstruction, and the correction does not introduce noticable delay. Rewrite
+    #       the function if performance becomes an issue.
     v_closest_positive = None
     for v in arr:  # Initialize the algorithm with some valid value in case the 1st element is zero.
         if v > 0:
