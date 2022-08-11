@@ -34,7 +34,11 @@ except FileNotFoundError:
 def array_ensure_positive_elements(arr, name="array"):
     """
     Replace all zero or negative values in the array with the closest positive values.
-    Works only with 1D arrays.
+    Works only with 1D arrays. The array is processed in the reversed order to replace
+    zeros with the following (not preceding) values, because they are more likely to
+    be from the same subscan (HXN).
+
+    The function will do nothing if there are no zeros or negative values in the array.
 
     Parameters
     ----------
@@ -57,14 +61,16 @@ def array_ensure_positive_elements(arr, name="array"):
     #       per reconstruction, and the correction does not introduce noticable delay. Rewrite
     #       the function if performance becomes an issue.
     v_closest_positive = None
-    for v in arr:  # Initialize the algorithm with some valid value in case the 1st element is zero.
+    for v in np.flip(
+        arr
+    ):  # Initialize the algorithm with some valid value in case the 1st element is zero.
         if v > 0:
             v_closest_positive = v
             break
 
     n_replaced = 0
     if v_closest_positive is not None:
-        for n in range(arr.size):
+        for n in reversed(range(arr.size)):
             if arr[n] <= 0:
                 print(
                     f"{name.capitalize()} value {arr[n]} with index {n} is replaced "
@@ -77,7 +83,9 @@ def array_ensure_positive_elements(arr, name="array"):
             else:
                 v_closest_positive = arr[n]
     else:
-        print(f"The {name} contains no positive non-zero values. Computations are likely to fail.")
+        print(
+            f"The {name} contains no positive non-zero values. Computations are likely to fail."
+        )
 
 
 def load_metadata(db, scan_num:int, det_name:str):
