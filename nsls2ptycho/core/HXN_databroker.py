@@ -31,12 +31,69 @@ except FileNotFoundError:
 # ************************************************************************
 
 
+def array_ensure_positive_elements(arr, name="array"):
+    """
+    Replace all zero or negative values in the array with the closest positive values.
+    Works only with 1D arrays. The array is processed in the reversed order to replace
+    zeros with the following (not preceding) values, because they are more likely to
+    be from the same subscan (HXN).
+
+    The function will do nothing if there are no zeros or negative values in the array.
+
+    Parameters
+    ----------
+    arr: numpy.ndarray
+        Reference to 1D numpy array. The values are modified in place.
+    name: str
+        Data name to use in error messages.
+
+    Returns
+    -------
+    None
+    """
+    n_items_to_replace = sum(arr <= 0)
+
+    # Exit right away if there scaler data is valid (this should be true for correctly recorded scans)
+    if not n_items_to_replace:
+        return
+
+    # TODO: the algorithm may be implemented more efficiently if needed. Scalers are loaded only once
+    #       per reconstruction, and the correction does not introduce noticable delay. Rewrite
+    #       the function if performance becomes an issue.
+    v_closest_positive = None
+    for v in np.flip(
+        arr
+    ):  # Initialize the algorithm with some valid value in case the 1st element is zero.
+        if v > 0:
+            v_closest_positive = v
+            break
+
+    n_replaced = 0
+    if v_closest_positive is not None:
+        for n in reversed(range(arr.size)):
+            if arr[n] <= 0:
+                print(
+                    f"{name.capitalize()} value {arr[n]} with index {n} is replaced "
+                    f"with the closest value {v_closest_positive}."
+                )
+                arr[n] = v_closest_positive
+                n_replaced += 1
+                if n_replaced == n_items_to_replace:
+                    break
+            else:
+                v_closest_positive = arr[n]
+    else:
+        print(
+            f"The {name} contains no positive non-zero values. Computations are likely to fail."
+        )
+
+
 def load_metadata(db, scan_num:int, det_name:str):
     '''
     Get all metadata for the given scan number and detector name
 
     Parameters:
-        - db: 
+        - db:
             a Broker instance. For HXN experiments they are db1, db2, and db_old
         - scan_num: int
             the scan number
@@ -102,7 +159,8 @@ def load_metadata(db, scan_num:int, det_name:str):
     else:
         angle = bl.dsth[1]
         ic = np.asfarray(df['sclr1_ch4'])
-    
+    array_ensure_positive_elements(ic, name="scaler")
+
     # get ccd_pixel_um
     ccd_pixel_um = 55.
 
@@ -139,7 +197,7 @@ def save_data(db, param, scan_num:int, n:int, nn:int, cx:int, cy:int, threshold=
     Save metadata and diffamp for the given scan number to a HDF5 file.
 
     Parameters:
-        - db: 
+        - db:
             a Broker instance.
         - param: Param
             a Param instance containing the metadata and other information from the GUI
@@ -180,7 +238,7 @@ def save_data(db, param, scan_num:int, n:int, nn:int, cx:int, cy:int, threshold=
     y_depth_of_field_m = lambda_nm * 1.e-9 / (nn/2 * det_pixel_um*1.e-6 / det_distance_m)**2
     #print('pixel size: ', x_pixel_m, y_pixel_m)
     #print('depth of field: ', x_depth_of_field_m, y_depth_of_field_m)
-    
+
     # get data array
     data = np.zeros((num_frame, n//2*2, nn//2*2)) # nz*nx*ny
     mask = []
@@ -210,7 +268,7 @@ def save_data(db, param, scan_num:int, n:int, nn:int, cx:int, cy:int, threshold=
             #tmptmp = img[cx-n//2:cx+n//2, cy-nn//2:cy+nn//2]
             tmptmp = img[cy-nn//2:cy+nn//2, cx-n//2:cx+n//2]
             #print(tmptmp.shape, file=sys.stderr)
-        else: 
+        else:
             raise Exception("zero padding not completed yet")
             # # is this part necessary???
             # #tmptmp = t
@@ -223,7 +281,7 @@ def save_data(db, param, scan_num:int, n:int, nn:int, cx:int, cy:int, threshold=
         #    plt.imshow(tmptmp, vmin=np.min(img), vmax=np.max(img))
         #    plt.savefig("ttttt.png")
         #    return
-        
+
         tmptmp = np.rot90(tmptmp, axes=(1,0)) #equivalent to np.flipud(tmptmp).T
         if not np.sum(tmptmp) > 0.:
             mask.append(i)
@@ -238,12 +296,12 @@ def save_data(db, param, scan_num:int, n:int, nn:int, cx:int, cy:int, threshold=
     data = np.sqrt(data)
     # data array got
     print('array size:', np.shape(data))
-    
+
     # create a folder
     try:
         os.mkdir(param.working_directory + '/h5_data/')
     except FileExistsError:
-        pass 
+        pass
 
     file_path = param.working_directory + '/h5_data/scan_' + str(scan_num) + '.h5'
     with h5py.File(file_path, 'w') as hf:
@@ -273,7 +331,7 @@ def save_data(db, param, scan_num:int, n:int, nn:int, cx:int, cy:int, threshold=
 
 
 def get_single_image(db, frame_num, mds_table):
-    length = (mds_table.shape)[0] 
+    length = (mds_table.shape)[0]
     if frame_num >= length:
         message = "[ERROR] The {0}-th frame doesn't exist. "
         message += "Available frames for the chosen scan: [0, {1}]."

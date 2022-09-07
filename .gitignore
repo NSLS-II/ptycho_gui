@@ -5,3 +5,6 @@ __pycache__
 
 .idea
 .vscode
+
+build/
+nsls2ptycho.egg-info/
