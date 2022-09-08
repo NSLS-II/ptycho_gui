@@ -4,13 +4,11 @@
 ## Installation
 While one can `pip install` this pacakge directly, most likely the non-Python dependencies will not be available. For the time being, therefore, we recommend using Conda.
 
-### On NSLS-II beamline machines
+### Installation on NSLS-II Beamline Machines
 The instruction below is **for admins who have the root priviledge** to install the software at the system level so that *all* users logging in the machine can run the software directly without any setup.
 
-#### Fully automatic way (recommended)
-
-**Note: The instructions are out of date and may not work as expected.**
-
+#### Fully Automatic Installation (recommended)
+*Note: The instructions for automatic installation are out of date and may not work as expected.*
 1. Create a new conda environment named `ptycho_production`: `sudo /opt/conda/bin/conda create -p /opt/conda_envs/ptycho_production python=3.6 nsls2ptycho` (If you need beamline-specific packages, such as `hxntools` for HXN, append the package names in the `conda create` command. This helps resolve possible conflict/downgrade issues.)
 The conda environment `ptycho_production` is activated under the hood using the `run-ptycho` script to be installed in the last step.
 2. `fix_conda_privileges.sh`
@@ -20,9 +18,9 @@ The conda environment `ptycho_production` is activated under the hood using the 
 
 To update the software, simple do `sudo conda update -n ptycho_production nsls2ptycho`
 
-#### Manual installation
-1. Create a new conda environment named `ptycho_production`: `sudo conda create -n ptycho_production -c conda-forge python=3.9 pyfftw pyqt=5 numpy scipy matplotlib pillow h5py databroker openmpi mpi4py cython` (If you need beamline-specific packages, such as `hxntools` for HXN, append the package names in the `conda create` command. This helps resolve possible conflict/downgrade issues.)
-The conda environment `ptycho_production` is activated under the hood using the `run-ptycho` script to be installed in Step 7.
+#### Manual Installation
+1. Create a new conda environment named `ptycho_production`: `sudo conda create -n ptycho_production -c conda-forge python=3.9 pyfftw pyqt=5 numpy scipy matplotlib pillow h5py databroker openmpi mpi4py cython`. If you need beamline-specific packages, such as `hxntools` for HXN, append the package names in the `conda create` command. This helps resolve possible conflict/downgrade issues.
+The conda environment `ptycho_production` is activated under the hood using the `run-ptycho` script to be installed in Step 9.
 2. Activate the environment: `conda activate ptycho_production`.
 3. Install additional packages using pip: `pip install posix_ipc`.
 4. Make sure you are granted access to the backend, currently hosted in [this private GitHub repo](https://github.com/NSLS-II/ptycho).
@@ -40,11 +38,11 @@ cd ./nsls2ptycho/core/ptycho/
 sudo git pull origin master    # update backend
 ```
 
-### On personal machines
-Basically the procedure is similar to those outlined above, except that we don't need `sudo`:
+### Installation on Personal Machines
+The procedure is similar to **Manual Installation** outlined above, except that it does not require `sudo`:
 1. Make sure you are granted access to the backend, currently hosted in [this private GitHub repo](https://github.com/NSLS-II/ptycho)
 2. `git clone --recursive https://github.com/NSLS-II/ptycho_gui.git` (during the process `git` will prompt you to enther your GitHub id and password for cloning the backend)
-3. Create the conda environment as described in steps 1-3 for *Manual installation* instructions. Alternatively, the needed packages may be installed in the existing Conda environment.
+3. Create the conda environment as described in steps 1-3 of instructions for **Manual Installation** (do not use `sudo`). Alternatively, the needed packages may be installed in the existing Conda environment.
 4. Activate the Conda environment.
 5. Enter the cloned directory: `cd ./ptycho_gui`.
 5. `pip install .` (or `pip install -e .`).
