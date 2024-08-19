@@ -20,4 +20,4 @@ if [ ! -d $PTYCHO_HOME ]; then
 fi
 
 # use the script installed by pip
-/opt/conda_envs/ptycho_production/bin/run-ptycho
+$CONDA_PREFIX/bin/run-ptycho
