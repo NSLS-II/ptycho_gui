@@ -19,7 +19,7 @@ The conda environment `ptycho_production` is activated under the hood using the 
 To update the software, simple do `sudo conda update -n ptycho_production nsls2ptycho`
 
 #### Manual Installation
-1. Create a new conda environment named `ptycho_production`: `sudo conda create -n ptycho_production -c conda-forge python=3.9 pyfftw pyqt=5 numpy scipy matplotlib pillow h5py databroker openmpi mpi4py cython`. If you need beamline-specific packages, such as `hxntools` for HXN, append the package names in the `conda create` command. This helps resolve possible conflict/downgrade issues.
+1. Create a new conda environment named `ptycho_production`: `sudo conda create -n ptycho_production -c conda-forge python=3.9 pyfftw pyqt=5 'numpy<2' scipy matplotlib pillow h5py 'databroker<=1.999' openmpi mpi4py cython`. If you need beamline-specific packages, such as `hxntools` for HXN, append the package names in the `conda create` command. This helps resolve possible conflict/downgrade issues.
 The conda environment `ptycho_production` is activated under the hood using the `run-ptycho` script to be installed in Step 9.
 2. Activate the environment: `conda activate ptycho_production`.
 3. Install additional packages using pip: `pip install posix_ipc`.

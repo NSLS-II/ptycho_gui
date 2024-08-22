@@ -47,8 +47,14 @@ if len(cubin_path) > 0:
     # skip depending CuPy on OS X as the wheel is not provided
     if not bcs.PLATFORM_DARWIN:
         cuda_ver = str(bcs._cuda_version)
-        major = str(int(cuda_ver[:-2])//10)
-        minor = str(int(cuda_ver[-2:])//10)
+        major = int(cuda_ver[:-2])//10
+        minor = int(cuda_ver[-2:])//10
+        if major > 10:
+            # Newer versions of CuPy are published as cupy-cuda11x, cupy-cuda12x, etc
+            minor = "x"
+            # Older versions of CuPy are published as cupy-cuda80, cupy-cuda102, etc
+        major = str(major)
+        minor = str(minor)
         try:
             import cupy
         except ImportError:
