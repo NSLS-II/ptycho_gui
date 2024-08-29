@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>600</width>
-    <height>800</height>
+    <height>1090</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -84,7 +84,7 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>540</y>
+      <y>810</y>
       <width>250</width>
       <height>100</height>
      </rect>
@@ -94,7 +94,7 @@
     <property name="geometry">
      <rect>
       <x>320</x>
-      <y>540</y>
+      <y>810</y>
       <width>250</width>
       <height>100</height>
      </rect>
@@ -124,7 +124,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>632</y>
+      <y>920</y>
       <width>560</width>
       <height>159</height>
      </rect>
@@ -332,7 +332,7 @@
     <property name="geometry">
      <rect>
       <x>280</x>
-      <y>530</y>
+      <y>800</y>
       <width>81</width>
       <height>21</height>
      </rect>
@@ -348,6 +348,46 @@
      <string>Error</string>
     </property>
    </widget>
+   <widget class="MplCanvas" name="canvas_probe_fft" native="true">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>540</y>
+      <width>250</width>
+      <height>240</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="MplCanvas" name="canvas_probe_comp" native="true">
+    <property name="geometry">
+     <rect>
+      <x>320</x>
+      <y>540</y>
+      <width>250</width>
+      <height>240</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_9">
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>530</y>
+      <width>81</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Probe</string>
+    </property>
+   </widget>
    <zorder>layoutWidget</zorder>
    <zorder>canvas_object_amp</zorder>
    <zorder>canvas_probe_amp</zorder>
@@ -360,13 +400,16 @@
    <zorder>label_6</zorder>
    <zorder>label_8</zorder>
    <zorder>label_10</zorder>
+   <zorder>canvas_probe_fft</zorder>
+   <zorder>canvas_probe_comp</zorder>
+   <zorder>label_9</zorder>
   </widget>
  </widget>
  <customwidgets>
   <customwidget>
    <class>MplCanvas</class>
    <extends>QWidget</extends>
-   <header>nsls2ptycho.core.widgets.mplcanvas</header>
+   <header>..core.widgets.mplcanvas</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui_ptycho.ui'
+# Form implementation generated from reading ui file '/nsls2/users/zgao1/python_packages/nsls2ptycho2/ui/ui_ptycho.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.7
 #
@@ -203,7 +203,6 @@ class Ui_MainWindow(object):
         self.gridLayout_9.addWidget(self.sp_num_points, 4, 4, 1, 1)
         self.sp_y_step_size = QtWidgets.QDoubleSpinBox(self.groupBox_8)
         self.sp_y_step_size.setDecimals(4)
-        self.sp_y_step_size.setMinimum(-1000000.0)
         self.sp_y_step_size.setMaximum(1000000.0)
         self.sp_y_step_size.setObjectName("sp_y_step_size")
         self.gridLayout_9.addWidget(self.sp_y_step_size, 2, 4, 1, 1)
@@ -212,7 +211,6 @@ class Ui_MainWindow(object):
         self.gridLayout_9.addWidget(self.label_40, 1, 3, 1, 1)
         self.sp_x_step_size = QtWidgets.QDoubleSpinBox(self.groupBox_8)
         self.sp_x_step_size.setDecimals(4)
-        self.sp_x_step_size.setMinimum(-1000000.0)
         self.sp_x_step_size.setMaximum(1000000.0)
         self.sp_x_step_size.setObjectName("sp_x_step_size")
         self.gridLayout_9.addWidget(self.sp_x_step_size, 2, 1, 1, 1)
@@ -1355,13 +1353,3 @@ class Ui_MainWindow(object):
         self.actionMonitor.setText(_translate("MainWindow", "Monitor"))
         self.actionScan_points.setText(_translate("MainWindow", "Scan points"))
         self.actionClear_shared_memory.setText(_translate("MainWindow", "Clear shared memory"))
-
-
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())

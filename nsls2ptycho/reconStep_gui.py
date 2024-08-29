@@ -1,6 +1,7 @@
 import sys
 from PyQt5 import QtWidgets
-from nsls2ptycho.ui import ui_reconstep
+from .ui import ui_reconstep
+from .core.ptycho import utils
 
 import numpy as np
 
@@ -41,6 +42,8 @@ class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
         self.canvas_object_pha.reset()
         self.canvas_probe_amp.reset()
         self.canvas_probe_pha.reset()
+        self.canvas_probe_fft.reset()
+        self.canvas_probe_comp.reset()
         self.canvas_object_chi.reset()
         self.canvas_object_chi.axis_on()
         self.canvas_probe_chi.reset()
@@ -94,14 +97,23 @@ class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
 
     def cb_image_probe_op(self, idx):
         it = self.sb_iter.value()
+        if it not in self.image_buffer:
+            it = len(self.image_buffer)-1
         if it in self.image_buffer:
             images_to_show = self.image_buffer[it]
-            probe_image = self._fetch_images(it, images_to_show, 'prb_amp')
-            if probe_image is not None:
-                self.canvas_probe_amp.update_image(probe_image)
-            probe_image = self._fetch_images(it, images_to_show, 'prb_pha')
-            if probe_image is not None:
-                self.canvas_probe_pha.update_image(probe_image)
+            probe_image_amp = self._fetch_images(it, images_to_show, 'prb_amp')
+            if probe_image_amp is not None:
+                self.canvas_probe_amp.update_image(probe_image_amp)
+            probe_image_pha = self._fetch_images(it, images_to_show, 'prb_pha')
+            if probe_image_pha is not None:
+                self.canvas_probe_pha.update_image(probe_image_pha)
+            if probe_image_amp is not None and probe_image_pha is not None:
+                probe_image_comp = utils.imRGB_from_comp(probe_image_amp,probe_image_pha)
+                self.canvas_probe_comp.update_image(probe_image_comp)
+                
+                probe_comp = probe_image_amp*np.exp(1j*probe_image_pha)
+                probe_fft = np.abs(np.fft.fftshift(np.fft.fft2(probe_comp)))
+                self.canvas_probe_fft.update_image(probe_fft)
 
     def btn_close_op(self):
         # todo: close with signal to main window
@@ -113,6 +125,7 @@ class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
         self.progressBar.setMaximum(max_iters)
 
         # one-based index
+        self.max_iters = max_iters
         self.current_max_iters = 1
         self.slider_iters.setValue(1)
         self.slider_iters.setMinimum(1)
@@ -147,22 +160,48 @@ class ReconStepWindow(QtWidgets.QMainWindow, ui_reconstep.Ui_MainWindow):
         elif it in self.image_buffer:
             images_to_show = self.image_buffer[it]
 
-        object_image = None
-        probe_image = None
-        if images_to_show is not None:
-            object_image = self._fetch_images(it, images_to_show, 'obj_amp')
-            probe_image = self._fetch_images(it, images_to_show, 'prb_amp')
-            if object_image is not None:
-                self.canvas_object_amp.update_image(object_image)
-            if probe_image is not None:
-                self.canvas_probe_amp.update_image(probe_image)
+        object_image_amp = None
+        probe_image_amp = None
+        object_image_pha = None
+        probe_image_pha = None
 
-            object_image = self._fetch_images(it, images_to_show, 'obj_pha')
-            probe_image = self._fetch_images(it, images_to_show, 'prb_pha')
-            if object_image is not None:
-                self.canvas_object_pha.update_image(object_image)
-            if probe_image is not None:
-                self.canvas_probe_pha.update_image(probe_image)
+        if not hasattr(self,'it_ondisplay'):
+            self.it_ondisplay = -1
+
+        if images_to_show is not None and it != self.it_ondisplay:
+            object_image_amp = self._fetch_images(it, images_to_show, 'obj_amp')
+            probe_image_amp = self._fetch_images(it, images_to_show, 'prb_amp')
+            if object_image_amp is not None:
+                self.canvas_object_amp.update_image(object_image_amp)
+            if probe_image_amp is not None:
+                self.canvas_probe_amp.update_image(probe_image_amp)
+
+            object_image_pha = self._fetch_images(it, images_to_show, 'obj_pha')
+            probe_image_pha = self._fetch_images(it, images_to_show, 'prb_pha')
+            if object_image_pha is not None:
+                self.canvas_object_pha.update_image(object_image_pha)
+            if probe_image_pha is not None:
+                self.canvas_probe_pha.update_image(probe_image_pha)
+
+            #if object_image_amp is not None and object_image_pha is not None:
+            #    object_image_comp = utils.imRGB_from_comp(object_image_amp,object_image_pha,(0.95,0.05))
+            #    self.canvas_object_comp.update_image(object_image_comp)
+            
+            if probe_image_amp is not None and probe_image_pha is not None:
+                probe_image_comp = utils.imRGB_from_comp(probe_image_amp,probe_image_pha)
+                self.canvas_probe_comp.update_image(probe_image_comp)
+
+                probe_comp = probe_image_amp*np.exp(1j*probe_image_pha)
+                probe_fft = np.abs(np.fft.fftshift(np.fft.fft2(probe_comp)))
+                self.canvas_probe_fft.update_image(probe_fft)
+            
+            self.it_ondisplay = it
+
+            
+
+            
+
+
 
     def _fetch_images(self, it, images_to_show, flag=None):
         image = None

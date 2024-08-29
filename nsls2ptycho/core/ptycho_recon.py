@@ -1,6 +1,6 @@
 from PyQt5 import QtCore
 from datetime import datetime
-from nsls2ptycho.core.ptycho_param import Param
+from .ptycho_param import Param
 import sys, os
 import pickle     # dump param into disk
 import subprocess # call mpirun from shell
@@ -9,8 +9,8 @@ from os import O_NONBLOCK
 import numpy as np
 import traceback
 
-from nsls2ptycho.core.databroker_api import load_metadata, save_data
-from nsls2ptycho.core.utils import use_mpi_machinefile, set_flush_early
+from .databroker_api import load_metadata, save_data
+from .utils import use_mpi_machinefile, set_flush_early
 
 
 class PtychoReconWorker(QtCore.QThread):
@@ -80,8 +80,12 @@ class PtychoReconWorker(QtCore.QThread):
         return stdout_2.split()
 
     def recon_api(self, param:Param, update_fcn=None):
+        parent_module = '.'.join(self.__module__.rsplit('.', 2)[:-1]) # get parent module name to run the correct recon worker
         # "1" is just a placeholder to be overwritten soon
-        mpirun_command = ["mpirun", "-n", "1", "python", "-W", "ignore", "-m","nsls2ptycho.core.ptycho.recon_ptycho_gui"]
+        if param.gpu_flag and len(param.gpus) == 1:
+            mpirun_command = ["mpirun", "-n", "1", "python", "-W", "ignore", "-m",parent_module+".ptycho.recon_ptycho_gui","%d"%param.gpus[0]]
+        else:
+            mpirun_command = ["mpirun", "-n", "1", "python", "-W", "ignore", "-m",parent_module+".ptycho.recon_ptycho_gui"]
 
         if param.mpi_file_path == '':
             if param.gpu_flag:
@@ -123,6 +127,7 @@ class PtychoReconWorker(QtCore.QThread):
                 while True:
                     stdout = run_ptycho.stdout.readline()
                     stderr = run_ptycho.stderr.readline() # without O_NONBLOCK this will very likely block
+                    
                     if (run_ptycho.poll() is not None) and (stdout==b'') and (stderr==b''):
                         break
 

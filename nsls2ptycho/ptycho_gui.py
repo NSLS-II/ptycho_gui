@@ -1,25 +1,26 @@
 import sys
 import os
 import random
+import time
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog, QAction
 
-from nsls2ptycho.ui import ui_ptycho
-from nsls2ptycho.core.utils import clean_shared_memory, get_mpi_num_processes, parse_range
-from nsls2ptycho.core.ptycho_param import Param
-from nsls2ptycho.core.ptycho_recon import PtychoReconWorker, PtychoReconFakeWorker, HardWorker
-from nsls2ptycho.core.ptycho_qt_utils import PtychoStream
-from nsls2ptycho.core.widgets.list_widget import ListWidget
-from nsls2ptycho.core.widgets.mplcanvas import load_image_pil
-from nsls2ptycho.core.ptycho.utils import parse_config
-from nsls2ptycho._version import __version__
+from .ui import ui_ptycho
+from .core.utils import clean_shared_memory, get_mpi_num_processes, parse_range2
+from .core.ptycho_param import Param
+from .core.ptycho_recon import PtychoReconWorker, PtychoReconFakeWorker, HardWorker
+from .core.ptycho_qt_utils import PtychoStream
+from .core.widgets.list_widget import ListWidget
+from .core.widgets.mplcanvas import load_image_pil
+from .core.ptycho.utils import parse_config
+from ._version import __version__
 
 # databroker related
-from nsls2ptycho.core.databroker_api import db, load_metadata, get_single_image, get_detector_names, beamline_name
+from .core.databroker_api import db, load_metadata, get_single_image, get_detector_names, beamline_name
 
-from nsls2ptycho.reconStep_gui import ReconStepWindow
-from nsls2ptycho.roi_gui import RoiWindow
-from nsls2ptycho.scan_pt import ScanWindow
+from .reconStep_gui import ReconStepWindow
+from .roi_gui import RoiWindow
+from .scan_pt import ScanWindow
 
 import h5py
 import numpy as np
@@ -47,6 +48,8 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.setupUi(self)
         QtWidgets.QApplication.setStyle('Plastique')
 
+        self.cb_dataloader.setCurrentIndex(1)
+        
         # connect
         self.btn_load_probe.clicked.connect(self.loadProbe)
         self.btn_load_object.clicked.connect(self.loadObject)
@@ -59,13 +62,17 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.btn_view_frame.clicked.connect(self.viewDataFrame)
         self.ck_extra_scans_flag.clicked.connect(self.updateExtraScansFlg)
         self.btn_set_extra_scans.clicked.connect(self.setExtraScans)
+        self.btn_batch_badpixel.clicked.connect(self.loadBatchBadpixel)
 
         #self.le_scan_num.editingFinished.connect(self.forceLoad) # too sensitive, why?
         self.le_scan_num.textChanged.connect(self.forceLoad)
         self.cb_dataloader.currentTextChanged.connect(self.forceLoad)
         self.cb_detectorkind.currentTextChanged.connect(self.forceLoad)
 
+        self.ck_recon_subset_flag.clicked.connect(self.updateSubsetFlg)
+
         self.ck_mode_flag.clicked.connect(self.modeMultiSliceGuard)
+        self.ck_afly_flag.clicked.connect(self.updateAflyFlg)
         self.ck_multislice_flag.clicked.connect(self.modeMultiSliceGuard)
         self.ck_mask_obj_flag.clicked.connect(self.updateObjMaskFlg)
         self.ck_gpu_flag.clicked.connect(self.updateGpuFlg)
@@ -140,6 +147,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.update_gui_from_param()
         self.updateExtraScansFlg()
         self.updateModeFlg()
+        self.updateAflyFlg()
         self.updateMultiSliceFlg()
         self.updateObjMaskFlg()
         self.updateBraggFlg()
@@ -240,7 +248,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         p.ny = int(self.sp_y_arr_size.value()) # bookkeeping
         p.dr_y = float(self.sp_y_step_size.value())
         p.y_range = float(self.sp_y_scan_range.value())
-        #p.scan_type = str(self.cb_scan_type.currentText()) # do we need this one?
+        p.scan_type = str(self.cb_scan_type.currentText())
         p.nz = int(self.sp_num_points.value()) # bookkeeping
 
         # recon param group 
@@ -255,17 +263,22 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         p.init_obj_flag = self.ck_init_obj_flag.isChecked()
         # prb and obj path already set 
 
+        p.recon_subset_flag = self.ck_recon_subset_flag.isChecked()
+        p.recon_subset = str(self.le_recon_subset.text())
+
         p.mode_flag = self.ck_mode_flag.isChecked()
+        p.afly_flag = self.ck_afly_flag.isChecked()
         p.prb_mode_num = self.sp_prb_mode_num.value()
+        p.afly_probes = self.sp_afly_probes.value()
         p.obj_mode_num = self.sp_obj_mode_num.value()
-        if p.mode_flag and "_mode" not in p.sign:
-            p.sign = p.sign + "_mode"
+        # if p.mode_flag and "_mode" not in p.sign:
+        #     p.sign = p.sign + "_mode"
 
         p.multislice_flag = self.ck_multislice_flag.isChecked()
         p.slice_num = int(self.sp_slice_num.value())
         p.slice_spacing_m = float(self.sp_slice_spacing_m.value() * 1e-6)
-        if p.multislice_flag and "_ms" not in p.sign:
-            p.sign = p.sign + "_ms"
+        # if p.multislice_flag and "_ms" not in p.sign:
+        #     p.sign = p.sign + "_ms"
 
         p.amp_min = float(self.sp_amp_min.value())
         p.amp_max = float(self.sp_amp_max.value())
@@ -273,7 +286,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         p.pha_max = float(self.sp_pha_max.value())
 
         p.gpu_flag = self.ck_gpu_flag.isChecked()
-        p.gpus = parse_range(self.le_gpus.text(), batch_processing=False)
+        p.gpus = parse_range2(self.le_gpus.text(), batch_processing=False)
         p.gpu_batch_size = int(self.cb_gpu_batch_size.currentText())
 
         # adv param group
@@ -330,6 +343,15 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         p.use_NCCL             = self.rb_nccl.isChecked()
         p.use_CUDA_MPI         = self.rb_cuda_mpi.isChecked()
 
+        p.batch_x0 = int(self.sp_batch_x0.value())
+        p.batch_y0 = int(self.sp_batch_y0.value())
+        p.batch_width = int(self.sp_batch_width.value())
+        p.batch_height = int(self.sp_batch_height.value())
+
+        p.batch_badpixel_file = self.le_batch_badpixel.text()
+
+        p.save_diff = self.ck_save_diff.isChecked()
+
         # TODO: organize them
         #self.ck_init_obj_dpc_flag.setChecked(p.init_obj_dpc_flag) 
         #self.ck_mask_prb_flag.setChecked(p.mask_prb_flag)
@@ -360,10 +382,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         # Exp param group
         self.sp_xray_energy.setValue(1.2398/float(p.lambda_nm) if 'lambda_nm' in p.__dict__ else 0.)
         self.sp_detector_distance.setValue(float(p.z_m) if 'z_m' in p.__dict__ else 0)
-        self.sp_x_arr_size.setValue(float(p.nx))
+        self.sp_x_arr_size.setValue(int(p.nx))
         self.sp_x_step_size.setValue(float(p.dr_x))
         self.sp_x_scan_range.setValue(float(p.x_range))
-        self.sp_y_arr_size.setValue(float(p.ny))
+        self.sp_y_arr_size.setValue(int(p.ny))
         self.sp_y_step_size.setValue(float(p.dr_y))
         self.sp_y_scan_range.setValue(float(p.y_range))
         self.cb_scan_type.setCurrentIndex(p.get_scan_type_index())
@@ -384,7 +406,9 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.le_obj_path.setText(str(p.obj_filename or ''))
 
         self.ck_mode_flag.setChecked(p.mode_flag)
+        self.ck_afly_flag.setChecked(p.afly_flag)
         self.sp_prb_mode_num.setValue(int(p.prb_mode_num))
+        self.sp_afly_probes.setValue(int(p.afly_probes))
         self.sp_obj_mode_num.setValue(int(p.obj_mode_num))
 
         self.ck_multislice_flag.setChecked(p.multislice_flag)
@@ -470,6 +494,16 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.rb_nccl.setChecked(p.use_NCCL)
         self.rb_cuda_mpi.setChecked(p.use_CUDA_MPI)
 
+        self.sp_batch_x0.setValue(p.batch_x0)
+        self.sp_batch_y0.setValue(p.batch_y0)
+        self.sp_batch_width.setValue(p.batch_width)
+        self.sp_batch_height.setValue(p.batch_height)
+        
+        self.le_batch_badpixel.setText(p.batch_badpixel_file)
+
+        self.ck_save_diff.setChecked(p.save_diff)
+        
+
         # batch param group, necessary?
 
 
@@ -516,8 +550,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
                     print("[BATCH] will load " + dirname + filename + " as object")
 
             # this is needed because MPI processes need to know the working directory...
-            self._exportConfigHelper(self._config_path)
-
+            if self.param.gpu_flag and len(self.param.gpus) == 1:
+                self._exportConfigHelper(self._config_path+'%d'%self.param.gpus[0])
+            else:
+                self._exportConfigHelper(self._config_path)
             # init reconStepWindow
             if self.ck_preview_flag.isChecked():
                 if self.param.mode_flag:
@@ -748,6 +784,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
                                       np.rot90(np.abs(self._obj[it-1, 0]  )),
                                       np.rot90(np.abs(self._prb[it-1, 0]  )),
                                       np.rot90(np.angle(self._prb[it-1, 0]))]
+                            
                         self.reconStepWindow.update_images(it, images)
                         self.reconStepWindow.update_metric(it, data)
 
@@ -818,7 +855,13 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
                 scans = self._extra_scans_dialog.listWidget
                 scans.addItems([str(item) for item in p.asso_scan_numbers])
         self._extra_scans_dialog.show()
-            
+
+    def loadBatchBadpixel(self):
+        self.le_batch_badpixel.setText("")
+        filename, _ = QFileDialog.getOpenFileName(self, 'Load badpixel from file', directory=self.param.working_directory, filter="(*.txt)")
+        if filename is not None and len(filename) > 0:
+            self.batch_badpixel_file = filename
+            self.le_batch_badpixel.setText(filename)
 
     def modeMultiSliceGuard(self):
         '''
@@ -833,12 +876,27 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
            self.ck_multislice_flag.setChecked(False)
         self.updateModeFlg()
         self.updateMultiSliceFlg()
+    
+    def updateSubsetFlg(self):
+        recon_subset_flag = self.ck_recon_subset_flag.isChecked()
+        self.le_recon_subset.setEnabled(recon_subset_flag)
+        self.param.recon_subset_flag = recon_subset_flag
 
+    def updateAflyFlg(self):
+        afly_flag = self.ck_afly_flag.isChecked()
+        self.sp_afly_probes.setEnabled(afly_flag)
+        if afly_flag:
+            self.ck_mode_flag.setChecked(True)
+            self.updateModeFlg()
+        self.param.afly_flag = afly_flag
 
     def updateModeFlg(self):
         mode_flag = self.ck_mode_flag.isChecked()
         self.sp_prb_mode_num.setEnabled(mode_flag)
         self.sp_obj_mode_num.setEnabled(mode_flag)
+        if not mode_flag:
+            self.ck_afly_flag.setChecked(False)
+            self.updateAflyFlg()
         self.param.mode_flag = mode_flag
 
 
@@ -916,15 +974,15 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
     def updateBatchCropDataFlg(self):
         if self.cb_dataloader.currentText() != "Load from databroker":
             flag = False
-            self.ck_batch_crop_flag.setChecked(flag)
-            self.ck_batch_crop_flag.setEnabled(flag)
+            #self.ck_batch_crop_flag.setChecked(flag)
+            #self.ck_batch_crop_flag.setEnabled(flag)
         else:
             flag = self.ck_batch_crop_flag.isChecked()
             self.ck_batch_crop_flag.setEnabled(True)
-        self.sp_batch_x0.setEnabled(flag)
-        self.sp_batch_y0.setEnabled(flag)
-        self.sp_batch_width.setEnabled(flag)
-        self.sp_batch_height.setEnabled(flag)
+        #self.sp_batch_x0.setEnabled(flag)
+        #self.sp_batch_y0.setEnabled(flag)
+        #self.sp_batch_width.setEnabled(flag)
+        #self.sp_batch_height.setEnabled(flag)
 
 
     def showNoPostProcessingWarning(self):
@@ -969,18 +1027,29 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
                       "[WARNING] Will attempt to load h5 from working directory", file=sys.stderr)
         
         try:
-            self._scan_numbers = parse_range(self.le_batch_items.text(), self.sp_batch_step.value())
-            print(self._scan_numbers)
+            if self.le_batch_items.text() == '':
+                self._scan_numbers = [-1]
+            elif (self.le_batch_items.text()[0]=='/'):
+                self._scan_numbers = None
+                self._track_file = self.le_batch_items.text()
+                print(self._track_file)
+            else:
+                self._scan_numbers = parse_range2(self.le_batch_items.text())
+                print(self._scan_numbers)
             # TODO: is there a way to lock all widgets to prevent accidental parameter changes in the middle?
 
             # fire up
-            self.le_scan_num.textChanged.disconnect(self.forceLoad)
+            try:
+                self.le_scan_num.textChanged.disconnect(self.forceLoad)
+            except:
+                pass
             if self.ck_init_prb_batch_flag.isChecked():
                 filename = self.le_prb_path_batch.text()
                 self._batch_prb_filename = filename.split("*")
             if self.ck_init_obj_batch_flag.isChecked():
                 filename = self.le_obj_path_batch.text()
                 self._batch_obj_filename = filename.split("*")
+            self._batch_badpixel_file = self.le_batch_badpixel.text()
             self._batch_manager() # serve as linked list's head
         except Exception as ex:
             self.exception_handler(ex)
@@ -1014,9 +1083,56 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         '''
         # TODO: think what if anything goes wrong in the middle. Is this robust?
         if self._scan_numbers is None:
-            return
+            try:
+                if not self.ck_batch_track.isChecked():
+                    scan_numbers = []
+                    work_dir = str(self.le_working_directory.text())
+                    suffix = str(self.le_sign.text())
+                    with open(self._track_file,'r') as file:
+                        lines = file.readlines()
+                        for l in reversed(lines):
+                            try:
+                                snum = int(l.split()[0])
+                                if not os.path.exists(work_dir+'./recon_result/S'+str(snum)+'/'+suffix):
+                                    scan_numbers.append(snum)
+                            except:
+                                pass
+                    self._scan_numbers = scan_numbers
+                    scan_num = self._scan_numbers.pop()
+                else:
+                    scan_num = None
+                    work_dir = str(self.le_working_directory.text())
+                    suffix = str(self.le_sign.text())
+                    while scan_num is None:
+                        with open(self._track_file,'r') as file:
+                            lines = file.readlines()
+                            for l in reversed(lines):
+                                try:
+                                    snum = int(l.split()[0])
+                                    if not os.path.exists(work_dir+'./recon_result/S'+str(snum)+'/'+suffix):
+                                        scan_num = snum
+                                        break
+                                except:
+                                    pass
+                        if scan_num is None:
+                            print("[BATCH] all scans in the list have been reconstructed, pausing 5 seconds")
+                            time.sleep(5)
+                            QtWidgets.QApplication.processEvents()
 
-        if len(self._scan_numbers) > 0:
+                print("[BATCH] begin processing scan " + str(scan_num) + "...")
+                self.le_scan_num.setText(str(scan_num))
+                self.btn_recon_batch_start.setEnabled(False)
+                self.btn_recon_batch_stop.setEnabled(True)
+
+                if self.ck_batch_crop_flag.isChecked():
+                    self._batch_crop()  # also handles "Run" if needed
+                elif self.ck_batch_run_flag.isChecked():
+                    self._batch_run()  # h5 exists, just "Run"
+                else:
+                    raise
+            except:
+                time.sleep(5)
+        elif len(self._scan_numbers) > 0:
             scan_num = self._scan_numbers.pop()
             print("[BATCH] begin processing scan " + str(scan_num) + "...")
             self.le_scan_num.setText(str(scan_num))
@@ -1037,39 +1153,79 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             if self.roiWindow is not None:
                 self.roiWindow = None
 
-
     def _batch_crop(self):
         # ugly hack: pretend the ROI window exists, take the first frame for finding bad pixels,
         # mimic human input, and run the reconstruction (if checked)
 
         # first get params from databroker
+
+        self.cb_dataloader.setCurrentIndex(1)
+
         eventloop = QtCore.QEventLoop()
         self._mainwindow_signal.connect(eventloop.quit)
         self.loadExpParam()
         eventloop.exec()
 
-        # then invoke the h5 worker in RoiWindow
         if self.roiWindow is not None:
             self.roiWindow.close()
-        img = self._viewDataFrameBroker(0)
-        self.roiWindow = RoiWindow(image=img, main_window=self)
-        #self.roiWindow.roi_changed.connect(self._get_roi_slot)
-        self.roiWindow.canvas._eventHandler.set_curr_roi(self.roiWindow.canvas.ax,
-            (self.sp_batch_x0.value(), self.sp_batch_y0.value()),
-            self.sp_batch_width.value(), self.sp_batch_height.value())
+        
         #print("ROI:", self.roiWindow.canvas.get_red_roi())
-        self.roiWindow.save_to_h5()
+        badpixels = None
+        if self._batch_badpixel_file is not None and len(self._batch_badpixel_file) > 0:
+            badpixels = []
+            with open(self._batch_badpixel_file, 'r') as f:
+                for line in f:
+                    x, y = map(int, line.strip().split())
+                    badpixels.append((x,y))
+            badpixels = np.array(badpixels).T
+
+        roi_width = self.sp_batch_width.value()
+        roi_height = self.sp_batch_height.value()
+        # TEST: ROI center
+        cx = self.sp_batch_x0.value() + roi_width // 2
+        cy = self.sp_batch_y0.value() + roi_height // 2
+        self.save_to_h5(roi_width,roi_height,cx,cy,0,badpixels,None,self.sp_batch_upsample.value(),self.ck_save_diff.isChecked())
         #self.btn_recon_batch_stop.clicked.connect(self.roiWindow._worker_thread.terminate)
         if not self.ck_batch_run_flag.isChecked():
-            self.roiWindow._worker_thread.finished.connect(self._batch_manager)
+            self._worker_thread.finished.connect(self._batch_manager)
         else:
-            self.roiWindow._worker_thread.finished.connect(self._batch_run)
+            self._worker_thread.finished.connect(self._batch_run)
+    
+    def save_to_h5(self,roi_width,roi_height,cx,cy,threshold,badpixels,blue_rois,upsample,save_diff):
+        # need an up-to-date param
+        self.update_param_from_gui()
+        p = self.param
+        if p.z_m == 0.:
+            print("[ERROR] detector distance (z_m) is 0 --- maybe forget to set it?", file=sys.stderr)
+            return
+
+        thread = self._worker_thread = HardWorker("save_h5", self.db, p, int(p.scan_num), roi_width, roi_height,
+                                       cx, cy, threshold, badpixels, blue_rois, upsample, save_diff)
+        thread.exception_handler = self.exception_handler
+        thread.setTerminationEnabled()
+        try:
+            thread.start()
+        except Exception as err:
+            print(err)
+
+        # update Exp parameters. Note that there's a np.rot90 to the images in save_h5!!!
+        self.sp_batch_x0.setValue(cx - roi_width // 2)
+        self.sp_batch_y0.setValue(cy - roi_height // 2)
+        self.sp_batch_width.setValue(roi_width)
+        self.sp_batch_height.setValue(roi_height)
+        self.sp_x_arr_size.setValue(roi_height)
+        self.sp_y_arr_size.setValue(roi_width)
 
 
     def _batch_run(self):
-        self.loadExpParam()
-        self.start(True)
-
+        if True:
+            self.cb_dataloader.setCurrentIndex(0)
+            self.loadExpParam()
+            self.start(True)
+            self.cb_dataloader.setCurrentIndex(1)
+        else:
+            self.loadExpParam()
+            self.start(True)
 
     def switchProbeBatch(self):
         if self.ck_init_prb_batch_flag.isChecked():
@@ -1109,10 +1265,11 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
         try:
             if self.cb_dataloader.currentText() == "Load from databroker":
-                img = self._viewDataFrameBroker(frame_num)
+                img, overflow_value = self._viewDataFrameBroker(frame_num)
             
             if self.cb_dataloader.currentText() == "Load from h5":
                 img = self._viewDataFrameH5(frame_num)
+                overflow_value = None
         except OSError:
             # h5 not found, but loadExpParam() has detected it, so do nothing here
             pass
@@ -1124,7 +1281,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             self.exception_handler(ex)
         else:
             if self.roiWindow is None:
-                self.roiWindow = RoiWindow(image=img, main_window=self)
+                self.roiWindow = RoiWindow(image=img, main_window=self, overflow_value = overflow_value)
             #else:
             #    self.roiWindow.reset_window(image=img, main_window=self)
             ##self.roiWindow.roi_changed.connect(self._get_roi_slot)
@@ -1139,6 +1296,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         if self._mds_table is not None:
             return get_single_image(self._db, frame_num, self._mds_table)
         else:
+            #CSX beamline
             scan_num = int(self.le_scan_num.text())
             items = []
             if self._extra_scans_dialog is not None:
@@ -1147,8 +1305,15 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
                     items.append(int(list_widget.item(idx).text()))
     #                items.append(list_widget.item(idx).data(QtCore.Qt.UserRole))#.toPyObject())
     #            items = [item.text() for item in list_widget.items()]
-    #        print(items, self._db)
-            return get_single_image(self._db, frame_num, scan_num, *items)
+    #        print(items, self._db)            if frame_num == -1:
+            if frame_num == -1:
+                frame_all = np.array((self.param.nz,self.param.nx,self.param.ny))
+                print('Loading all frames to show average')
+                for i in range(self.param.nz):
+                    frame_all[i] = get_single_image(self._db, frame_num, scan_num, *items)
+                return np.mean(frame_all,axis=0),None
+            else:
+                return get_single_image(self._db, frame_num, scan_num, *items),None
 
 
     #@profile
@@ -1162,11 +1327,18 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             message += "Available frames for the chosen scan: [0, {1}]."
             raise ValueError(message.format(frame_num, length-1))
         with h5py.File(working_dir+'/scan_'+scan_num+'.h5','r') as f:
-            print("h5 loaded, parsing the {}-th frame...".format(frame_num), end='')
-            img = f['diffamp'][frame_num]
-            #data = f['diffamp'].value
-            #img = data[frame_num]
-            print("done")
+            if frame_num == -1:
+                self.btn_view_frame.setEnabled(False)
+                print("h5 loaded, calculating the average of all frames...", end='')
+                img = np.mean(f['diffamp'], axis=0)
+                print("done")
+                self.btn_view_frame.setEnabled(True)
+            else:
+                print("h5 loaded, parsing the {}-th frame...".format(frame_num), end='')
+                img = f['diffamp'][frame_num]
+                #data = f['diffamp'].value
+                #img = data[frame_num]
+                print("done")
         return img
 
 
@@ -1201,7 +1373,12 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         else:
             self._loaded = True
 
-
+    def find_detector(self,det_names):
+        # find the name that appears like detector
+        for name in det_names:
+            if 'eiger' in name or 'merlin' in name:
+                return name
+        return det_names[0]
     #@profile
     def _loadExpParamBroker(self, scan_id:int):
         self.db = scan_id # set the correct database
@@ -1216,8 +1393,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             self.cb_detectorkind.addItem(detector_name)
             if det_name == detector_name:
                 det_name_exists = True
+                self.cb_detectorkind.setCurrentText(det_name)
         if not det_name_exists:
-            det_name = self.cb_detectorkind.currentText()
+            det_name = self.find_detector(det_names)
+            self.cb_detectorkind.setCurrentText(det_name)
 
         # get metadata
         thread = self._worker_thread \
@@ -1226,6 +1405,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         thread.finished.connect(lambda: self.btn_load_scan.setEnabled(True))
         thread.exception_handler = self.exception_handler
         self.btn_load_scan.setEnabled(False)
+        self.btn_view_frame.setEnabled(False)
         thread.start()
 
 
@@ -1244,9 +1424,9 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
         # update experimental parameters
         self.sp_xray_energy.setValue(metadata['xray_energy_kev'])
-        if 'z_m' in metadata:
-            print("[WARNING] Retrieved and updated the detector distance (from a hard-coded source).", file=sys.stderr)
-            self.sp_detector_distance.setValue(metadata['z_m'])
+        #if 'z_m' in metadata:
+        #    print("[WARNING] Retrieved and updated the detector distance (from a hard-coded source).", file=sys.stderr)
+        #    self.sp_detector_distance.setValue(metadata['z_m'])
         self.sp_x_arr_size.setValue(metadata['nx'])
         self.sp_y_arr_size.setValue(metadata['ny'])
         self.sp_num_points.setValue(metadata['nz'])
@@ -1255,12 +1435,14 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         self.sp_x_scan_range.setValue(metadata['x_range'])
         self.sp_y_scan_range.setValue(metadata['y_range'])
         self.sp_ccd_pixel_um.setValue(metadata['ccd_pixel_um'])
+        self.sp_detector_distance.setValue(metadata['z_m'])
         self.sp_angle.setValue(metadata['angle'])
         if self.cb_scan_type.findText(metadata['scan_type']) == -1:
             self.cb_scan_type.addItem(metadata['scan_type'])
         self.cb_scan_type.setCurrentText(metadata['scan_type'])
         self._scan_points = metadata['points']
         print("done")
+        self.btn_view_frame.setEnabled(True)
         self._mainwindow_signal.emit()
 
 
@@ -1268,10 +1450,10 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
         if self.cb_dataloader.currentText() == "Load from databroker":
             self.cb_detectorkind.setEnabled(True)
             self.cb_scan_type.setEnabled(True)
-            if beamline_name == 'HXN':
-                #print("[WARNING] Currently detector distance is unavailable in Databroker and must be set manually!", file=sys.stderr)
-                print("[WARNING] Detector distance is unavailable in Databroker, assumed to be 0.5m", file=sys.stderr)
-                self.sp_detector_distance.setValue(0.5)
+            #if beamline_name == 'HXN':
+            #    #print("[WARNING] Currently detector distance is unavailable in Databroker and must be set manually!", file=sys.stderr)
+            #    print("[WARNING] Detector distance is unavailable in Databroker, assumed to be 0.5m", file=sys.stderr)
+            #    self.sp_detector_distance.setValue(0.5)
         if self.cb_dataloader.currentText() == "Load from h5":
             self.cb_detectorkind.setEnabled(False)
             self.cb_scan_type.setEnabled(False) # do we ever write scan type to h5???
@@ -1286,7 +1468,13 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
             print("h5 loaded, parsing experimental parameters...", end='')
             self.sp_xray_energy.setValue(1.2398/f['lambda_nm'][()])
             self.sp_detector_distance.setValue(f['z_m'][()])
-            nz, nx, ny = f['diffamp'].shape
+            if not ('raw_data' in f.keys() and f['raw_data/flag'][()]):
+                nz, nx, ny = f['diffamp'].shape
+            else:
+                nz = f['points'].shape[1]
+                roi = np.array(f['raw_data/roi'])
+                nx = roi[0,1] - roi[0,0]
+                ny = roi[1,1] - roi[1,0]
             self.sp_x_arr_size.setValue(nx)
             self.sp_y_arr_size.setValue(ny)
             self.sp_num_points.setValue(nz)
@@ -1307,7 +1495,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
 
     def importConfig(self):
-        filename, _ = QFileDialog.getOpenFileName(self, 'Select GUI config file', directory=self.param.working_directory, filter="(*.txt)")
+        filename, _ = QFileDialog.getOpenFileName(self, 'Select GUI config file', directory=self.param.working_directory)
         if filename is not None and len(filename) > 0:
             try:
                 self.param = parse_config(filename, self.param)
@@ -1335,7 +1523,7 @@ class MainWindow(QtWidgets.QMainWindow, ui_ptycho.Ui_MainWindow):
 
     def exportConfig(self):
         self.update_param_from_gui()
-        filename, _ = QFileDialog.getSaveFileName(self, 'Save GUI config to txt', directory=self.param.working_directory, filter="(*.txt)")
+        filename, _ = QFileDialog.getSaveFileName(self, 'Save GUI config', directory=self.param.working_directory)
         if filename is not None and len(filename) > 0:
             if filename[-4:] != ".txt":
                 filename += ".txt"

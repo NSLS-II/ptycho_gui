@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui_reconstep.ui'
+# Form implementation generated from reading ui file '/nsls2/users/zgao1/python_packages/nsls2ptycho2/ui/ui_reconstep.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.7
 #
@@ -201,13 +201,3 @@ class Ui_MainWindow(object):
         self.label_10.setText(_translate("MainWindow", "Error"))
         self.label_9.setText(_translate("MainWindow", "Probe"))
 from ..core.widgets.mplcanvas import MplCanvas
-
-
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())
